@@ -1,0 +1,14 @@
+# Real data (do not redistribute)
+data/raw/*
+!data/raw/.gitkeep
+
+# Generated synthetic data
+data/synthetic/*
+!data/synthetic/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+env/
