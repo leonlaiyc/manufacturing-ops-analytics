@@ -25,16 +25,6 @@ validated, not just demonstrated.
 - Answers "what if": add capacity at a station, or demand rises by X% — projected
   output, cycle time, and cost per unit.
 
-## Approach & honest scope
-
-The real production log is used for diagnosis; the discrete-event line is
-synthetic and is **clearly labeled as synthetic** throughout. The synthetic line
-exists to provide volume, a known ground-truth bottleneck, and labeled injected
-anomalies, so that detection and monitoring methods can be measured objectively.
-It is not intended to predict any specific real fab. Where AI assistance was used
-for implementation, the modeling assumptions and method choices are documented so
-they can be explained and challenged.
-
 ## Methods are deliberately interpretable
 
 Bottleneck logic is utilization / Theory-of-Constraints based; KPI monitoring is
@@ -77,3 +67,13 @@ python src/generator/validate_m2.py
 
 This checks Little's Law self-consistency (WIP = throughput x cycle time) and
 confirms the engineered bottleneck is recovered empirically.
+
+## Scope & honest notes
+
+The real production log is used for diagnosis; the discrete-event line is
+synthetic and is **clearly labeled as synthetic** throughout. The synthetic line
+exists to provide volume, a known ground-truth bottleneck, and labeled injected
+anomalies, so that detection and monitoring methods can be measured objectively.
+It is not intended to predict any specific real fab. Where AI assistance was used
+for implementation, the modeling assumptions and method choices are documented so
+they can be explained and challenged.
