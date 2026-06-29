@@ -50,15 +50,20 @@ Python (Jupyter), PM4Py (process mining), pandas / numpy, plotly + matplotlib, S
 
 ## Working agreement
 
-- Use plan mode for any non-trivial milestone; present the plan before implementing.
+- Claude Code's role is **execution only**. Planning, scope, method selection, and
+  interpretation are decided by the project owner and handed over as concrete
+  instructions. Do not independently choose methods, redefine scope, or add analysis
+  beyond what is asked.
+- If something looks missing, wrong, or ambiguous, surface it as a question — do not
+  self-direct or guess.
+- Use plan mode to show the concrete steps of a given task before running, for approval.
 - Keep modules small and documented so each method can be explained in review.
-- For M4–M6, the method/approach is confirmed with the project owner before implementation.
 
 ## Version control
 
-- Work on `main`. At the **end of each milestone**, commit and push.
-- Commit messages: Conventional Commits, tagged with the milestone, e.g.
-  `feat: KPI dashboard for WIP / cycle time / utilization (M3)`.
-- Optionally mark each finished milestone with a lightweight git tag (`M3`, `M4`, ...).
-- Generated artifacts (`data/synthetic/*`, `data/raw/*`) stay gitignored; the repo is
-  reproducible by running the generator, so do not commit generated data.
+- Commit at **every small completed step**, not only at milestone boundaries, so there is
+  an auditable trail to follow.
+- Push after each commit once the remote is set.
+- Conventional Commits, milestone-tagged where applicable, e.g.
+  `feat: process mining on real production log (M1)`.
+- Generated artifacts (`data/synthetic/*`, `data/raw/*`) stay gitignored.
