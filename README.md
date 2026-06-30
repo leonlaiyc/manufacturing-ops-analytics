@@ -11,19 +11,29 @@ It combines the two things an operations team actually relies on.
 log reconstructs the actual flow, measures where time is spent, and surfaces
 rework loops and the steps that dominate cycle time.
 
-**A decision sandbox.** A transparent discrete-event model of a re-entrant
+**A decision sandbox.** A transparent discrete-event model of a high-mix, re-entrant
 production line (structure informed by the public SMT2020 semiconductor
 manufacturing testbed) is used to monitor KPIs, detect anomalies early, and run
 capacity / scenario what-ifs against a known ground truth so the methods can be
 validated, not just demonstrated.
 
-## What it does
+## What this project is designed to do
 
 - Visualizes line state over time: WIP, output, station utilization, cycle time.
 - Identifies the bottleneck station and quantifies its cost in cycle time.
 - Flags abnormal KPI shifts early (process drift, equipment downtime, demand surge).
 - Answers "what if": add capacity at a station, or demand rises by X% — projected
   output, cycle time, and cost per unit.
+
+## Current status
+
+- [x] M0 Project framing, glossary, honest-scope docs
+- [x] M1 Process mining on a real production log
+- [x] M2 Synthetic discrete-event simulation with a ground-truth bottleneck
+- [x] M3 KPI dashboard (WIP, output, utilization, cycle time)
+- [ ] M4 Bottleneck identification and validation
+- [ ] M5 KPI anomaly monitoring
+- [ ] M6 Capacity / demand / cost what-if decision support
 
 ## Methods are deliberately interpretable
 
@@ -74,6 +84,6 @@ The real production log is used for diagnosis; the discrete-event line is
 synthetic and is **clearly labeled as synthetic** throughout. The synthetic line
 exists to provide volume, a known ground-truth bottleneck, and labeled injected
 anomalies, so that detection and monitoring methods can be measured objectively.
-It is not intended to predict any specific real fab. Where AI assistance was used
+It is not intended to represent any specific factory or wafer fab. Where AI assistance was used
 for implementation, the modeling assumptions and method choices are documented so
 they can be explained and challenged.
