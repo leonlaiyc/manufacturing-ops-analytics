@@ -30,7 +30,7 @@ validated, not just demonstrated.
 - [x] M0 Project framing, glossary, honest-scope docs
 - [x] M1 Process mining on a real production log
 - [x] M2 Synthetic discrete-event simulation with a ground-truth bottleneck
-- [x] M3 KPI dashboard (WIP, output, utilization, cycle time)
+- [x] M3 KPI dashboard (WIP, output, utilization, cycle time) — [interactive HTML](reports/html/03_kpi_dashboard.html)
 - [ ] M4 Bottleneck identification and validation
 - [ ] M5 KPI anomaly monitoring
 - [ ] M6 Capacity / demand / cost what-if decision support
