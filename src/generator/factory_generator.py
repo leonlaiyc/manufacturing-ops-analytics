@@ -30,6 +30,22 @@ Design choices (each is a deliberate, defendable trade-off):
   M4 detector.
 
 The simulation is fully seeded for reproducibility.
+
+Common Random Numbers (CRN) — M4 addition
+------------------------------------------
+For the M4 counterfactual we need a *paired* comparison: baseline vs "+1 tool at
+station X" must face the SAME random inputs so the measured delta reflects only
+the capacity change, not a different random stream. To support that, all
+randomness can be pre-drawn into a ``RandomDraws`` table via ``draw_randoms()``
+and passed to ``simulate(cfg, draws=...)``; the event loop then consumes the
+table and calls no RNG at all.
+
+- ``simulate(cfg)`` with ``draws=None`` is the ORIGINAL M2 code path, byte-for-byte
+  unchanged: it samples lazily inside the event loop from an internal RNG seeded
+  by ``cfg.seed``. M2/M3 artifacts are unaffected by the CRN refactor.
+- ``simulate(cfg, draws)`` with an explicit table is fully deterministic (no RNG),
+  which is what makes baseline-vs-baseline on the same table produce an exact zero
+  delta — the sanity check that proves no hidden RNG source escapes the table.
 """
 
 from __future__ import annotations
@@ -63,6 +79,33 @@ class FactoryConfig:
     product_type: str = "P1"
 
 
+@dataclass
+class RandomDraws:
+    """Pre-drawn randomness for one simulation replication (Common Random Numbers).
+
+    Attributes
+    ----------
+    arrivals : list[float]
+        Absolute arrival time of each lot, in arrival order. ``lot_id`` is the
+        index into this list, so ``len(arrivals)`` fixes the lot count for the run.
+    proc_times : list[list[float]]
+        ``proc_times[lot_id][step]`` is the processing time (hours) that lot
+        consumes at route position ``step``.
+
+        IMPORTANT — indexing is by ROUTE STEP (visit order), NOT by station.
+        The route is re-entrant: ``["S1","S2","S3","S4","S5","S4","S6","S7"]``
+        visits S4 twice, at step 3 and step 5. Those are two INDEPENDENT draws,
+        ``proc_times[lot][3]`` and ``proc_times[lot][5]``. Because the pairing is
+        by step, baseline and any "+1 tool" treatment consume the exact same two
+        S4 draws in the exact same order — a re-entrant station cannot get its
+        paired draws mis-aligned. Every lot traverses the full route exactly once
+        (no rework in this model), so ``len(proc_times[lot]) == len(route)`` and
+        the table is consumed identically regardless of ``n_tools``.
+    """
+    arrivals: list           # arrivals[lot_id] -> arrival time
+    proc_times: list         # proc_times[lot_id][step] -> processing hours
+
+
 def _lognormal_params(mean: float, cv: float) -> tuple[float, float]:
     """Convert a target mean and CV into lognormal (mu, sigma) parameters."""
     sigma2 = math.log(1.0 + cv ** 2)
@@ -85,9 +128,66 @@ def theoretical_utilization(cfg: FactoryConfig) -> dict:
     return rho
 
 
-def simulate(cfg: FactoryConfig):
+def draw_randoms(cfg: FactoryConfig, seed: int) -> RandomDraws:
+    """Pre-draw all randomness for one replication into a reusable table (CRN).
+
+    The returned table depends only on ``seed`` and the *distributional* config
+    (arrival_rate, route, and each station's pt_mean / pt_cv). It does NOT depend
+    on ``n_tools``. That is the whole point: generate one table per replication,
+    then run the baseline and every "+1 tool" scenario against that SAME table so
+    they face identical arrivals and identical per-visit processing times, and the
+    only thing that varies is capacity.
+
+    Draw order (single RNG stream, documented for reproducibility):
+      1. Inter-arrival times, accumulated until ``horizon_hours`` (same rule the
+         legacy ``draws=None`` path uses to schedule arrivals).
+      2. Then, per lot in arrival order, one processing-time draw per route step,
+         in step order. See ``RandomDraws.proc_times`` for the by-step indexing
+         and why it keeps re-entrant S4 paired correctly.
+    """
+    rng = np.random.default_rng(seed)
+
+    # 1) Arrivals — identical generation rule to the legacy path.
+    arrivals: list = []
+    t = 0.0
+    while True:
+        t += rng.exponential(1.0 / cfg.arrival_rate)
+        if t >= cfg.horizon_hours:
+            break
+        arrivals.append(t)
+
+    # 2) Processing times, indexed by (lot, route step). S4 at steps 3 and 5 gets
+    #    two independent draws here; both are reused by baseline and treatment.
+    lognorm_params = {
+        s: _lognormal_params(st.pt_mean, st.pt_cv)
+        for s, st in cfg.stations.items()
+    }
+    proc_times: list = []
+    for _ in arrivals:
+        lot_pts = []
+        for step, s in enumerate(cfg.route):
+            mu, sigma = lognorm_params[s]
+            lot_pts.append(float(rng.lognormal(mu, sigma)))
+        proc_times.append(lot_pts)
+
+    return RandomDraws(arrivals=arrivals, proc_times=proc_times)
+
+
+def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None):
     """
     Run the discrete-event simulation.
+
+    Parameters
+    ----------
+    cfg : FactoryConfig
+        Factory / experiment configuration.
+    draws : RandomDraws | None
+        If ``None`` (default), randomness is sampled lazily inside the event loop
+        from an internal RNG seeded by ``cfg.seed`` — this is the ORIGINAL M2
+        behaviour, kept byte-for-byte identical. If a ``RandomDraws`` table is
+        provided (Common Random Numbers), the loop consumes it and calls NO RNG,
+        so the run is fully deterministic and paired against any other run that
+        uses the same table.
 
     Returns
     -------
@@ -100,7 +200,10 @@ def simulate(cfg: FactoryConfig):
     meta : dict
         Configuration echo + ground-truth bottleneck.
     """
-    rng = np.random.default_rng(cfg.seed)
+    # RNG exists ONLY on the legacy (draws=None) path. On the CRN path it stays
+    # None and must never be touched — if it were, baseline-vs-baseline on one
+    # table would not be an exact zero and the CRN sanity check would catch it.
+    rng = np.random.default_rng(cfg.seed) if draws is None else None
 
     free = {s: st.n_tools for s, st in cfg.stations.items()}   # free tools per station
     pending = {s: [] for s in cfg.stations}                    # FIFO queues
@@ -121,25 +224,42 @@ def simulate(cfg: FactoryConfig):
         mu, sigma = _lognormal_params(st.pt_mean, st.pt_cv)
         return float(rng.lognormal(mu, sigma))
 
+    def pt_for(lot, step, s):
+        """Processing time for ``lot`` at route position ``step`` (station ``s``).
+
+        Legacy path (draws=None): draw lazily, preserving the original RNG call
+        order exactly. CRN path: read the pre-drawn value indexed by (lot, step)
+        — by step, so re-entrant S4 (steps 3 and 5) stays paired.
+        """
+        if draws is None:
+            return sample_pt(s)
+        return draws.proc_times[lot][step]
+
     def request(lot, step, now):
         """Lot requests the station for this route step."""
         s = cfg.route[step]
         if free[s] > 0:
             free[s] -= 1
-            pt = sample_pt(s)
+            pt = pt_for(lot, step, s)
             push(now + pt, "complete",
                  {"lot": lot, "step": step, "qentry": now, "start": now})
         else:
             pending[s].append({"lot": lot, "step": step, "qentry": now})
 
-    # Schedule Poisson arrivals up front.
-    t, lot_id = 0.0, 0
-    while True:
-        t += rng.exponential(1.0 / cfg.arrival_rate)
-        if t >= cfg.horizon_hours:
-            break
-        push(t, "arrive", {"lot": lot_id})
-        lot_id += 1
+    # Schedule arrivals up front.
+    if draws is None:
+        # Legacy: Poisson arrivals sampled from the internal RNG (unchanged).
+        t, lot_id = 0.0, 0
+        while True:
+            t += rng.exponential(1.0 / cfg.arrival_rate)
+            if t >= cfg.horizon_hours:
+                break
+            push(t, "arrive", {"lot": lot_id})
+            lot_id += 1
+    else:
+        # CRN: arrivals come straight from the pre-drawn table.
+        for lot_id, at in enumerate(draws.arrivals):
+            push(at, "arrive", {"lot": lot_id})
 
     # Event loop.
     while heap:
@@ -167,7 +287,7 @@ def simulate(cfg: FactoryConfig):
         if pending[s]:
             nxt = pending[s].pop(0)
             free[s] -= 1
-            pt = sample_pt(s)
+            pt = pt_for(nxt["lot"], nxt["step"], s)
             push(now + pt, "complete",
                  {"lot": nxt["lot"], "step": nxt["step"],
                   "qentry": nxt["qentry"], "start": now})
