@@ -113,6 +113,129 @@ def _lognormal_params(mean: float, cv: float) -> tuple[float, float]:
     return mu, math.sqrt(sigma2)
 
 
+# --------------------------------------------------------------------------- #
+# Anomaly injection primitives (M5)
+# --------------------------------------------------------------------------- #
+# These are the injection primitives the simulator interprets, so they live with
+# the simulator (monitoring/ depends on generator, not the other way round). Each
+# anomaly is a DETERMINISTIC function of time layered on top of the same base
+# draws — the draw table is never mutated, so CRN pairing with a clean twin holds.
+# Every anomaly carries an explicit [t_start, t_end] window = the ground truth.
+#
+# Contract used by simulate()'s injection path:
+#   tools_delta(station, t)   -> int   change to effective n_tools at (station, t)
+#   pt_multiplier(station, t) -> float multiplier on processing time at (station, t)
+#   extra_arrivals(cfg)       -> list[(arrival_time, [proc_time per route step])]
+#   boundaries()              -> list[float] times to re-evaluate dispatch
+#   label()                   -> dict describing the injected window (for meta)
+# When no anomaly applies, tools_delta=0 / pt_multiplier=1.0 / extra_arrivals=[],
+# i.e. the identity — so simulate(..., anomalies=[]) equals the un-injected run.
+
+@dataclass
+class BreakdownAnomaly:
+    """Capacity mask: reduce a station's effective n_tools during a window.
+
+    Models an availability drop (tools offline). Arrival and processing draws are
+    untouched; only the number of serving tools changes, restored at ``t_end``.
+    """
+    station: str
+    t_start: float
+    t_end: float
+    tools_removed: int = 1
+
+    def tools_delta(self, station: str, t: float) -> int:
+        if station == self.station and self.t_start <= t < self.t_end:
+            return -self.tools_removed
+        return 0
+
+    def pt_multiplier(self, station: str, t: float) -> float:
+        return 1.0
+
+    def extra_arrivals(self, cfg) -> list:
+        return []
+
+    def boundaries(self) -> list:
+        return [self.t_start, self.t_end]
+
+    def label(self) -> dict:
+        return {"type": "breakdown", "station": self.station,
+                "t_start": self.t_start, "t_end": self.t_end,
+                "tools_removed": self.tools_removed}
+
+
+@dataclass
+class DegradationAnomaly:
+    """Deterministic slow drift: processing time ramps up over a window.
+
+    Effective processing time = base_draw * (1 + alpha * (t - t_onset)) at the
+    station for t in [t_onset, t_end]. The multiplier is a pure function of time
+    (no extra random draws — that would break CRN). After t_end, back to normal.
+    """
+    station: str
+    t_onset: float
+    t_end: float
+    alpha: float          # fractional processing-time increase per hour
+
+    def tools_delta(self, station: str, t: float) -> int:
+        return 0
+
+    def pt_multiplier(self, station: str, t: float) -> float:
+        if station == self.station and self.t_onset <= t <= self.t_end:
+            return 1.0 + self.alpha * (t - self.t_onset)
+        return 1.0
+
+    def extra_arrivals(self, cfg) -> list:
+        return []
+
+    def boundaries(self) -> list:
+        return [self.t_onset, self.t_end]
+
+    def label(self) -> dict:
+        return {"type": "degradation", "station": self.station,
+                "t_start": self.t_onset, "t_end": self.t_end, "alpha": self.alpha}
+
+
+@dataclass
+class DemandSurgeAnomaly:
+    """Extra arrivals during a window, drawn from a separate seeded stream.
+
+    The base draw table is untouched; the surge adds lots (disjoint lot_ids) whose
+    inter-arrival and per-step processing times come from this anomaly's own seed.
+    """
+    t_start: float
+    t_end: float
+    extra_rate: float     # additional lots per hour
+    seed: int = 7
+
+    def tools_delta(self, station: str, t: float) -> int:
+        return 0
+
+    def pt_multiplier(self, station: str, t: float) -> float:
+        return 1.0
+
+    def extra_arrivals(self, cfg) -> list:
+        rng = np.random.default_rng(self.seed)
+        params = {s: _lognormal_params(st.pt_mean, st.pt_cv)
+                  for s, st in cfg.stations.items()}
+        out = []
+        t = self.t_start
+        while True:
+            t += rng.exponential(1.0 / self.extra_rate)
+            if t >= self.t_end:
+                break
+            pts = [float(rng.lognormal(*params[cfg.route[step]]))
+                   for step in range(len(cfg.route))]
+            out.append((t, pts))
+        return out
+
+    def boundaries(self) -> list:
+        return [self.t_start, self.t_end]
+
+    def label(self) -> dict:
+        return {"type": "demand_surge", "t_start": self.t_start,
+                "t_end": self.t_end, "extra_rate": self.extra_rate}
+
+
 def theoretical_utilization(cfg: FactoryConfig) -> dict:
     """
     Design-time utilization per station:
@@ -173,7 +296,8 @@ def draw_randoms(cfg: FactoryConfig, seed: int) -> RandomDraws:
     return RandomDraws(arrivals=arrivals, proc_times=proc_times)
 
 
-def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None):
+def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
+             anomalies: list | None = None):
     """
     Run the discrete-event simulation.
 
@@ -188,6 +312,11 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None):
         provided (Common Random Numbers), the loop consumes it and calls NO RNG,
         so the run is fully deterministic and paired against any other run that
         uses the same table.
+    anomalies : list | None
+        If ``None`` or empty (default), the ORIGINAL un-injected code path below
+        runs unchanged — M2/M3/M4 output is byte-identical. If anomalies are
+        given, control passes to ``_simulate_injected`` (M5), which layers the
+        anomalies' deterministic, time-based transforms on top of the same draws.
 
     Returns
     -------
@@ -200,6 +329,9 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None):
     meta : dict
         Configuration echo + ground-truth bottleneck.
     """
+    if anomalies:
+        return _simulate_injected(cfg, draws, anomalies)
+
     # RNG exists ONLY on the legacy (draws=None) path. On the CRN path it stays
     # None and must never be touched — if it were, baseline-vs-baseline on one
     # table would not be an exact zero and the CRN sanity check would catch it.
@@ -319,6 +451,169 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None):
         "route": cfg.route,
         "theoretical_utilization": rho,
         "ground_truth_bottleneck": bottleneck,
+    }
+    return log, lifecycle, meta
+
+
+def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies: list):
+    """Injection-aware DES (M5). Only reached when ``anomalies`` is non-empty.
+
+    Differs from the un-injected path in three isolated ways, all identity when no
+    anomaly is active (so ``simulate(cfg, draws, anomalies=[])`` — which never
+    reaches here — and a run whose anomalies are all inactive behave like the
+    plain path):
+
+      * capacity is time-varying: a ``busy[s]`` counter is checked against
+        ``effective_capacity(s, now) = n_tools + sum(tools_delta)`` instead of a
+        static ``free[s]`` (lets a breakdown mask reduce serving tools);
+      * processing times are scaled by ``prod(pt_multiplier(s, now))`` at service
+        start (lets a degradation ramp slow a station);
+      * extra arrivals from demand-surge anomalies are scheduled from their own
+        seeded stream, with lot_ids in a disjoint range so base draws are untouched.
+
+    Boundary events are scheduled at every anomaly window edge so that when a
+    breakdown ends (capacity restored) any waiting lots are re-dispatched even if
+    no completion happens to fire at that instant.
+    """
+    rng = np.random.default_rng(cfg.seed) if draws is None else None
+
+    base_tools = {s: st.n_tools for s, st in cfg.stations.items()}
+    busy = {s: 0 for s in cfg.stations}                        # tools in service
+    pending = {s: [] for s in cfg.stations}                    # FIFO queues
+    rows = []
+    arrivals: dict[int, float] = {}
+    completions: dict[int, float] = {}
+    extra_pts: dict[int, list] = {}                            # surge lot -> proc times
+
+    heap: list = []
+    seq = 0
+
+    def push(t, kind, payload):
+        nonlocal seq
+        heapq.heappush(heap, (t, seq, kind, payload))
+        seq += 1
+
+    def sample_pt(s):
+        st = cfg.stations[s]
+        mu, sigma = _lognormal_params(st.pt_mean, st.pt_cv)
+        return float(rng.lognormal(mu, sigma))
+
+    def base_pt(lot, step, s):
+        if lot in extra_pts:                 # surge lot carries its own draws
+            return extra_pts[lot][step]
+        if draws is None:
+            return sample_pt(s)
+        return draws.proc_times[lot][step]
+
+    def effective_capacity(s, now):
+        delta = sum(a.tools_delta(s, now) for a in anomalies)
+        return max(0, base_tools[s] + delta)
+
+    def pt_multiplier(s, now):
+        m = 1.0
+        for a in anomalies:
+            m *= a.pt_multiplier(s, now)
+        return m
+
+    def start_service(lot, step, s, qentry, now):
+        busy[s] += 1
+        pt = base_pt(lot, step, s) * pt_multiplier(s, now)
+        push(now + pt, "complete",
+             {"lot": lot, "step": step, "qentry": qentry, "start": now})
+
+    def try_dispatch(s, now):
+        # Start as many queued lots as the (possibly reduced) capacity allows, FIFO.
+        while pending[s] and busy[s] < effective_capacity(s, now):
+            nxt = pending[s].pop(0)
+            start_service(nxt["lot"], nxt["step"], s, nxt["qentry"], now)
+
+    def request(lot, step, now):
+        s = cfg.route[step]
+        pending[s].append({"lot": lot, "step": step, "qentry": now})
+        try_dispatch(s, now)
+
+    # Base arrivals (identical source to the plain path).
+    if draws is None:
+        t, lot_id = 0.0, 0
+        while True:
+            t += rng.exponential(1.0 / cfg.arrival_rate)
+            if t >= cfg.horizon_hours:
+                break
+            push(t, "arrive", {"lot": lot_id})
+            lot_id += 1
+    else:
+        for lot_id, at in enumerate(draws.arrivals):
+            push(at, "arrive", {"lot": lot_id})
+
+    # Extra arrivals from demand-surge anomalies (disjoint lot_ids, own draws).
+    next_extra = 1_000_000
+    for a in anomalies:
+        for at, pts in a.extra_arrivals(cfg):
+            extra_pts[next_extra] = pts
+            push(at, "arrive", {"lot": next_extra})
+            next_extra += 1
+
+    # Boundary events so restored capacity re-triggers dispatch at window edges.
+    for a in anomalies:
+        for tb in a.boundaries():
+            if 0 <= tb <= cfg.horizon_hours:
+                push(tb, "boundary", {})
+
+    # Event loop.
+    while heap:
+        now, _, kind, p = heapq.heappop(heap)
+
+        if kind == "arrive":
+            arrivals[p["lot"]] = now
+            request(p["lot"], 0, now)
+            continue
+
+        if kind == "boundary":
+            for s in cfg.stations:
+                try_dispatch(s, now)
+            continue
+
+        # kind == "complete"
+        s = cfg.route[p["step"]]
+        rows.append({
+            "lot_id": p["lot"],
+            "product_type": cfg.product_type,
+            "step_seq": p["step"],
+            "station": s,
+            "queue_entry_time": p["qentry"],
+            "process_start_time": p["start"],
+            "process_complete_time": now,
+        })
+        busy[s] -= 1
+        try_dispatch(s, now)                 # pull next waiting lot (FIFO)
+
+        nstep = p["step"] + 1
+        if nstep < len(cfg.route):
+            request(p["lot"], nstep, now)
+        else:
+            completions[p["lot"]] = now
+
+    log = (pd.DataFrame(rows)
+           .sort_values(["lot_id", "step_seq"])
+           .reset_index(drop=True))
+
+    lifecycle = pd.DataFrame({
+        "lot_id": list(arrivals.keys()),
+        "arrival_time": list(arrivals.values()),
+    })
+    lifecycle["completion_time"] = lifecycle["lot_id"].map(completions)
+
+    rho = theoretical_utilization(cfg)
+    bottleneck = max(rho, key=rho.get)
+    meta = {
+        "seed": cfg.seed,
+        "arrival_rate": cfg.arrival_rate,
+        "horizon_hours": cfg.horizon_hours,
+        "warmup_hours": cfg.warmup_hours,
+        "route": cfg.route,
+        "theoretical_utilization": rho,
+        "ground_truth_bottleneck": bottleneck,
+        "anomalies": [a.label() for a in anomalies],
     }
     return log, lifecycle, meta
 
