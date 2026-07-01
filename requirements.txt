@@ -1,7 +1,6 @@
 # Pinned loosely; exact versions locked after M2 runs end to end.
 pandas>=2.0
 numpy>=1.24
-plotly>=5.18
 pm4py>=2.7
 streamlit>=1.30
 scipy>=1.11

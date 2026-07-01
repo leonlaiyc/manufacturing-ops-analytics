@@ -19,6 +19,9 @@ anomaly detection, and capacity / scenario planning.
   black-box models. Every method must be explainable from first principles. If a
   technique cannot be explained simply, choose a simpler one.
 - **Reproducibility:** all synthetic generation uses a fixed seed.
+- **Charts that must be visible on GitHub use matplotlib static images**
+  (GitHub does not execute the JavaScript that interactive Plotly needs).
+  Interactive versions, if needed, are exported separately as standalone HTML.
 
 ## Locked design decisions (do not change without explicit instruction)
 
