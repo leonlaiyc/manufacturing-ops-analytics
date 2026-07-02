@@ -16,7 +16,7 @@ Confirms the anomaly-injection hook does not disturb M2-M4 and behaves correctly
            degradation raise the bottleneck's cycle time / waiting, and the demand
            surge adds lots.
 
-The byte-identical M2-M4 guarantee itself (Little's Law, S4 recovery, CRN Δ=0) is
+The byte-identical M2-M4 guarantee itself (Little's Law, LITHO recovery, CRN Δ=0) is
 covered by src/generator/crn_check.py and validate_m2.py, which are unaffected
 because anomalies default to None. Run those too.
 
@@ -66,7 +66,7 @@ def main() -> int:
     print("=" * 64)
     print("GATE 2 — inactive-anomaly injected path == clean (physical)")
     print("=" * 64)
-    inactive = BreakdownAnomaly("S4", T1 + 100, T1 + 200, tools_removed=2)
+    inactive = BreakdownAnomaly("LITHO", T1 + 100, T1 + 200, tools_removed=2)
     log_i, _, _ = simulate(cfg, draws, anomalies=[inactive])
     g2 = log_i.equals(log_clean)
     print(f"  injected-but-inactive == clean  : {g2}")
@@ -77,9 +77,9 @@ def main() -> int:
     print("=" * 64)
     ts = 30 * 24.0
     scenario = [
-        BreakdownAnomaly("S4", ts, ts + 2 * 24, tools_removed=1),
+        BreakdownAnomaly("LITHO", ts, ts + 2 * 24, tools_removed=1),
         DemandSurgeAnomaly(40 * 24.0, 44 * 24.0, extra_rate=0.5, seed=7),
-        DegradationAnomaly("S4", 46 * 24.0, 55 * 24.0, alpha=0.0005),
+        DegradationAnomaly("LITHO", 46 * 24.0, 55 * 24.0, alpha=0.0005),
     ]
     log_a, life_a, meta_a = simulate(cfg, draws, anomalies=scenario)
     before_c = log_clean[log_clean["process_complete_time"] < ts].reset_index(drop=True)

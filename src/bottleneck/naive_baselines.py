@@ -13,19 +13,24 @@ multi-evidence method (Step 1) is needed rather than assumed:
 Honest narrative (the point of this step):
 
   - Synthetic log:
-      * Naive-1 lands on S4 — but only by COINCIDENCE. S4 is re-entrant (visited
-        twice per lot), so it trivially has the most operations. It is right for
-        the wrong reason: frequency, not constraint.
-      * Naive-2 lands on S3 (pt_mean 1.3 > S4's 0.85) — WRONG. The true
-        constraint S4 is faster per operation; its load comes from being visited
-        twice with the least tool headroom, which per-op processing time cannot see.
+      * Naive-1 lands on LITHO — but only by COINCIDENCE. LITHO is re-entrant
+        (visited twice per lot), so it trivially has the most operations. It is
+        right for the wrong reason: frequency, not constraint.
+      * Naive-2 lands on FURNACE (3h runs, by far the longest per operation) —
+        WRONG, and wrong in the most fab-typical way: FURNACE is a batch tool.
+        Each run carries up to 4 lots, so its slot utilization is only ~0.375 —
+        ample headroom. Per-op processing time cannot see batch capacity, tool
+        counts, or visit frequency; the true constraint LITHO is one of the
+        FASTEST stations per operation.
   - Real 4TU log:
       * Naive-1 lands on Final Inspection Q.C. (the highest-traffic activity) —
         WRONG. High traffic, but the waiting accumulates elsewhere.
 
   Conclusion carried into the notebook: naive methods that happen to be right are
   right by coincidence, not by principle, and break the moment the data changes.
-  Recovering the constraint requires the queue/utilization evidence of Step 1.
+  Recovering the constraint requires the queue/utilization evidence of Step 1 —
+  and the M4 counterfactual makes the refutation empirical: +1 FURNACE tool adds
+  four lot-slots and still moves line performance by ~nothing.
 """
 
 from __future__ import annotations
@@ -123,7 +128,7 @@ def plot_naive_baselines(
     syn_picks: dict,
     real_table: pd.DataFrame,
     real_picks: dict,
-    syn_truth: str = "S4",
+    syn_truth: str = "LITHO",
     real_candidate: str | None = None,
     save_path: str | None = None,
 ):
@@ -149,8 +154,10 @@ def plot_naive_baselines(
         "Naive baselines mislead — red = naive pick (wrong), green = true/candidate "
         "constraint, purple = right by coincidence\n"
         f"Synthetic: Naive-1 -> {syn_picks['highest_frequency']} "
-        f"(coincidence: S4 is re-entrant), Naive-2 -> {syn_picks['longest_processing']} "
-        f"(wrong).  Real: Naive-1 -> {real_picks['highest_frequency']} (wrong).",
+        f"(coincidence: LITHO is re-entrant), "
+        f"Naive-2 -> {syn_picks['longest_processing']} "
+        f"(wrong: a batch tool — slow per run, ample slot capacity).  "
+        f"Real: Naive-1 -> {real_picks['highest_frequency']} (wrong).",
         fontsize=11,
     )
     fig.tight_layout(rect=(0, 0, 1, 0.93))

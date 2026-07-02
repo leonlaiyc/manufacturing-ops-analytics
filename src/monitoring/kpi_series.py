@@ -56,7 +56,7 @@ def daily_bottleneck_wait(log: pd.DataFrame, station: str, horizon: float) -> pd
 
 
 def daily_kpis(log: pd.DataFrame, lifecycle: pd.DataFrame, cfg,
-               bottleneck: str = "S4") -> pd.DataFrame:
+               bottleneck: str = "LITHO") -> pd.DataFrame:
     """Assemble the daily KPI panel over the whole run, indexed by day 0..N-1.
 
     Days with no completed lots are left as NaN (so the caller can decide how to

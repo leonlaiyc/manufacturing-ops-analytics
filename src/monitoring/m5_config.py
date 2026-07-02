@@ -17,7 +17,7 @@ from factory_generator import default_config, FactoryConfig
 
 def m5_config(horizon_days: int = 120, warmup_days: int = 6,
               seed: int = 42) -> FactoryConfig:
-    """Return the locked 7-station S4-bottleneck config with a longer horizon.
+    """Return the locked 7-station LITHO-bottleneck config with a longer horizon.
 
     Reuses ``default_config`` (same stations, route, arrival rate, cv) and only
     stretches the horizon and sets the warm-up, so the line dynamics are exactly

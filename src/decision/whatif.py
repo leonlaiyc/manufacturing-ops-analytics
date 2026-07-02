@@ -41,7 +41,7 @@ def with_demand(cfg, factor: float):
 # --------------------------------------------------------------------------- #
 # Step 1 — capacity what-if with cost
 # --------------------------------------------------------------------------- #
-def run_capacity_cost(base_cfg=None, stations=("S4", "S3", "S7"),
+def run_capacity_cost(base_cfg=None, stations=("LITHO", "DEPO", "FURNACE", "METRO"),
                       n_reps: int = 30, seed0: int = 1000,
                       rates: CostRates | None = None) -> pd.DataFrame:
     """Paired Δ (cycle time, throughput, total cost) from +1 tool per station.
@@ -110,7 +110,7 @@ def run_demand_absolute(base_cfg=None, factors=(1.0, 1.10, 1.25, 1.50),
 
 def run_demand_capacity(base_cfg=None, factors=(1.0, 1.10, 1.25, 1.50),
                         n_reps: int = 30, seed0: int = 1000,
-                        station: str = "S4") -> pd.DataFrame:
+                        station: str = "LITHO") -> pd.DataFrame:
     """Paired Δthroughput from +1 tool at the bottleneck, per demand level.
 
     Closes the M4 thread: Δthroughput ~= 0 while arrival-limited (rho<1), then
@@ -172,13 +172,13 @@ def _raw_quantities(log, t0, t1, tools_added, repairs, throughput):
 
 def run_improvement_raw(cfg, deg: DegradationAnomaly, detection_day: float,
                         n_reps: int = 30, seed0: int = 4000,
-                        nonbottleneck: str = "S3") -> pd.DataFrame:
+                        nonbottleneck: str = "DEPO") -> pd.DataFrame:
     """Simulate the improvement options against a degrading-bottleneck baseline.
 
     All options deliver the same output (the line stays arrival-limited), so they
     are compared purely on cost (fixed-output framework). Options:
-      - do_nothing        : let S4 degrade for the whole horizon.
-      - add_S4_capacity   : +1 tool at the bottleneck (compensate the degradation).
+      - do_nothing        : let LITHO degrade for the whole horizon.
+      - add_LITHO         : +1 tool at the bottleneck (compensate the degradation).
       - add_{nonbottleneck}: +1 tool at a non-bottleneck (spend, little benefit).
       - early_fix         : detect (M5) and repair the degradation at detection_day
                             (degradation window ends there) + a one-off repair cost.
@@ -186,7 +186,7 @@ def run_improvement_raw(cfg, deg: DegradationAnomaly, detection_day: float,
     costs can be applied afterwards for any rate set.
     """
     t0, t1 = cfg.warmup_hours, cfg.horizon_hours
-    cfg_s4 = with_extra_tool(cfg, "S4")
+    cfg_bn = with_extra_tool(cfg, "LITHO")
     cfg_nb = with_extra_tool(cfg, nonbottleneck)
     deg_fixed = DegradationAnomaly(deg.station, deg.t_onset,
                                    detection_day * 24.0, deg.alpha)  # repaired at detection
@@ -195,7 +195,7 @@ def run_improvement_raw(cfg, deg: DegradationAnomaly, detection_day: float,
         draws = draw_randoms(cfg, seed0 + rep)
         specs = {
             "do_nothing":  (cfg,    [deg],       0, 0),
-            "add_S4":      (cfg_s4, [deg],       1, 0),
+            "add_LITHO":   (cfg_bn, [deg],       1, 0),
             f"add_{nonbottleneck}": (cfg_nb, [deg], 1, 0),
             "early_fix":   (cfg,    [deg_fixed], 0, 1),
         }

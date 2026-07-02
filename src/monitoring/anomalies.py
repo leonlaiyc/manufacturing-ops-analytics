@@ -38,19 +38,19 @@ def default_scenario(cfg) -> list:
     (see EVAL_GRACE_DAYS).
 
     Types:
-      - breakdown  : S4 loses one of two tools (capacity halved) for 2 days — a
+      - breakdown  : LITHO loses one of two tools (capacity halved) for 2 days — a
                      sudden shock the control chart should catch fast.
       - demand_surge: arrival rate +0.4 lots/h for 4 days — a sudden load jump.
-      - degradation: S4 processing time ramps slowly and gently over 25 days
+      - degradation: LITHO processing time ramps slowly and gently over 25 days
                      (stays near rho<1) — a slow drift the EWMA should catch
                      before the control chart does.
     """
     return [
-        BreakdownAnomaly(station="S4",
+        BreakdownAnomaly(station="LITHO",
                          t_start=55 * DAY, t_end=57 * DAY, tools_removed=1),
         DemandSurgeAnomaly(t_start=82 * DAY, t_end=86 * DAY,
                            extra_rate=0.4, seed=7),
-        DegradationAnomaly(station="S4",
+        DegradationAnomaly(station="LITHO",
                            t_onset=110 * DAY, t_end=135 * DAY, alpha=0.00025),
     ]
 

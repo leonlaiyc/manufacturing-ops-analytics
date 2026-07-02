@@ -25,8 +25,11 @@ Signals (each interpretable from first principles; NO weighted composite score):
   5. idle_fraction      OPTIONAL, softer "downstream starvation" proxy: fraction
                         of the window the station has ALL tools idle. Stations
                         downstream of the constraint sit idle waiting to be fed.
-                        Kept as secondary evidence; the convergence conclusion
-                        rests on signals 1–4.
+                        CAVEAT: a greedy batch tool (FURNACE) is almost never
+                        fully idle — it fires part-full runs whenever anything
+                        waits — so raw busy-ness is NOT constraint status for
+                        batch tools. Exactly why this signal is secondary; the
+                        convergence conclusion rests on signals 1–4.
 
 Deliberately NOT combined into a single ranked score — the owner's method is to
 show the signals independently agree, which is more defensible than a weighted
@@ -246,7 +249,7 @@ def plot_evidence_synthetic(
             ("#EF5350")
             for s in stations
         ]
-        # Also outline the ground-truth station so the reader can locate S4.
+        # Also outline the ground-truth station so the reader can locate it.
         edgecolors = ["#1A237E" if s == ground_truth else "none" for s in stations]
         linewidths = [2.2 if s == ground_truth else 0.0 for s in stations]
         ax.bar(stations, vals, color=colors, edgecolor=edgecolors, linewidth=linewidths)

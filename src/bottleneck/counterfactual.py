@@ -5,14 +5,18 @@ Question: if we give one station a +1 tool, how much does line performance
 improve? A true constraint should respond far more than a non-constraint.
 
 Design (fixed by the project owner):
-  - Four scenarios: baseline, S4 +1, S3 +1, S7 +1.
-      * S4 = engineered bottleneck.
-      * S3 = STRICT control: 2nd-highest utilization AND the station the naive
-        "longest processing" heuristic wrongly flags. Showing S3 +1 helps little
-        proves the constraint status comes from being the constraint, not merely
-        from high load.
-      * S7 = CLEAN control: low utilization, route-distant from S4. Least coupled
-        to S4, so it anchors the "improve a non-constraint -> almost nothing" end
+  - Five scenarios: baseline, LITHO +1, DEPO +1, FURNACE +1, METRO +1.
+      * LITHO   = engineered bottleneck (re-entrant, slot utilization ~0.85).
+      * DEPO    = STRICT control: 2nd-highest serial-tool utilization (~0.65).
+        Showing DEPO +1 helps little proves constraint status comes from being
+        the constraint, not merely from high load.
+      * FURNACE = NAIVE-2 control: the batch tool the naive "longest processing
+        time" heuristic wrongly flags (3h runs — but 4-lot batches give slot
+        utilization ~0.375). +1 furnace adds four lot-slots, far more raw
+        capacity than +1 litho tool, and should still deliver ~nothing —
+        the empirical refutation of the longest-processing heuristic.
+      * METRO   = CLEAN control: low utilization, route-distant from LITHO,
+        so it anchors the "improve a non-constraint -> almost nothing" end
         of the gradient.
   - N replications, each with Common Random Numbers (CRN): one pre-drawn
     RandomDraws table per replication; baseline and all three interventions run
@@ -23,9 +27,10 @@ Design (fixed by the project owner):
 
 Honest scope (stated in the notebook): this quantifies the DECISION IMPACT of a
 capacity change and tests the decision logic. It does NOT independently "prove"
-S4 is the bottleneck — S4 is a known design input. The counterfactual's value is
-showing the improvement gradient S4 >> S3 > S7 is what a correct bottleneck call
-predicts.
+LITHO is the bottleneck — LITHO is a known design input. The counterfactual's
+value is showing that the improvement concentrates at the constraint while every
+control (including the biggest raw-capacity addition, FURNACE +1) stays near
+zero — exactly what a correct bottleneck call predicts.
 
 Note on channels: the synthetic line is a stable open network (every rho < 1),
 so in steady state throughput is set by the arrival rate and Delta-throughput is
@@ -81,7 +86,7 @@ def run_counterfactual(
     if base_cfg is None:
         base_cfg = default_config()
     if interventions is None:
-        interventions = ["S4", "S3", "S7"]
+        interventions = ["LITHO", "DEPO", "FURNACE", "METRO"]
 
     t0, t1 = base_cfg.warmup_hours, base_cfg.horizon_hours
     treat_cfgs = {s: with_extra_tool(base_cfg, s) for s in interventions}
@@ -141,7 +146,7 @@ def plot_counterfactual(deltas: pd.DataFrame, save_path: str | None = None):
     fig, axes = plt.subplots(1, 2, figsize=(13, 5.2))
     labels = list(th.index)
     # Emphasise the bottleneck bar.
-    colors = ["#EF5350" if lab.startswith("S4") else "#78909C" for lab in labels]
+    colors = ["#EF5350" if lab.startswith("LITHO") else "#78909C" for lab in labels]
 
     for ax, tab, title, unit in [
         (axes[0], th, "Δ throughput (lots/hour)", "lots/h"),
@@ -162,9 +167,9 @@ def plot_counterfactual(deltas: pd.DataFrame, save_path: str | None = None):
     fig.suptitle(
         "CRN paired counterfactual (+1 tool), N="
         f"{summarize(deltas, 'd_throughput')['n'].iloc[0]} replications — "
-        "improvement gradient S4 >> S3 > S7\n"
+        "improvement concentrates at LITHO; all controls ~ 0\n"
         "Quantifies decision impact / tests decision logic; does NOT independently "
-        "prove S4 (S4 is a design input). Δ cycle time is the informative channel.",
+        "prove LITHO (a design input). Δ cycle time is the informative channel.",
         fontsize=11,
     )
     fig.tight_layout(rect=(0, 0, 1, 0.90))
