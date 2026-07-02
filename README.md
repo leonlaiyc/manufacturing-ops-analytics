@@ -32,7 +32,7 @@ validated, not just demonstrated.
 - [x] M2 Synthetic discrete-event simulation with a ground-truth bottleneck
 - [x] M3 KPI dashboard (WIP, output, utilization, cycle time) — [interactive HTML](reports/html/03_kpi_dashboard.html)
 - [x] M4 Bottleneck identification and validation — see [notebooks/04_bottleneck_identification.ipynb](notebooks/04_bottleneck_identification.ipynb)
-- [ ] M5 KPI anomaly monitoring
+- [x] M5 KPI anomaly monitoring — see [notebooks/05_kpi_anomaly_monitoring.ipynb](notebooks/05_kpi_anomaly_monitoring.ipynb)
 - [ ] M6 Capacity / demand / cost what-if decision support
 
 ## Methods are deliberately interpretable
