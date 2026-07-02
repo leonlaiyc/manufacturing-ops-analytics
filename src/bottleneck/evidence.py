@@ -9,8 +9,11 @@ and checking whether they CONVERGE on the same station.
 
 Signals (each interpretable from first principles; NO weighted composite score):
 
-  1. utilization        busy-tool fraction = time the station's tools are working
-                        / (n_tools * window). A station near 1.0 has no headroom.
+  1. utilization        slot utilization = busy time / (n_tools * batch_size *
+                        window). For serial tools this is the busy-tool
+                        fraction; for batch tools it measures used lot-slots
+                        (the fab capacity view). A station near 1.0 has no
+                        headroom.
   2. avg_queue_len      time-average number of lots waiting in front of the
                         station (Little's Law on the queue: sum of per-lot wait
                         durations / window). Work piles up before a constraint.
@@ -126,7 +129,11 @@ def station_evidence_synthetic(
         st = cfg.stations[s]
         ops = ev[ev["station"] == s]
         busy = ops["busy_clipped"].sum()
-        util = busy / (st.n_tools * window)
+        # Slot utilization: batch members each carry the run duration, so
+        # busy / (n_tools * batch_size * window) measures used lot-slots —
+        # the fab-standard capacity view of batch tools (batch_size=1 reduces
+        # to the classic busy-tool fraction).
+        util = busy / (st.n_tools * st.batch_size * window)
         avg_queue_len = ops["wait_clipped"].sum() / window           # L_q (time-avg)
         s_started = started[started["station"] == s]["wait_raw"]
         avg_wait = float(s_started.mean()) if len(s_started) else 0.0  # W_q (per-lot)

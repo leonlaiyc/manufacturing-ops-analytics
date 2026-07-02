@@ -3,20 +3,19 @@ CRN refactor verification (M4, Phase A) — run end to end.
 
 Two hard gates required before the counterfactual can be trusted:
 
-  GATE 1 — Legacy byte-identical regression.
-      The ``draws=None`` path must be byte-for-byte identical to the pre-refactor
-      generator. We regenerate the default-config log/lifecycle on the legacy path
-      and compare the serialized CSV bytes against the committed golden files in
-      ``data/synthetic/``. (Little's-Law gap < 1% and S4 recovery are re-checked by
-      ``validate_m2.py``, which uses the same untouched legacy path.)
+  GATE 1 — Lazy-path reproducibility regression.
+      The ``draws=None`` path must be byte-for-byte reproducible: regenerating
+      the default-config log/lifecycle must match the golden files written by
+      ``validate_m2.py`` in ``data/synthetic/`` exactly. (Little's-Law gap < 1%
+      and LITHO recovery are re-checked by ``validate_m2.py`` on the same path.)
 
   GATE 2 — CRN determinism sanity (the key check).
       Using ONE pre-drawn ``RandomDraws`` table, run baseline twice: the two runs
       must be identical, so Δthroughput and Δcycle-time are EXACTLY 0.0. A nonzero
       delta would mean some RNG source is still escaping the table and CRN pairing
       is not actually in force. As a positive control we also confirm that a real
-      intervention (S4 +1 tool) on the SAME table does move the KPIs (Δ != 0), and
-      that a CRN run still recovers S4 as the empirical bottleneck.
+      intervention (LITHO +1 tool) on the SAME table does move the KPIs (Δ != 0),
+      and that a CRN run still recovers LITHO as the empirical bottleneck.
 
 Run:  python src/generator/crn_check.py
 Exit code 0 = all gates pass; nonzero = a gate failed.
@@ -58,7 +57,7 @@ def run_kpis(lifecycle: pd.DataFrame, t0: float, t1: float) -> tuple[float, floa
 
 
 def empirical_bottleneck(log: pd.DataFrame, cfg, t0: float, t1: float) -> str:
-    """Station with the highest busy-time fraction in [t0, t1]."""
+    """Station with the highest slot utilization in [t0, t1]."""
     window = t1 - t0
     util = {}
     for s, st in cfg.stations.items():
@@ -66,7 +65,7 @@ def empirical_bottleneck(log: pd.DataFrame, cfg, t0: float, t1: float) -> str:
         start = ops["process_start_time"].clip(lower=t0, upper=t1)
         end = ops["process_complete_time"].clip(lower=t0, upper=t1)
         busy = (end - start).clip(lower=0).sum()
-        util[s] = busy / (st.n_tools * window)
+        util[s] = busy / (st.n_tools * st.batch_size * window)
     return max(util, key=util.get)
 
 
@@ -81,11 +80,11 @@ def _csv_bytes(df: pd.DataFrame) -> bytes:
 # --------------------------------------------------------------------------- #
 def gate1_legacy_byte_identical() -> bool:
     print("=" * 64)
-    print("GATE 1 — Legacy (draws=None) byte-identical regression")
+    print("GATE 1 — Lazy (draws=None) byte-identical reproducibility")
     print("=" * 64)
 
     cfg = default_config()
-    log, lifecycle, _ = simulate(cfg)          # legacy path, seed 42
+    log, lifecycle, _ = simulate(cfg)          # lazy path, seed 42
 
     ok = True
     for name, df in [("event_log.csv", log), ("lot_lifecycle.csv", lifecycle)]:
@@ -142,22 +141,22 @@ def gate2_crn_sanity() -> bool:
 
     zero_delta = (d_th == 0.0) and (d_ct == 0.0) and logs_identical
 
-    # Positive control: +1 tool at S4 on the SAME table must change the KPIs.
+    # Positive control: +1 tool at LITHO on the SAME table must change the KPIs.
     treat = copy.deepcopy(base)
-    treat.stations["S4"].n_tools += 1          # only capacity changes; draws reused
+    treat.stations["LITHO"].n_tools += 1       # only capacity changes; draws reused
     log_t, life_t, _ = simulate(treat, draws)
     th_t, ct_t = run_kpis(life_t, t0, t1)
     d_th_treat = th_t - th_b1
     d_ct_treat = ct_t - ct_b1
-    print("  Positive control — S4 +1 tool on the SAME table:")
+    print("  Positive control — LITHO +1 tool on the SAME table:")
     print(f"    Δthroughput            : {d_th_treat:+.5f}   (expect > 0)")
     print(f"    Δcycle_time (h)        : {d_ct_treat:+.5f}   (expect < 0)")
     control_moves = (d_th_treat != 0.0) or (d_ct_treat != 0.0)
 
-    # Property: a CRN run still recovers S4 as the empirical bottleneck.
+    # Property: a CRN run still recovers LITHO as the empirical bottleneck.
     bn = empirical_bottleneck(log_b1, base, t0, t1)
-    print(f"  Empirical bottleneck on CRN run : {bn}   (expect S4)")
-    recovers_s4 = (bn == "S4")
+    print(f"  Empirical bottleneck on CRN run : {bn}   (expect LITHO)")
+    recovers_s4 = (bn == "LITHO")
 
     ok = zero_delta and control_moves and recovers_s4
     print(f"  RESULT: {'PASS' if ok else 'FAIL'}")

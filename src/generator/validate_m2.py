@@ -3,8 +3,13 @@ M2 validation (run end to end).
 
 Checks two things that make the generator defensible:
   1. Little's Law self-consistency:  measured WIP  ~=  throughput * cycle time
-  2. Ground-truth bottleneck recovery: the engineered station (S4) shows the
-     highest empirical utilization, matching the design.
+  2. Ground-truth bottleneck recovery: the engineered station (LITHO) shows the
+     highest empirical slot utilization, matching the design.
+
+Utilization is **slot utilization**: busy time is divided by
+(n_tools * batch_size * window), so the batch FURNACE is measured on the
+capacity it actually offers per run, not on raw busy time (the fab-standard
+view of batch tools).
 
 Also writes the synthetic event log and metadata to data/synthetic/.
 """
@@ -22,7 +27,13 @@ OUT.mkdir(parents=True, exist_ok=True)
 
 
 def empirical_utilization(log, cfg, t0, t1):
-    """Busy-time fraction per station within [t0, t1], clipped to the window."""
+    """Slot-utilization per station within [t0, t1], clipped to the window.
+
+    Each batch member carries its own row with the full run duration, so the
+    busy sum equals (members x run time) per run; dividing by
+    (n_tools * batch_size * window) yields slot utilization. For serial tools
+    (batch_size 1) this is the classic busy-time fraction.
+    """
     window = t1 - t0
     util = {}
     for s, st in cfg.stations.items():
@@ -30,7 +41,7 @@ def empirical_utilization(log, cfg, t0, t1):
         start = ops["process_start_time"].clip(lower=t0, upper=t1)
         end = ops["process_complete_time"].clip(lower=t0, upper=t1)
         busy = (end - start).clip(lower=0).sum()
-        util[s] = busy / (st.n_tools * window)
+        util[s] = busy / (st.n_tools * st.batch_size * window)
     return util
 
 

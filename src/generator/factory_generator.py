@@ -1,33 +1,54 @@
 """
-Synthetic fab-style production-line generator (Milestone M2).
+Synthetic fab-style production-line generator (Milestone M2, fab-ized in M7).
 
 A transparent, hand-written discrete-event simulation (DES) of an open
-multi-server queueing network. No external DES library is used so that every
-modeling step is explicit and defensible.
+multi-server queueing network shaped like a stylized wafer-fab flow. No external
+DES library is used so that every modeling step is explicit and defensible.
+
+The unit of flow is a **lot** — read it as a 25-wafer carrier (FOUP). The line is
+a single stylized layer loop:
+
+    CLEAN -> FURNACE -> DEPO -> LITHO -> ETCH -> LITHO -> IMPLANT -> METRO
 
 Design choices (each is a deliberate, defendable trade-off):
 
 - Open queueing network with FIFO multi-server stations. FIFO is the simplest
-  baseline dispatch rule. Real fabs use far more complex dispatching; that is a
-  documented limitation / future work, not an oversight.
+  baseline dispatch rule. Real fabs use far more complex dispatching (critical
+  ratio, hot lots, setup avoidance); that is a documented limitation / future
+  work, not an oversight.
 
-- Re-entrant route: a station can appear multiple times in the route. This is a
-  defining feature of semiconductor fabs (e.g., litho/etch revisited) and is the
-  structural idea borrowed from the public SMT2020 testbed. It is also what makes
-  the designed bottleneck loaded.
+- Re-entrant route: LITHO is visited twice (two mask layers of the same
+  stylized loop). Re-entrance is the defining structural feature of
+  semiconductor fabs and is the idea borrowed from the public SMT2020 testbed.
+  It is also what makes the designed bottleneck loaded.
+
+- One **batch tool**: FURNACE (diffusion/oxidation) processes up to
+  ``batch_size`` lots in a single run — the second defining fab feature. Policy
+  is greedy load-and-go: when a tool frees, it takes up to ``batch_size``
+  waiting lots as one run (no minimum-batch or timeout policy; documented
+  simplification). Run time is one processing-time draw (the first-loaded
+  lot's draw), reflecting that a furnace recipe time is set by the recipe, not
+  by how many lots are loaded.
 
 - Lognormal processing times: positive and right-skewed, which matches real
   process-time behavior. The coefficient of variation (cv) controls variability;
   variability is what creates queueing (Kingman intuition), so WIP builds in
-  front of the busiest station.
+  front of the busiest station. FURNACE uses a lower cv (recipe-controlled).
 
 - Poisson arrivals (exponential inter-arrival times): the standard memoryless
   arrival assumption for an open line.
 
-- A single station is engineered to have the least capacity headroom (highest
-  utilization). By Theory of Constraints it sets line throughput, so it is the
-  ground-truth bottleneck recorded in metadata and later used to validate the
-  M4 detector.
+- A single station — LITHO — is engineered to have the least capacity headroom
+  (highest utilization, ~0.85), matching the real-fab pattern where litho
+  scanners are the most expensive tools and are run closest to saturation. By
+  Theory of Constraints it sets line performance, so it is the ground-truth
+  bottleneck recorded in metadata and later used to validate the M4 detector.
+
+- Capacity accounting for batch tools uses **slot utilization**
+  (see ``theoretical_utilization``): a furnace that looks "slow per operation"
+  can still have ample capacity because each run carries several lots. This is
+  the standard fab view of batch-tool capacity and is what the naive
+  "longest-processing-time" bottleneck heuristic gets wrong (M4, Step 2).
 
 The simulation is fully seeded for reproducibility.
 
@@ -40,12 +61,16 @@ randomness can be pre-drawn into a ``RandomDraws`` table via ``draw_randoms()``
 and passed to ``simulate(cfg, draws=...)``; the event loop then consumes the
 table and calls no RNG at all.
 
-- ``simulate(cfg)`` with ``draws=None`` is the ORIGINAL M2 code path, byte-for-byte
-  unchanged: it samples lazily inside the event loop from an internal RNG seeded
-  by ``cfg.seed``. M2/M3 artifacts are unaffected by the CRN refactor.
-- ``simulate(cfg, draws)`` with an explicit table is fully deterministic (no RNG),
-  which is what makes baseline-vs-baseline on the same table produce an exact zero
-  delta — the sanity check that proves no hidden RNG source escapes the table.
+- ``simulate(cfg)`` with ``draws=None`` samples lazily inside the event loop
+  from an internal RNG seeded by ``cfg.seed``.
+- ``simulate(cfg, draws)`` with an explicit table is fully deterministic (no
+  RNG), which is what makes baseline-vs-baseline on the same table produce an
+  exact zero delta — the sanity check that proves no hidden RNG source escapes
+  the table.
+- Batch stations consume the FIRST loaded lot's draw as the run time; the other
+  members' draws at that step go unused. Usage may differ between scenarios,
+  but the table itself depends only on the seed and the distributional config,
+  which is all CRN pairing requires.
 """
 
 from __future__ import annotations
@@ -62,9 +87,10 @@ import pandas as pd
 class StationConfig:
     """Configuration for one station (tool group)."""
     name: str
-    pt_mean: float          # mean processing time per operation (hours)
+    pt_mean: float          # mean processing time per run (hours)
     n_tools: int            # number of parallel tools (servers)
     pt_cv: float = 0.5      # coefficient of variation of processing time
+    batch_size: int = 1     # lots processed together per run (1 = serial tool)
 
 
 @dataclass
@@ -93,14 +119,18 @@ class RandomDraws:
         consumes at route position ``step``.
 
         IMPORTANT — indexing is by ROUTE STEP (visit order), NOT by station.
-        The route is re-entrant: ``["S1","S2","S3","S4","S5","S4","S6","S7"]``
-        visits S4 twice, at step 3 and step 5. Those are two INDEPENDENT draws,
-        ``proc_times[lot][3]`` and ``proc_times[lot][5]``. Because the pairing is
-        by step, baseline and any "+1 tool" treatment consume the exact same two
-        S4 draws in the exact same order — a re-entrant station cannot get its
-        paired draws mis-aligned. Every lot traverses the full route exactly once
-        (no rework in this model), so ``len(proc_times[lot]) == len(route)`` and
-        the table is consumed identically regardless of ``n_tools``.
+        The route is re-entrant:
+        ``["CLEAN","FURNACE","DEPO","LITHO","ETCH","LITHO","IMPLANT","METRO"]``
+        visits LITHO twice, at step 3 and step 5. Those are two INDEPENDENT
+        draws, ``proc_times[lot][3]`` and ``proc_times[lot][5]``. Because the
+        pairing is by step, baseline and any "+1 tool" treatment consume the
+        exact same two LITHO draws in the exact same order — a re-entrant
+        station cannot get its paired draws mis-aligned. Every lot traverses
+        the full route exactly once (no rework in this model), so
+        ``len(proc_times[lot]) == len(route)`` and the table depends only on
+        the seed and the distributional config, never on ``n_tools`` or
+        ``batch_size``. At a batch station only the first-loaded lot's draw is
+        consumed as the run time; unused draws are harmless.
     """
     arrivals: list           # arrivals[lot_id] -> arrival time
     proc_times: list         # proc_times[lot_id][step] -> processing hours
@@ -130,13 +160,18 @@ def _lognormal_params(mean: float, cv: float) -> tuple[float, float]:
 #   label()                   -> dict describing the injected window (for meta)
 # When no anomaly applies, tools_delta=0 / pt_multiplier=1.0 / extra_arrivals=[],
 # i.e. the identity — so simulate(..., anomalies=[]) equals the un-injected run.
+#
+# OEE reading (M5): a BreakdownAnomaly is an **Availability loss** (tools
+# offline); a DegradationAnomaly is a **Performance loss** (running slower than
+# the ideal rate). The two standard equipment-loss categories of OEE.
 
 @dataclass
 class BreakdownAnomaly:
     """Capacity mask: reduce a station's effective n_tools during a window.
 
-    Models an availability drop (tools offline). Arrival and processing draws are
-    untouched; only the number of serving tools changes, restored at ``t_end``.
+    Models an availability drop (tools offline) — an OEE **Availability loss**.
+    Arrival and processing draws are untouched; only the number of serving
+    tools changes, restored at ``t_end``.
     """
     station: str
     t_start: float
@@ -167,9 +202,11 @@ class BreakdownAnomaly:
 class DegradationAnomaly:
     """Deterministic slow drift: processing time ramps up over a window.
 
-    Effective processing time = base_draw * (1 + alpha * (t - t_onset)) at the
-    station for t in [t_onset, t_end]. The multiplier is a pure function of time
-    (no extra random draws — that would break CRN). After t_end, back to normal.
+    Models a tool running slower than its ideal rate — an OEE **Performance
+    loss**. Effective processing time = base_draw * (1 + alpha * (t - t_onset))
+    at the station for t in [t_onset, t_end]. The multiplier is a pure function
+    of time (no extra random draws — that would break CRN). After t_end, back
+    to normal.
     """
     station: str
     t_onset: float
@@ -238,8 +275,16 @@ class DemandSurgeAnomaly:
 
 def theoretical_utilization(cfg: FactoryConfig) -> dict:
     """
-    Design-time utilization per station:
-        rho_s = arrival_rate * visits_s * pt_mean_s / n_tools_s
+    Design-time (slot) utilization per station:
+
+        rho_s = arrival_rate * visits_s * pt_mean_s / (n_tools_s * batch_size_s)
+
+    For serial tools (batch_size 1) this is the classic queueing utilization.
+    For batch tools it is **slot utilization** — work arriving per hour divided
+    by lot-slots servable per hour — the standard fab measure of batch-tool
+    capacity. It assumes full batches, so a greedy loading policy will show a
+    higher busy-time fraction than this number; that is exactly why busy-time
+    alone misreads batch tools and slot utilization is the capacity view.
 
     This is the planned load and identifies the intended bottleneck before any
     simulation runs. The DES should reproduce this ordering empirically.
@@ -247,7 +292,7 @@ def theoretical_utilization(cfg: FactoryConfig) -> dict:
     visits = {s: cfg.route.count(s) for s in cfg.stations}
     rho = {}
     for s, st in cfg.stations.items():
-        rho[s] = cfg.arrival_rate * visits[s] * st.pt_mean / st.n_tools
+        rho[s] = cfg.arrival_rate * visits[s] * st.pt_mean / (st.n_tools * st.batch_size)
     return rho
 
 
@@ -256,21 +301,21 @@ def draw_randoms(cfg: FactoryConfig, seed: int) -> RandomDraws:
 
     The returned table depends only on ``seed`` and the *distributional* config
     (arrival_rate, route, and each station's pt_mean / pt_cv). It does NOT depend
-    on ``n_tools``. That is the whole point: generate one table per replication,
-    then run the baseline and every "+1 tool" scenario against that SAME table so
-    they face identical arrivals and identical per-visit processing times, and the
-    only thing that varies is capacity.
+    on ``n_tools`` or ``batch_size``. That is the whole point: generate one table
+    per replication, then run the baseline and every "+1 tool" scenario against
+    that SAME table so they face identical arrivals and identical per-visit
+    processing times, and the only thing that varies is capacity.
 
     Draw order (single RNG stream, documented for reproducibility):
       1. Inter-arrival times, accumulated until ``horizon_hours`` (same rule the
-         legacy ``draws=None`` path uses to schedule arrivals).
+         ``draws=None`` path uses to schedule arrivals).
       2. Then, per lot in arrival order, one processing-time draw per route step,
          in step order. See ``RandomDraws.proc_times`` for the by-step indexing
-         and why it keeps re-entrant S4 paired correctly.
+         and why it keeps re-entrant LITHO paired correctly.
     """
     rng = np.random.default_rng(seed)
 
-    # 1) Arrivals — identical generation rule to the legacy path.
+    # 1) Arrivals — identical generation rule to the lazy path.
     arrivals: list = []
     t = 0.0
     while True:
@@ -279,8 +324,9 @@ def draw_randoms(cfg: FactoryConfig, seed: int) -> RandomDraws:
             break
         arrivals.append(t)
 
-    # 2) Processing times, indexed by (lot, route step). S4 at steps 3 and 5 gets
-    #    two independent draws here; both are reused by baseline and treatment.
+    # 2) Processing times, indexed by (lot, route step). LITHO at steps 3 and 5
+    #    gets two independent draws here; both are reused by baseline and
+    #    treatment.
     lognorm_params = {
         s: _lognormal_params(st.pt_mean, st.pt_cv)
         for s, st in cfg.stations.items()
@@ -299,40 +345,44 @@ def draw_randoms(cfg: FactoryConfig, seed: int) -> RandomDraws:
 def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
              anomalies: list | None = None):
     """
-    Run the discrete-event simulation.
+    Run the discrete-event simulation (batch-aware).
 
     Parameters
     ----------
     cfg : FactoryConfig
         Factory / experiment configuration.
     draws : RandomDraws | None
-        If ``None`` (default), randomness is sampled lazily inside the event loop
-        from an internal RNG seeded by ``cfg.seed`` — this is the ORIGINAL M2
-        behaviour, kept byte-for-byte identical. If a ``RandomDraws`` table is
-        provided (Common Random Numbers), the loop consumes it and calls NO RNG,
-        so the run is fully deterministic and paired against any other run that
-        uses the same table.
+        If ``None`` (default), randomness is sampled lazily inside the event
+        loop from an internal RNG seeded by ``cfg.seed``. If a ``RandomDraws``
+        table is provided (Common Random Numbers), the loop consumes it and
+        calls NO RNG, so the run is fully deterministic and paired against any
+        other run that uses the same table.
     anomalies : list | None
-        If ``None`` or empty (default), the ORIGINAL un-injected code path below
-        runs unchanged — M2/M3/M4 output is byte-identical. If anomalies are
-        given, control passes to ``_simulate_injected`` (M5), which layers the
-        anomalies' deterministic, time-based transforms on top of the same draws.
+        If ``None`` or empty (default), the plain un-injected path below runs.
+        If anomalies are given, control passes to ``_simulate_injected`` (M5),
+        which layers the anomalies' deterministic, time-based transforms on top
+        of the same draws.
+
+    Batch semantics (both paths): a station with ``batch_size`` B loads up to B
+    waiting lots as ONE run on one tool (greedy load-and-go, FIFO order). The
+    run's processing time is the first-loaded lot's draw; all members share the
+    same process_start / process_complete and then advance individually.
 
     Returns
     -------
     log : pd.DataFrame
-        One row per completed operation:
+        One row per completed operation (batch members get one row each):
         [lot_id, product_type, step_seq, station,
          queue_entry_time, process_start_time, process_complete_time]
     lifecycle : pd.DataFrame
         One row per lot: [lot_id, arrival_time, completion_time].
     meta : dict
-        Configuration echo + ground-truth bottleneck.
+        Configuration echo + ground-truth bottleneck + per-station capacity.
     """
     if anomalies:
         return _simulate_injected(cfg, draws, anomalies)
 
-    # RNG exists ONLY on the legacy (draws=None) path. On the CRN path it stays
+    # RNG exists ONLY on the lazy (draws=None) path. On the CRN path it stays
     # None and must never be touched — if it were, baseline-vs-baseline on one
     # table would not be an exact zero and the CRN sanity check would catch it.
     rng = np.random.default_rng(cfg.seed) if draws is None else None
@@ -357,30 +407,36 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
         return float(rng.lognormal(mu, sigma))
 
     def pt_for(lot, step, s):
-        """Processing time for ``lot`` at route position ``step`` (station ``s``).
+        """Processing time for the run led by ``lot`` at route position ``step``.
 
-        Legacy path (draws=None): draw lazily, preserving the original RNG call
-        order exactly. CRN path: read the pre-drawn value indexed by (lot, step)
-        — by step, so re-entrant S4 (steps 3 and 5) stays paired.
+        Lazy path (draws=None): draw at run start. CRN path: read the pre-drawn
+        value indexed by (lot, step) — by step, so re-entrant LITHO (steps 3
+        and 5) stays paired.
         """
         if draws is None:
             return sample_pt(s)
         return draws.proc_times[lot][step]
 
-    def request(lot, step, now):
-        """Lot requests the station for this route step."""
-        s = cfg.route[step]
-        if free[s] > 0:
+    def try_dispatch(s, now):
+        """Start as many runs as free tools allow; each takes up to batch_size."""
+        B = cfg.stations[s].batch_size
+        while free[s] > 0 and pending[s]:
+            k = min(B, len(pending[s]))
+            members = [pending[s].pop(0) for _ in range(k)]
             free[s] -= 1
-            pt = pt_for(lot, step, s)
-            push(now + pt, "complete",
-                 {"lot": lot, "step": step, "qentry": now, "start": now})
-        else:
-            pending[s].append({"lot": lot, "step": step, "qentry": now})
+            lead = members[0]
+            pt = pt_for(lead["lot"], lead["step"], s)
+            push(now + pt, "complete", {"members": members, "start": now})
+
+    def request(lot, step, now):
+        """Lot requests the station for this route step (FIFO queue + dispatch)."""
+        s = cfg.route[step]
+        pending[s].append({"lot": lot, "step": step, "qentry": now})
+        try_dispatch(s, now)
 
     # Schedule arrivals up front.
     if draws is None:
-        # Legacy: Poisson arrivals sampled from the internal RNG (unchanged).
+        # Lazy: Poisson arrivals sampled from the internal RNG.
         t, lot_id = 0.0, 0
         while True:
             t += rng.exponential(1.0 / cfg.arrival_rate)
@@ -402,34 +458,31 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
             request(p["lot"], 0, now)
             continue
 
-        # kind == "complete"
-        s = cfg.route[p["step"]]
-        rows.append({
-            "lot_id": p["lot"],
-            "product_type": cfg.product_type,
-            "step_seq": p["step"],
-            "station": s,
-            "queue_entry_time": p["qentry"],
-            "process_start_time": p["start"],
-            "process_complete_time": now,
-        })
+        # kind == "complete" — one run finishes; all members complete together.
+        members = p["members"]
+        s = cfg.route[members[0]["step"]]
+        for m in members:
+            rows.append({
+                "lot_id": m["lot"],
+                "product_type": cfg.product_type,
+                "step_seq": m["step"],
+                "station": s,
+                "queue_entry_time": m["qentry"],
+                "process_start_time": p["start"],
+                "process_complete_time": now,
+            })
         free[s] += 1
 
-        # A tool just freed: pull the next waiting lot at this station (FIFO).
-        if pending[s]:
-            nxt = pending[s].pop(0)
-            free[s] -= 1
-            pt = pt_for(nxt["lot"], nxt["step"], s)
-            push(now + pt, "complete",
-                 {"lot": nxt["lot"], "step": nxt["step"],
-                  "qentry": nxt["qentry"], "start": now})
+        # A tool just freed: pull the next waiting run at this station (FIFO).
+        try_dispatch(s, now)
 
-        # Advance the completed lot to its next route step (or finish).
-        nstep = p["step"] + 1
-        if nstep < len(cfg.route):
-            request(p["lot"], nstep, now)
-        else:
-            completions[p["lot"]] = now
+        # Advance each completed lot to its next route step (or finish).
+        for m in members:
+            nstep = m["step"] + 1
+            if nstep < len(cfg.route):
+                request(m["lot"], nstep, now)
+            else:
+                completions[m["lot"]] = now
 
     log = (pd.DataFrame(rows)
            .sort_values(["lot_id", "step_seq"])
@@ -449,6 +502,11 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
         "horizon_hours": cfg.horizon_hours,
         "warmup_hours": cfg.warmup_hours,
         "route": cfg.route,
+        "stations": {
+            s: {"n_tools": st.n_tools, "batch_size": st.batch_size,
+                "pt_mean": st.pt_mean, "pt_cv": st.pt_cv}
+            for s, st in cfg.stations.items()
+        },
         "theoretical_utilization": rho,
         "ground_truth_bottleneck": bottleneck,
     }
@@ -459,17 +517,18 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
     """Injection-aware DES (M5). Only reached when ``anomalies`` is non-empty.
 
     Differs from the un-injected path in three isolated ways, all identity when no
-    anomaly is active (so ``simulate(cfg, draws, anomalies=[])`` — which never
-    reaches here — and a run whose anomalies are all inactive behave like the
-    plain path):
+    anomaly is active:
 
       * capacity is time-varying: a ``busy[s]`` counter is checked against
         ``effective_capacity(s, now) = n_tools + sum(tools_delta)`` instead of a
         static ``free[s]`` (lets a breakdown mask reduce serving tools);
-      * processing times are scaled by ``prod(pt_multiplier(s, now))`` at service
+      * run times are scaled by ``prod(pt_multiplier(s, now))`` at service
         start (lets a degradation ramp slow a station);
       * extra arrivals from demand-surge anomalies are scheduled from their own
         seeded stream, with lot_ids in a disjoint range so base draws are untouched.
+
+    Batch semantics are identical to the plain path: up to ``batch_size`` lots
+    per run, run time = first-loaded lot's draw (times the multiplier).
 
     Boundary events are scheduled at every anomaly window edge so that when a
     breakdown ends (capacity restored) any waiting lots are re-dispatched even if
@@ -515,17 +574,17 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
             m *= a.pt_multiplier(s, now)
         return m
 
-    def start_service(lot, step, s, qentry, now):
-        busy[s] += 1
-        pt = base_pt(lot, step, s) * pt_multiplier(s, now)
-        push(now + pt, "complete",
-             {"lot": lot, "step": step, "qentry": qentry, "start": now})
-
     def try_dispatch(s, now):
-        # Start as many queued lots as the (possibly reduced) capacity allows, FIFO.
+        # Start as many runs as the (possibly reduced) capacity allows, FIFO;
+        # each run takes up to batch_size waiting lots.
+        B = cfg.stations[s].batch_size
         while pending[s] and busy[s] < effective_capacity(s, now):
-            nxt = pending[s].pop(0)
-            start_service(nxt["lot"], nxt["step"], s, nxt["qentry"], now)
+            k = min(B, len(pending[s]))
+            members = [pending[s].pop(0) for _ in range(k)]
+            busy[s] += 1
+            lead = members[0]
+            pt = base_pt(lead["lot"], lead["step"], s) * pt_multiplier(s, now)
+            push(now + pt, "complete", {"members": members, "start": now})
 
     def request(lot, step, now):
         s = cfg.route[step]
@@ -573,25 +632,28 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
                 try_dispatch(s, now)
             continue
 
-        # kind == "complete"
-        s = cfg.route[p["step"]]
-        rows.append({
-            "lot_id": p["lot"],
-            "product_type": cfg.product_type,
-            "step_seq": p["step"],
-            "station": s,
-            "queue_entry_time": p["qentry"],
-            "process_start_time": p["start"],
-            "process_complete_time": now,
-        })
+        # kind == "complete" — one run finishes; all members complete together.
+        members = p["members"]
+        s = cfg.route[members[0]["step"]]
+        for m in members:
+            rows.append({
+                "lot_id": m["lot"],
+                "product_type": cfg.product_type,
+                "step_seq": m["step"],
+                "station": s,
+                "queue_entry_time": m["qentry"],
+                "process_start_time": p["start"],
+                "process_complete_time": now,
+            })
         busy[s] -= 1
-        try_dispatch(s, now)                 # pull next waiting lot (FIFO)
+        try_dispatch(s, now)                 # pull next waiting run (FIFO)
 
-        nstep = p["step"] + 1
-        if nstep < len(cfg.route):
-            request(p["lot"], nstep, now)
-        else:
-            completions[p["lot"]] = now
+        for m in members:
+            nstep = m["step"] + 1
+            if nstep < len(cfg.route):
+                request(m["lot"], nstep, now)
+            else:
+                completions[m["lot"]] = now
 
     log = (pd.DataFrame(rows)
            .sort_values(["lot_id", "step_seq"])
@@ -611,6 +673,11 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
         "horizon_hours": cfg.horizon_hours,
         "warmup_hours": cfg.warmup_hours,
         "route": cfg.route,
+        "stations": {
+            s: {"n_tools": st.n_tools, "batch_size": st.batch_size,
+                "pt_mean": st.pt_mean, "pt_cv": st.pt_cv}
+            for s, st in cfg.stations.items()
+        },
         "theoretical_utilization": rho,
         "ground_truth_bottleneck": bottleneck,
         "anomalies": [a.label() for a in anomalies],
@@ -620,22 +687,32 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
 
 def default_config(seed: int = 42) -> FactoryConfig:
     """
-    The agreed M2 starting configuration:
-      - 7 stations (S1..S7), single product
-      - re-entrant route visiting S4 twice
-      - S4 engineered as the bottleneck (highest planned utilization, ~0.85)
+    The locked configuration: a stylized single-layer wafer-fab loop.
+      - 7 stations, single product; a lot represents a 25-wafer carrier (FOUP)
+      - re-entrant route visiting LITHO twice (two mask layers)
+      - FURNACE is a batch tool (2 tools x 4-lot batches, recipe-like low cv);
+        slot utilization ~0.375 — deliberately NOT the constraint
+      - LITHO engineered as the bottleneck (highest slot utilization, ~0.85),
+        matching the real-fab pattern of scanners run closest to saturation
       - 60-day horizon (hours), 6-day warm-up
+
+    Planned slot utilizations (arrival 1 lot/h):
+      CLEAN 0.50, FURNACE 0.375, DEPO 0.65, LITHO 0.85 (bottleneck),
+      ETCH 0.50, IMPLANT 0.55, METRO 0.45.
     """
     stations = {
-        "S1": StationConfig("S1", pt_mean=1.0, n_tools=2),
-        "S2": StationConfig("S2", pt_mean=1.2, n_tools=2),
-        "S3": StationConfig("S3", pt_mean=1.3, n_tools=2),
-        "S4": StationConfig("S4", pt_mean=0.85, n_tools=2),   # bottleneck
-        "S5": StationConfig("S5", pt_mean=1.0, n_tools=2),
-        "S6": StationConfig("S6", pt_mean=1.1, n_tools=2),
-        "S7": StationConfig("S7", pt_mean=0.9, n_tools=2),
+        "CLEAN":   StationConfig("CLEAN",   pt_mean=1.0,  n_tools=2),
+        "FURNACE": StationConfig("FURNACE", pt_mean=3.0,  n_tools=2,
+                                 pt_cv=0.3, batch_size=4),   # batch tool
+        "DEPO":    StationConfig("DEPO",    pt_mean=1.3,  n_tools=2),
+        "LITHO":   StationConfig("LITHO",   pt_mean=0.85, n_tools=2),  # bottleneck
+        "ETCH":    StationConfig("ETCH",    pt_mean=1.0,  n_tools=2),
+        "IMPLANT": StationConfig("IMPLANT", pt_mean=1.1,  n_tools=2),
+        "METRO":   StationConfig("METRO",   pt_mean=0.9,  n_tools=2),
     }
-    route = ["S1", "S2", "S3", "S4", "S5", "S4", "S6", "S7"]  # S4 re-entrant
+    # Stylized layer loop; LITHO re-entrant (two mask layers).
+    route = ["CLEAN", "FURNACE", "DEPO", "LITHO", "ETCH", "LITHO",
+             "IMPLANT", "METRO"]
     return FactoryConfig(
         stations=stations,
         route=route,
