@@ -12,9 +12,13 @@ Design (fixed by the project owner):
         the constraint, not merely from high load.
       * FURNACE = NAIVE-2 control: the batch tool the naive "longest processing
         time" heuristic wrongly flags (3h runs — but 4-lot batches give slot
-        utilization ~0.375). +1 furnace adds four lot-slots, far more raw
-        capacity than +1 litho tool, and should still deliver ~nothing —
-        the empirical refutation of the longest-processing heuristic.
+        utilization ~0.375). +1 furnace adds FOUR lot-slots (4x the raw capacity
+        of +1 litho tool) yet delivers several times less cycle-time benefit,
+        and what it does deliver is batching-delay relief (lots waiting to be
+        loaded), not constraint relief — throughput does not move and the
+        line's binding constraint is unchanged. Per added slot it is an order
+        of magnitude less effective than LITHO — the empirical refutation of
+        the longest-processing heuristic.
       * METRO   = CLEAN control: low utilization, route-distant from LITHO,
         so it anchors the "improve a non-constraint -> almost nothing" end
         of the gradient.
@@ -28,9 +32,9 @@ Design (fixed by the project owner):
 Honest scope (stated in the notebook): this quantifies the DECISION IMPACT of a
 capacity change and tests the decision logic. It does NOT independently "prove"
 LITHO is the bottleneck — LITHO is a known design input. The counterfactual's
-value is showing that the improvement concentrates at the constraint while every
-control (including the biggest raw-capacity addition, FURNACE +1) stays near
-zero — exactly what a correct bottleneck call predicts.
+value is showing that the improvement concentrates at the constraint — no
+control comes close, even FURNACE +1 with 4x the raw capacity added — exactly
+what a correct bottleneck call predicts.
 
 Note on channels: the synthetic line is a stable open network (every rho < 1),
 so in steady state throughput is set by the arrival rate and Delta-throughput is
@@ -167,7 +171,7 @@ def plot_counterfactual(deltas: pd.DataFrame, save_path: str | None = None):
     fig.suptitle(
         "CRN paired counterfactual (+1 tool), N="
         f"{summarize(deltas, 'd_throughput')['n'].iloc[0]} replications — "
-        "improvement concentrates at LITHO; all controls ~ 0\n"
+        "improvement concentrates at the constraint LITHO\n"
         "Quantifies decision impact / tests decision logic; does NOT independently "
         "prove LITHO (a design input). Δ cycle time is the informative channel.",
         fontsize=11,

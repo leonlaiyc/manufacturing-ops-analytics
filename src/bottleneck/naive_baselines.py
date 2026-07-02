@@ -30,7 +30,9 @@ Honest narrative (the point of this step):
   right by coincidence, not by principle, and break the moment the data changes.
   Recovering the constraint requires the queue/utilization evidence of Step 1 —
   and the M4 counterfactual makes the refutation empirical: +1 FURNACE tool adds
-  four lot-slots and still moves line performance by ~nothing.
+  four lot-slots (4x the raw capacity of +1 LITHO) yet buys several times less
+  cycle-time benefit, all of it batching-delay relief rather than constraint
+  relief; per added slot it is an order of magnitude less effective.
 """
 
 from __future__ import annotations
