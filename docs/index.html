@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manufacturing Operations Analytics &amp; Decision Support</title>
+<style>
+  :root { color-scheme: light; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+         max-width: 780px; margin: 3rem auto; padding: 0 1.2rem; color: #263238;
+         line-height: 1.55; }
+  h1 { font-size: 1.7rem; margin-bottom: .3rem; }
+  .sub { color: #607D8B; margin-top: 0; }
+  .card { border: 1px solid #CFD8DC; border-radius: 10px; padding: 1rem 1.2rem;
+          margin: 1rem 0; }
+  .card h2 { font-size: 1.05rem; margin: 0 0 .35rem; }
+  .card p { margin: .25rem 0 .6rem; font-size: .95rem; }
+  a.btn { display: inline-block; background: #1565C0; color: #fff; text-decoration: none;
+          padding: .45rem .9rem; border-radius: 7px; font-size: .92rem; }
+  a.btn.alt { background: #37474F; }
+  .note { font-size: .85rem; color: #78909C; margin-top: 2rem; }
+  code { background: #ECEFF1; padding: .1rem .35rem; border-radius: 4px; font-size: .88em; }
+</style>
+</head>
+<body>
+<h1>Manufacturing Operations Analytics &amp; Decision Support</h1>
+<p class="sub">Bottleneck diagnosis &middot; KPI &amp; anomaly monitoring &middot; capacity / cost what-if — on a fab-style production line</p>
+
+<p>Production data tells you what happened. This project turns it into <strong>what to do</strong>:
+which station is the constraint (and the proof), when a KPI drifts out of control,
+and what a capacity or demand change would do to cycle time, throughput, and cost.</p>
+
+<div class="card">
+  <h2>Interactive KPI dashboard</h2>
+  <p>Output, WIP, slot utilization vs design targets, cycle time, and X-factor on the
+     synthetic fab-style line (batch furnace, re-entrant litho bottleneck). Hover and zoom.</p>
+  <a class="btn" href="dashboard.html">Open dashboard</a>
+</div>
+
+<div class="card">
+  <h2>Full analysis (GitHub)</h2>
+  <p>Process mining on a real production log, a validated discrete-event fab model,
+     CRN counterfactual bottleneck proof, OEE-style anomaly monitoring with measured
+     detection quality, and cost-ranked improvement decisions — each in its own notebook.</p>
+  <a class="btn alt" href="https://github.com/leonlaiyc/manufacturing-ops-analytics">View repository</a>
+</div>
+
+<p class="note">Synthetic line data is clearly labeled synthetic — it exists to give the
+methods a known ground truth (engineered bottleneck, labeled anomalies) so they can be
+validated, not just demonstrated. The real production log is used for diagnosis only.
+Cost rates are illustrative; conclusions are rankings tested under &plusmn;50% sensitivity.</p>
+</body>
+</html>
