@@ -380,7 +380,7 @@
       <p class="method-note"><strong>方法：</strong>cycle-time 下降 = 基準情境的平均 lot cycle time - 加一台工具後的平均 lot cycle time。表中的負值代表該情境的平均 cycle time 比基準更短。</p>
       <p class="method-note">數據來自 CRN 配對的 what-if 重複實驗（N=30）；LITHO 的降幅為 2.46 小時，95% CI 為 2.13-2.79 小時。</p>
       <p class="finding-note">每個情境都是在一個站點新增一台工具。問題不只是新增工具一次能處理多少 lots，而是新增後是否真的讓整條線的平均 cycle time 下降。</p>
-      <p class="finding-note">FURNACE 看起來重要，因為新增一台工具一次可以處理 4 lots。可是新增一台 FURNACE 工具，只讓平均 cycle time 下降約 0.70 小時。新增一台 LITHO 工具一次只多處理 1 lot，卻讓平均 cycle time 下降約 2.46 小時。在這個情境裡，較好的產能決策不是新增最多 lot-processing slots 的站點，而是最能降低整條線 cycle time 的站點。</p>
+      <p class="finding-note">FURNACE 看起來重要，因為新增一台工具一次可以處理 4 lots。但新增一台 FURNACE 工具，只讓平均 cycle time 下降約 0.70 小時。新增一台 LITHO 工具一次只多處理 1 lot，卻讓平均 cycle time 下降約 2.46 小時。在這個情境裡，較好的產能決策不是新增最多 lot-processing slots 的站點，而是最能降低整條線 cycle time 的站點。</p>
     </div>
   </div>
   <!-- FINDING 2 -->
@@ -454,11 +454,6 @@
     <p class="method-note zh" style="margin-top:.5rem;">（負值代表相對基準省錢；正值代表成本增加）</p>
     <p class="method-note en">Processing consumes tool time, energy, labor, and maintenance resources. Waiting creates WIP burden, longer lead time, and congestion risk.</p>
     <p class="method-note zh">處理會消耗工具時間、能源、人力與維護資源；等待會造成 WIP 負擔、lead time 變長與壅塞風險。</p>
-
-    <p class="finding-note en">Break-even added-tool cost asks: how expensive can the added tool
-    be before the option stops being net-saving? In this run the thresholds are LITHO $32.0k,
-    FURNACE $9.7k, DEPO $3.3k, and METRO $0.6k.</p>
-    <p class="finding-note zh">新增工具的損益平衡成本回答的是：新增工具可以多貴，才不會讓方案從淨節省變成淨增加？本次結果為 LITHO $32.0k、FURNACE $9.7k、DEPO $3.3k、METRO $0.6k。</p>
 
     <div class="finding-note en">
       <h3>When metrics conflict</h3>
