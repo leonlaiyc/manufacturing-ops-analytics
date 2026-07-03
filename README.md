@@ -12,21 +12,24 @@ production log.
 
 ## Three findings that matter
 
-**1. The "obvious" bottleneck candidates are wrong — and buying tools there burns capital.**
-The slowest-looking station (a 3 h batch furnace) and the busiest station are
-both non-constraints; four independent queueing signals and a paired
-counterfactual converge on LITHO instead. Adding one litho tool cuts mean cycle
-time by **2.46 h (95% CI 2.13–2.79)**; adding a furnace tool — **4× the raw
-capacity** — buys only **0.70 h**, all of it batching-delay relief, and recovers
-only about half its cost.
+**1. Local bottleneck signals need system proof.**
+The slowest per-run station and raw local signals can point to the wrong
+candidate. Slot utilization and paired what-if tests converge on LITHO as the
+effective constraint. Adding one litho tool cuts mean cycle time by **2.46 h
+(95% CI 2.13–2.79)**; adding one furnace tool adds four lot-processing slots but
+buys only **0.70 h**, all of it batching-delay relief, and recovers only about
+half its cost.
 
 ![Capacity what-if with cost](reports/figures/capacity_cost_tradeoff.png)
 
-**2. A KPI improvement is not a business case.** At the illustrative cost rates,
-the bottleneck tool is the **only** option with negative net cost (≈ −$12k over
-the horizon); every non-bottleneck purchase — including one that visibly
-improves cycle time — costs more than doing nothing. The recommendation
-survives ±50% perturbation of every cost rate ([notebook 06](notebooks/06_capacity_demand_cost_whatif.ipynb)).
+**2. A KPI improvement is not a business case.** The cost model is illustrative:
+it ranks options under shared assumptions, not real factory quotes or a
+financial forecast. In this scenario, LITHO wins on both filters: it has the
+largest average cycle-time reduction and is the **only** option with negative
+net cost (≈ −$12k over the horizon). If operational and cost rankings disagree,
+the final recommendation should follow the business objective; here the
+recommendation remains LITHO under ±50% perturbation of every cost rate
+([notebook 06](notebooks/06_capacity_demand_cost_whatif.ipynb)).
 
 **3. Slow equipment drift is expensive and catchable.** A gentle bottleneck
 degradation (an OEE Performance loss) barely touches output yet accumulates
@@ -67,10 +70,11 @@ measured in **slot utilization**, not busy time).
 Bottleneck logic is queueing / Theory-of-Constraints evidence — no weighted
 composite scores. Monitoring is control-chart / EWMA with baselines fit only on
 clean pre-anomaly data. Cost is three transparent components used to **rank**
-options, never to predict absolute dollars, and every recommendation is
-re-tested under ±50% rate perturbations. These choices are on purpose:
-operations decisions have to be explainable to — and challengeable by — the
-people who act on them.
+options under shared assumptions, never to predict absolute dollars. If
+operational and cost rankings point in different directions, the business
+objective decides; every recommendation is re-tested under ±50% rate
+perturbations. These choices are on purpose: operations decisions have to be
+explainable to — and challengeable by — the people who act on them.
 
 The same discipline applies to validation: methods are first proven on the
 synthetic line, where the answer is known by construction (engineered
@@ -127,7 +131,7 @@ python src/kpi/export_html_dashboard.py  # rebuild the interactive dashboard
 - What is borrowed from the public **SMT2020** semiconductor testbed is the
   structural idea — re-entrant flow and batch tools — not its tool sets,
   routes, or process-time distributions.
-- Cost rates are illustrative; every cost conclusion is a **ranking** tested
-  under ±50% sensitivity, never a dollar forecast.
+- Cost rates are illustrative; every cost conclusion is a **ranking** under
+  shared assumptions, tested under ±50% sensitivity, never a dollar forecast.
 - Where AI assistance was used for implementation, the modeling assumptions and
   method choices are documented so they can be explained and challenged.

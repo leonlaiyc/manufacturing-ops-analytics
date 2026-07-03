@@ -77,7 +77,10 @@
   .fill { height:100%; border-radius:999px; background:var(--grey); min-width:4px; }
   .fill.blue { background:var(--blue); }
   .fill.green { background:var(--green); }
+  .fill.red { background:var(--red); }
   .fill.tiny { min-width:6px; }
+  .cost-save { color:var(--green); }
+  .cost-cost { color:var(--red); }
   .finding-note { background:var(--bg); border:1px solid var(--line); border-radius:10px;
                   padding:.75rem .85rem; margin:.85rem 0 0; }
 
@@ -371,45 +374,89 @@
   <!-- FINDING 2 -->
   <div class="finding">
     <span class="tag">02</span>
-    <div class="en"><h2>A visible improvement can still lose money</h2>
-      <p>Buying a tool at the wrong station can make a metric look better and still destroy
-      value. Only the bottleneck investment pays for itself; every other option here costs more
-      than doing nothing at all.</p></div>
-    <div class="zh"><h2>看得到的改善,也可能是賠錢的</h2>
-      <p>在錯的站買機台,數字會變好看,錢卻是虧的。只有投資在瓶頸上才會回本;其他每一個選項,都比
-      「什麼都不做」還要貴。</p></div>
+    <div class="en"><h2>An improvement is not automatically a good investment</h2>
+      <p>Finding 01 answers one question: which added tool reduces the line's average
+      cycle time the most.</p>
+      <p>But that is not the full decision. Every +1 tool option has a cost, and a
+      cycle-time improvement is not automatically large enough to justify the added tool.</p></div>
+    <div class="zh"><h2>改善不一定就是好的投資</h2>
+      <p>發現 01 回答的是一個問題：哪一個加一台工具的方案，最能降低整條線的平均 cycle time。</p>
+      <p>但這還不是完整決策。每個 +1 tool 方案都有成本，cycle time 變短也不一定足以合理化新增機台。</p></div>
 
-    <figure>
-      <!-- net cost of the decision -->
-      <svg viewBox="0 0 480 200" role="img" aria-label="net cost of each decision">
-        <line x1="240" y1="12" x2="240" y2="176" stroke="#B7C3CC" stroke-width="1"/>
-        <!-- LITHO saves -->
-        <text x="10" y="36" font-size="13" font-weight="700" fill="#22303C">LITHO</text>
-        <rect x="110" y="20" width="130" height="24" rx="4" fill="#2E7D32"/>
-        <text x="175" y="37" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">−$12k</text>
-        <!-- FURNACE -->
-        <text x="10" y="76" font-size="13" fill="#5B7180">FURNACE</text>
-        <rect x="240" y="60" width="111" height="24" rx="4" fill="#C62828"/>
-        <text x="356" y="77" font-size="12.5" fill="#C62828">+$10k</text>
-        <!-- DEPO -->
-        <text x="10" y="116" font-size="13" fill="#5B7180">DEPO</text>
-        <rect x="240" y="100" width="181" height="24" rx="4" fill="#C62828"/>
-        <text x="426" y="117" font-size="12.5" fill="#C62828">+$17k</text>
-        <!-- METRO -->
-        <text x="10" y="156" font-size="13" fill="#5B7180">METRO</text>
-        <rect x="240" y="140" width="210" height="24" rx="4" fill="#C62828"/>
-        <text x="455" y="157" text-anchor="end" font-size="12.5" font-weight="700" fill="#fff">+$19k</text>
-      </svg>
-      <div class="legend">
-        <span class="g en">saves money</span><span class="g zh">省錢(回本)</span>
-        <span class="r en">costs money</span><span class="r zh">賠錢</span>
-      </div>
-      <p class="caption en">Net cost of each “+1 tool” decision. FURNACE improved cycle time
-      (Finding 01) yet still recovers only about half its price. Illustrative rates — the
-      conclusion is the <em>ranking</em>, and it holds under ±50% on every cost.</p>
-      <p class="caption zh">每個「加一台機」決策的淨成本。FURNACE 明明改善了週期(發現 01),卻只賺回
-      約一半的機台錢。費率為示意——結論看的是<em>排序</em>,而且在每項成本 ±50% 下都不翻盤。</p>
-    </figure>
+    <div class="table-wrap">
+      <table class="metric-table">
+        <thead>
+          <tr>
+            <th><span class="en">Station</span><span class="zh">站點</span></th>
+            <th><span class="en">Avg Cycle-Time Reduction</span><span class="zh">平均 cycle time 降幅</span></th>
+            <th><span class="en">Illustrative Net Cost Change</span><span class="zh">示意淨成本變化</span></th>
+            <th><span class="en">Decision Signal</span><span class="zh">決策訊號</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>LITHO</strong></td>
+            <td class="barcell"><div class="barlabel"><span>-2.46 h</span><span></span></div><div class="track"><div class="fill blue" style="width:100%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span class="cost-save">-$12k</span><span></span></div><div class="track"><div class="fill green" style="width:63%"></div></div></td>
+            <td><span class="en">Best operational + financial case</span><span class="zh">營運與財務表現最佳</span></td>
+          </tr>
+          <tr>
+            <td><strong>FURNACE</strong></td>
+            <td class="barcell"><div class="barlabel"><span>-0.70 h</span><span></span></div><div class="track"><div class="fill blue" style="width:28%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span class="cost-cost">+$10k</span><span></span></div><div class="track"><div class="fill red" style="width:53%"></div></div></td>
+            <td><span class="en">Improves cycle time, but not enough to pay back</span><span class="zh">可降低 cycle time，但不足以回收新增機台成本</span></td>
+          </tr>
+          <tr>
+            <td><strong>DEPO</strong></td>
+            <td class="barcell"><div class="barlabel"><span>-0.26 h</span><span></span></div><div class="track"><div class="fill blue" style="width:11%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span class="cost-cost">+$17k</span><span></span></div><div class="track"><div class="fill red" style="width:89%"></div></div></td>
+            <td><span class="en">Small improvement, higher cost</span><span class="zh">改善幅度小，成本較高</span></td>
+          </tr>
+          <tr>
+            <td><strong>METRO</strong></td>
+            <td class="barcell"><div class="barlabel"><span>-0.05 h</span><span></span></div><div class="track"><div class="fill blue tiny" style="width:2%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span class="cost-cost">+$19k</span><span></span></div><div class="track"><div class="fill red" style="width:100%"></div></div></td>
+            <td><span class="en">Almost no system impact</span><span class="zh">對整體系統幾乎沒有影響</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="caption en">Dollar values are illustrative, not real factory quotes. They are used
+    to compare scenarios under the same assumptions.</p>
+    <p class="caption zh">金額是示意值，不是真實工廠報價或財務預測；用途是在相同假設下比較不同方案。</p>
+    <p class="method-note en"><strong>Calculation:</strong> Net cost change = scenario total cost - baseline total cost. Total cost includes processing cost (tool busy-hours &times; illustrative processing rate), waiting / congestion cost (lot queue-wait hours &times; illustrative holding rate), and added tool cost (number of added tools &times; illustrative tool cost). Negative saves versus baseline; positive costs more.</p>
+    <p class="method-note zh"><strong>計算方式：</strong>淨成本變化 = 方案總成本 - 基準總成本。總成本包含處理成本（工具忙碌時數 &times; 示意處理費率）、等待 / 壅塞成本（lot 排隊等待時數 &times; 示意持有費率），以及新增機台成本（新增機台數 &times; 示意機台成本）。負值代表相對基準省錢；正值代表成本增加。</p>
+    <p class="method-note en">Processing consumes tool time, energy, labor, and maintenance resources. Waiting creates WIP burden, longer lead time, and congestion risk.</p>
+    <p class="method-note zh">處理會消耗工具時間、能源、人力與維護資源；等待會造成 WIP 負擔、lead time 變長與壅塞風險。</p>
+
+    <p class="finding-note en">The exact dollar values are less important than the decision result.
+    Under these assumptions, LITHO is the only net-saving option, and the recommendation
+    remains LITHO when the cost assumptions are varied by ±50%.</p>
+    <p class="finding-note zh">精確金額不是重點，決策結果才是重點。在這些假設下，LITHO 是唯一淨節省的方案；即使成本假設上下變動 ±50%，建議仍然是 LITHO。</p>
+
+    <div class="finding-note en">
+      <h3>When metrics conflict</h3>
+      <p>If the goal is lead-time reduction, choose the option that meets the cycle-time target at an acceptable cost.</p>
+      <p>If the goal is financial return, choose the option with the strongest net saving or payback.</p>
+      <p>If both matter, first define the minimum operational improvement required, then choose the most cost-effective option that meets it.</p>
+    </div>
+    <div class="finding-note zh">
+      <h3>當指標衝突時</h3>
+      <p>如果目標是縮短 lead time，選擇能在可接受成本內達成 cycle-time 目標的方案。</p>
+      <p>如果目標是財務回報，選擇淨節省或回收效果最強的方案。</p>
+      <p>如果兩者都重要，先定義最低需要的營運改善幅度，再選擇符合條件且最具成本效益的方案。</p>
+    </div>
+
+    <p class="finding-note en">In this simplified scenario, LITHO passes both filters: it reduces
+    average cycle time the most and is the only option with net savings under the illustrative
+    cost model. Among these four +1 tool options, LITHO is the recommended option.</p>
+    <p class="finding-note zh">在這個簡化情境中，LITHO 同時通過兩個篩選：它讓平均 cycle time 降幅最大，也是示意成本模型下唯一有淨節省的方案。在這四個 +1 tool 選項中，LITHO 是建議方案。</p>
+    <p class="caption en">This is not an automatic buying rule. It is a decision-support workflow:
+    validate the baseline model, test feasible capacity scenarios, translate operational
+    improvement into illustrative cost impact, and check whether the recommendation is robust
+    to cost assumptions.</p>
+    <p class="caption zh">這不是自動採購規則，而是一個 decision-support workflow：先驗證基準模型，再測試可行的產能方案，將營運改善轉換成示意成本影響，並檢查建議是否能承受成本假設的變動。</p>
   </div>
 
   <!-- FINDING 3 -->
