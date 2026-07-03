@@ -165,8 +165,10 @@
     <div class="step">
       <span class="n">2</span>
       <div class="en"><h3>Model</h3><p>Build a transparent factory where bottlenecks,
-        degradation, and improvement methods can be simulated and tested.</p></div>
-      <div class="zh"><h3>建模</h3><p>打造一個透明工廠，讓瓶頸、劣化與改善方法能被模擬測試。</p></div>
+        degradation, and improvement methods can be simulated and tested, validated with
+        Little's Law (0.2% gap between predicted and measured WIP).</p></div>
+      <div class="zh"><h3>建模</h3><p>打造一個透明工廠，讓瓶頸、劣化與改善方法能被模擬測試，並以 Little's Law 驗證
+        （預測與實測 WIP 誤差僅 0.2%）。</p></div>
     </div>
     <div class="step">
       <span class="n">3</span>
@@ -324,6 +326,7 @@
         </table>
       </div>
       <p class="method-note"><strong>Method:</strong> Cycle-time reduction = baseline average lot cycle time minus the average lot cycle time after adding one tool to that station. Negative table values mean the scenario's average cycle time is lower than baseline.</p>
+      <p class="method-note">Estimates come from CRN-paired what-if replications (N=30); the LITHO reduction is 2.46 h with a 95% CI of 2.13-2.79 h.</p>
       <p class="finding-note">Each scenario adds one tool to one station. The question is not only how
       many lots the added tool can process, but whether adding it actually reduces the whole line's
       average cycle time.</p>
@@ -375,6 +378,7 @@
         </table>
       </div>
       <p class="method-note"><strong>方法：</strong>cycle-time 下降 = 基準情境的平均 lot cycle time - 加一台工具後的平均 lot cycle time。表中的負值代表該情境的平均 cycle time 比基準更短。</p>
+      <p class="method-note">數據來自 CRN 配對的 what-if 重複實驗（N=30）；LITHO 的降幅為 2.46 小時，95% CI 為 2.13-2.79 小時。</p>
       <p class="finding-note">每個情境都是在一個站點新增一台工具。問題不只是新增工具一次能處理多少 lots，而是新增後是否真的讓整條線的平均 cycle time 下降。</p>
       <p class="finding-note">FURNACE 看起來重要，因為新增一台工具一次可以處理 4 lots。可是新增一台 FURNACE 工具，只讓平均 cycle time 下降約 0.70 小時。新增一台 LITHO 工具一次只多處理 1 lot，卻讓平均 cycle time 下降約 2.46 小時。在這個情境裡，較好的產能決策不是新增最多 lot-processing slots 的站點，而是最能降低整條線 cycle time 的站點。</p>
     </div>
