@@ -71,6 +71,8 @@
                          font-size:.68rem; font-weight:800; white-space:nowrap; }
   .metric-table .badge.warn { background:#FFF1D6; color:#8A5A00; }
   .method-note { color:var(--muted); font-size:.82rem; margin:.45rem 0 0; }
+  ul.method-list { color:var(--muted); font-size:.82rem; margin:.4rem 0 0; padding-left:1.15rem; }
+  ul.method-list li { margin:.2rem 0; }
   .barcell { min-width:170px; }
   .barlabel { display:flex; justify-content:space-between; gap:.7rem; font-weight:700; }
   .track { height:.62rem; background:#EAF0F4; border-radius:999px; overflow:hidden; margin-top:.32rem; }
@@ -83,6 +85,12 @@
   .cost-cost { color:var(--red); }
   .finding-note { background:var(--bg); border:1px solid var(--line); border-radius:10px;
                   padding:.75rem .85rem; margin:.85rem 0 0; }
+  .workflow { display:grid; grid-template-columns:repeat(4,1fr); gap:.65rem; margin:.85rem 0 .9rem; }
+  .workflow-step { background:var(--bg); border:1px solid var(--line); border-radius:10px;
+                   padding:.75rem .8rem; }
+  .workflow-step .n { color:var(--blue); font-weight:800; font-size:.76rem; margin-bottom:.18rem; }
+  .workflow-step h3 { margin:.05rem 0 .2rem; font-size:.86rem; }
+  .workflow-step p { margin:0; color:var(--muted); font-size:.78rem; line-height:1.45; }
 
   figure { margin:1rem 0 .2rem; }
   svg { width:100%; height:auto; display:block; }
@@ -112,7 +120,7 @@
   .note { font-size:.82rem; color:var(--grey); margin-top:1.8rem; line-height:1.6; }
 
   @media (max-width:620px){
-    .steps,.stats { grid-template-columns:1fr; }
+    .steps,.stats,.workflow { grid-template-columns:1fr; }
     h1 { font-size:1.5rem; }
     .finding { padding:1.05rem 1rem; }
     table.metric-table { min-width:660px; font-size:.8rem; }
@@ -432,7 +440,14 @@
     cost assumptions used to test decision sensitivity, not real factory prices.</p>
     <p class="caption zh"><strong>投資壓力情境：站點別工具成本假設。</strong>LITHO $40k、FURNACE $8k、DEPO $5k、METRO $2k。這些是用來測試決策敏感度的示意站點別成本假設，不是真實工廠價格。</p>
     <p class="method-note en"><strong>Calculation:</strong> Net cost change = scenario total cost - baseline total cost. Total cost includes processing cost (tool busy-hours &times; illustrative processing rate), waiting / congestion cost (lot queue-wait hours &times; illustrative holding rate), and added tool cost (number of added tools &times; illustrative tool cost). Negative saves versus baseline; positive costs more.</p>
-    <p class="method-note zh"><strong>計算方式：</strong>淨成本變化 = 方案總成本 - 基準總成本。總成本包含處理成本（工具忙碌時數 &times; 示意處理費率）、等待 / 壅塞成本（lot 排隊等待時數 &times; 示意持有費率），以及新增機台成本（新增機台數 &times; 示意機台成本）。負值代表相對基準省錢；正值代表成本增加。</p>
+    <p class="method-note zh"><strong>計算方式：</strong>淨成本變化 = 方案總成本 − 基準總成本</p>
+    <p class="method-note zh" style="margin-top:.6rem;">總成本包含：</p>
+    <ul class="method-list zh">
+      <li>處理成本（工具忙碌時數 &times; 示意處理費率）</li>
+      <li>等待 / 壅塞成本（lot 排隊等待時數 &times; 示意持有費率）</li>
+      <li>新增機台成本（新增機台數 &times; 示意機台成本）</li>
+    </ul>
+    <p class="method-note zh" style="margin-top:.5rem;">（負值代表相對基準省錢；正值代表成本增加）</p>
     <p class="method-note en">Processing consumes tool time, energy, labor, and maintenance resources. Waiting creates WIP burden, longer lead time, and congestion risk.</p>
     <p class="method-note zh">處理會消耗工具時間、能源、人力與維護資源；等待會造成 WIP 負擔、lead time 變長與壅塞風險。</p>
 
@@ -449,7 +464,7 @@
     </div>
     <div class="finding-note zh">
       <h3>當指標衝突時</h3>
-      <p>如果優先目標是縮短 lead time 或降低 WIP，支付較高成本換取 LITHO 較大的 cycle-time 改善，可能是合理的。</p>
+      <p>如果優先目標是縮短 cycle-time，較好的選擇可能是支付較高成本換取較大的 cycle-time 改善。</p>
       <p>如果優先目標是短期財務回報，較好的選擇可能是淨節省最高或回收最快的方案。</p>
       <p>如果兩者都重要，先定義最低需要的 cycle-time 改善門檻，再選擇符合門檻且最具成本效益的方案。</p>
     </div>
@@ -458,32 +473,59 @@
     to make the trade-off explicit: operational impact, investment cost, and business objective
     must be evaluated together. Under a lead-time-first objective, LITHO may still be the right
     choice. Under a cost-first objective, the recommendation may change.</p>
-    <p class="finding-note zh">重點不是某一個指標自動勝出，而是把取捨講清楚：營運影響、投資成本與 business objective 必須一起評估。若優先目標是 lead time，LITHO 仍可能是正確選擇；若優先目標是成本，建議方案可能改變。</p>
+    <p class="finding-note zh">營運影響、投資成本與商業目標必須綜合評估，在不同的當下情境找出最佳解。</p>
   </div>
 
   <!-- FINDING 3 -->
   <div class="finding">
     <span class="tag">03</span>
-    <div class="en"><h2>Slow degradation is expensive — but catchable</h2>
-      <p>A machine quietly slowing down barely changes output, so nobody notices — while it
-      silently piles up a large cost. An early-warning monitor flags it in time to avoid almost
-      all of it.</p></div>
-    <div class="zh"><h2>緩慢劣化很貴——但抓得到</h2>
-      <p>機台悄悄變慢,產出幾乎不變,所以沒人察覺——但成本卻在背後默默累積。一個早期預警監控能及時
-      抓到,幾乎把損失全部避掉。</p></div>
+    <div class="en"><h2>Slow degradation may not cut output first, but it raises cost early</h2>
+      <p>Equipment degradation does not always reduce output immediately. Processing time can
+      drift upward first, causing queue wait and WIP cost to accumulate while output still
+      looks normal.</p></div>
+    <div class="zh"><h2>緩慢劣化不一定先讓 output 下降，但會先推高成本</h2>
+      <p>設備劣化不一定會立刻讓 output 明顯下降。處理時間可能先慢慢上升，讓 queue wait 和 WIP 成本開始累積，而 output 看起來仍然正常。</p></div>
+
+    <div class="workflow">
+      <div class="workflow-step">
+        <div class="n">01</div>
+        <div class="en"><h3>Monitor signal</h3><p>Track daily median lot cycle time, not just output.</p></div>
+        <div class="zh"><h3>監控訊號</h3><p>追蹤每日 lot cycle time 中位數，不只看 output。</p></div>
+      </div>
+      <div class="workflow-step">
+        <div class="n">02</div>
+        <div class="en"><h3>Fit clean baseline</h3><p>Fit the baseline only on clean pre-anomaly days, so future anomaly data cannot tune the threshold.</p></div>
+        <div class="zh"><h3>建立乾淨 baseline</h3><p>只用已知乾淨的異常前資料建立 baseline，避免用到未來異常資料調整門檻。</p></div>
+      </div>
+      <div class="workflow-step">
+        <div class="n">03</div>
+        <div class="en"><h3>Detect slow drift</h3><p>Use EWMA to accumulate small persistent deviations that a classic control chart may miss.</p></div>
+        <div class="zh"><h3>偵測緩慢漂移</h3><p>用 EWMA 累積小而持續的偏移，補足傳統 control chart 可能漏掉的慢性劣化。</p></div>
+      </div>
+      <div class="workflow-step">
+        <div class="n">04</div>
+        <div class="en"><h3>Act after alert</h3><p>Trigger maintenance, scheduling, or capacity response before degradation cost keeps accumulating.</p></div>
+        <div class="zh"><h3>alert 後行動</h3><p>alert 後啟動維修、排程或產能應對，避免劣化成本繼續累積。</p></div>
+      </div>
+    </div>
 
     <div class="stats">
       <div class="stat"><div class="big">~$249k</div>
-        <div class="lbl en">hidden cost if ignored</div><div class="lbl zh">放著不管的隱形成本</div></div>
+        <div class="lbl en">Estimated degradation cost if ignored</div><div class="lbl zh">若忽略劣化的估計總成本</div></div>
       <div class="stat"><div class="big">~95%</div>
-        <div class="lbl en">avoided by catching it early</div><div class="lbl zh">及早抓到可避免的比例</div></div>
+        <div class="lbl en">Cost still avoidable after alert</div><div class="lbl zh">alert 後仍可避免的成本比例</div></div>
       <div class="stat"><div class="big">day 84</div>
-        <div class="lbl en">flagged (drift began day 30)</div><div class="lbl zh">被偵測到(第 30 天開始劣化)</div></div>
+        <div class="lbl en">First EWMA alert, degradation started on day 30</div><div class="lbl zh">EWMA 首次 alert，劣化從 day 30 開始</div></div>
     </div>
-    <p class="caption en" style="margin-top:.7rem;">This is the concrete link from monitoring to
-    money: the same detector, scored honestly against a known start date.</p>
-    <p class="caption zh" style="margin-top:.7rem;">這就是「監控」到「金錢」的具體連結:同一個偵測器,
-    對著已知的劣化起始日,誠實地被打分數。</p>
+    <p class="method-note en" style="margin-top:.7rem;"><strong>Calculation:</strong> compare
+    cumulative cost between the degraded line and its clean twin. Total degradation cost is
+    the cost gap at the end of the run. Cost already incurred is the cost gap at the alert day.
+    Avoidable cost is the remaining gap after the alert, assuming action is taken after detection.</p>
+    <p class="method-note zh" style="margin-top:.7rem;"><strong>計算方式：</strong>比較 degraded line 與 clean twin 的累積成本差。總劣化成本是模擬結束時的成本差。已發生成本是 alert day 當下的成本差。可避免成本是在 alert 之後仍未發生的剩餘差額，前提是假設偵測後會採取行動。</p>
+    <p class="caption en">This is a backtested monitoring setup, not a guarantee that every real
+    degradation will be caught on day 84. The point is to validate the detector against a known
+    degradation start and translate alert timing into avoidable cost.</p>
+    <p class="caption zh">這是 backtested monitoring setup，不保證每一次真實劣化都會在 day 84 被抓到。重點是用已知劣化起始日驗證 detector，並把 alert 時間轉換成可避免成本。</p>
   </div>
 
   <!-- BOTTOM LINE -->

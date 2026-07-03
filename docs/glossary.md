@@ -38,8 +38,12 @@ defined in one sentence.
 ## Monitoring
 
 - **Control chart**: flags points outside mean ± k·sigma as out-of-control.
-- **EWMA**: exponentially weighted moving average; reacts to small sustained shifts faster than a simple mean.
+- **EWMA**: a smoothing-based monitor that accumulates small persistent shifts over time, useful for slow drift.
 - **Lead time of detection**: how early a monitor flags an injected anomaly before its full impact.
+- **Clean baseline**: a baseline fitted only on known clean pre-anomaly data, without using future anomaly periods.
+- **Clean twin**: a comparable no-degradation simulation run used as the counterfactual reference.
+- **Avoidable cost**: the remaining degradation cost after the alert day, assuming action is taken after detection.
+- **Degradation cost**: the extra cost gap between a degraded line and its clean twin.
 
 ## Process mining
 

@@ -35,11 +35,13 @@ commitment, financial return, or a minimum improvement threshold
 ([notebook 06](notebooks/06_capacity_demand_cost_whatif.ipynb)).
 
 **3. Slow equipment drift is expensive and catchable.** A gentle bottleneck
-degradation (an OEE Performance loss) barely touches output yet accumulates
-≈ $250k of congestion cost; an EWMA monitor with a leakage-free baseline flags
-it while a classic control chart stays silent, and fixing at detection avoids
-≈ 95% of the remaining cost ([notebook 05](notebooks/05_kpi_anomaly_monitoring.ipynb),
-[notebook 06](notebooks/06_capacity_demand_cost_whatif.ipynb)).
+degradation (an OEE Performance loss) barely touches output at first, but it
+raises cycle time and congestion cost. [Notebook 05](notebooks/05_kpi_anomaly_monitoring.ipynb)
+validates the monitoring method with labeled anomalies, a clean pre-anomaly
+baseline, and EWMA detection on daily median lot cycle time. [Notebook 06](notebooks/06_capacity_demand_cost_whatif.ipynb)
+connects the alert timing to cost impact by comparing the degraded line with a
+clean twin: about $249k total degradation cost in the reference run, with about
+95% still avoidable after the day 84 alert.
 
 ## What's inside
 
