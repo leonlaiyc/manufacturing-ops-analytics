@@ -97,7 +97,7 @@ def build_finding01_figure(cache: dict) -> go.Figure:
     fig.update_layout(
         title=dict(text=f"Finding 01 — Δ mean cycle time, +1 tool vs baseline "
                         f"(CRN-paired, N={f1['n_reps']})", x=0.5, font=dict(size=14)),
-        xaxis_title="Δ mean cycle time (h), +1 tool vs baseline (CRN-paired, N=30)",
+        xaxis_title="Mean cycle-time reduction (h), +1 tool vs baseline (CRN-paired, N=30)",
         yaxis=dict(autorange="reversed"),
         height=340, template="plotly_white", showlegend=False,
         margin=dict(t=60, l=90, r=30, b=50),
@@ -170,13 +170,18 @@ def build_finding03_figure(cache: dict) -> go.Figure:
                              line=dict(color="#607D8B", width=1.8), showlegend=False),
                   row=2, col=1)
 
-    for row in (1, 2):
-        fig.add_vline(x=onset, line_dash="dot", line_color="#8E24AA", row=row, col=1,
-                      annotation_text="degradation onset (day 30)" if row == 1 else None,
-                      annotation_position="top left")
-        fig.add_vline(x=alert, line_dash="dash", line_color="#00695C", row=row, col=1,
-                      annotation_text="EWMA alert (day 84)" if row == 1 else None,
-                      annotation_position="top right")
+    # Labels on the top row only: passing annotation_text=None makes Plotly fall
+    # back to its "new text" default, and the bottom row's CT curves diverge right
+    # where labels would sit — so the bottom-row reference lines stay unlabeled
+    # (same colors/dash as the labeled top-row lines).
+    fig.add_vline(x=onset, line_dash="dot", line_color="#8E24AA", row=1, col=1,
+                  annotation_text="degradation onset (day 30)",
+                  annotation_position="top left")
+    fig.add_vline(x=alert, line_dash="dash", line_color="#00695C", row=1, col=1,
+                  annotation_text="EWMA alert (day 84)",
+                  annotation_position="top right")
+    fig.add_vline(x=onset, line_dash="dot", line_color="#8E24AA", row=2, col=1)
+    fig.add_vline(x=alert, line_dash="dash", line_color="#00695C", row=2, col=1)
 
     fig.update_xaxes(title_text="day", row=2, col=1)
     fig.update_yaxes(title_text="lots/day", row=1, col=1)
@@ -273,15 +278,18 @@ def build_baseline_figure() -> go.Figure:
                   annotation_text="p90", annotation_position="top right")
 
     fig.update_layout(
+        # Short first line + smaller <br> detail lines so the title never clips
+        # at a 1280px viewport (the old single-line title overflowed the plot).
         title=dict(
-            text="Shared KPI baseline "
-                 "<span style='font-size:13px;color:#888'>(SYNTHETIC fab-style "
+            text="Shared KPI baseline"
+                 "<br><span style='font-size:11px;color:#888'>SYNTHETIC fab-style "
                  "line: CLEAN → FURNACE(batch) → DEPO → LITHO → ETCH → LITHO → "
-                 "IMPLANT → METRO; 1 lot = 25-wafer FOUP; steady-state window "
-                 "only)</span>",
+                 "IMPLANT → METRO</span>"
+                 "<br><span style='font-size:11px;color:#888'>1 lot = 25-wafer "
+                 "FOUP · steady-state window only</span>",
             x=0.5),
         height=1050, showlegend=False, template="plotly_white",
-        margin=dict(t=100, l=60, r=40, b=50),
+        margin=dict(t=115, l=60, r=40, b=50),
     )
     fig.update_yaxes(range=[0, 1.0], row=2, col=1)
     return fig
