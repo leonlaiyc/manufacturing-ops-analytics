@@ -12,7 +12,8 @@ scale — NOT to predict absolute dollars. All rates are illustrative assumption
                        (congestion cost of work waiting in front of stations;
                         a WIP time-in-system basis is an equally valid alternative)
   3. capacity cost   = tools_added * tool_cost                    ($ per added tool,
-                       amortised over the simulated horizon)
+                       amortised over the simulated horizon; scenario analyses
+                       may override this with an explicit added-tool cost)
   (+ optional one-off repair_cost, used by the early-fix improvement option.)
 
 All hour sums are clipped to the steady-state window [t0, t1] so boundary-crossing
@@ -50,11 +51,13 @@ def _waiting_hours(log: pd.DataFrame, t0: float, t1: float) -> float:
 
 
 def cost_components(log: pd.DataFrame, t0: float, t1: float, rates: CostRates,
-                    tools_added: int = 0, repairs: int = 0) -> dict:
+                    tools_added: int = 0, repairs: int = 0,
+                    added_tool_cost: float | None = None) -> dict:
     """Return the cost broken into {processing, holding, capacity, repair, total}."""
     proc = _processing_hours(log, t0, t1) * rates.proc_rate
     hold = _waiting_hours(log, t0, t1) * rates.hold_rate
-    cap = tools_added * rates.tool_cost
+    tool_cost = rates.tool_cost if added_tool_cost is None else added_tool_cost
+    cap = tools_added * tool_cost
     rep = repairs * rates.repair_cost
     return {
         "processing": proc,
@@ -66,9 +69,11 @@ def cost_components(log: pd.DataFrame, t0: float, t1: float, rates: CostRates,
 
 
 def total_cost(log: pd.DataFrame, t0: float, t1: float, rates: CostRates,
-               tools_added: int = 0, repairs: int = 0) -> float:
+               tools_added: int = 0, repairs: int = 0,
+               added_tool_cost: float | None = None) -> float:
     """Scalar total cost over [t0, t1] (see cost_components for the breakdown)."""
-    return cost_components(log, t0, t1, rates, tools_added, repairs)["total"]
+    return cost_components(log, t0, t1, rates, tools_added, repairs,
+                           added_tool_cost)["total"]
 
 
 def daily_operating_cost(log: pd.DataFrame, horizon: float, rates: CostRates) -> pd.Series:

@@ -31,6 +31,9 @@ defined in one sentence.
 - **Rework loop**: a unit returning to an earlier step after a failure.
 - **Illustrative cost model**: a simplified cost framework used to compare scenarios under shared assumptions; it is not a real factory quote or financial forecast.
 - **Holding / waiting cost**: an illustrative cost assigned to lots waiting in queue, used to represent WIP burden, longer lead time, and congestion risk.
+- **Station-specific tool cost**: an illustrative assumption that the cost of adding one tool can differ by station.
+- **Investment-stress scenario**: a what-if scenario that changes investment-cost assumptions to test whether the recommended option remains attractive.
+- **Break-even added-tool cost**: the maximum added-tool cost at which a scenario's net cost change is zero.
 
 ## Monitoring
 

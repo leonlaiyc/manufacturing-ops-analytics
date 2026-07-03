@@ -23,12 +23,15 @@ half its cost.
 ![Capacity what-if with cost](reports/figures/capacity_cost_tradeoff.png)
 
 **2. A KPI improvement is not a business case.** The cost model is illustrative:
-it ranks options under shared assumptions, not real factory quotes or a
-financial forecast. In this scenario, LITHO wins on both filters: it has the
-largest average cycle-time reduction and is the **only** option with negative
-net cost (≈ −$12k over the horizon). If operational and cost rankings disagree,
-the final recommendation should follow the business objective; here the
-recommendation remains LITHO under ±50% perturbation of every cost rate
+it ranks options under explicit assumptions, not real factory quotes or a
+financial forecast. In the equal-tool-cost base case, LITHO wins both filters:
+largest average cycle-time reduction and the only negative net cost (≈ −$12k).
+In an investment-stress scenario with station-specific tool costs (LITHO $40k,
+FURNACE $8k, DEPO $5k, METRO $2k), LITHO still has the largest operational
+impact but becomes ≈ +$8.0k, while FURNACE becomes the best financial result
+(≈ −$1.7k) with a smaller cycle-time gain. The right recommendation therefore
+depends on the business objective: lead-time / WIP reduction, delivery
+commitment, financial return, or a minimum improvement threshold
 ([notebook 06](notebooks/06_capacity_demand_cost_whatif.ipynb)).
 
 **3. Slow equipment drift is expensive and catchable.** A gentle bottleneck
@@ -70,11 +73,12 @@ measured in **slot utilization**, not busy time).
 Bottleneck logic is queueing / Theory-of-Constraints evidence — no weighted
 composite scores. Monitoring is control-chart / EWMA with baselines fit only on
 clean pre-anomaly data. Cost is three transparent components used to **rank**
-options under shared assumptions, never to predict absolute dollars. If
-operational and cost rankings point in different directions, the business
-objective decides; every recommendation is re-tested under ±50% rate
-perturbations. These choices are on purpose: operations decisions have to be
-explainable to — and challengeable by — the people who act on them.
+options under explicit assumptions, never to predict absolute dollars. The M6
+stress scenario also tests station-specific added-tool costs, so operational and
+financial rankings can point in different directions. When they do, the business
+objective decides; sensitivity checks make the assumption boundary visible.
+These choices are on purpose: operations decisions have to be explainable to —
+and challengeable by — the people who act on them.
 
 The same discipline applies to validation: methods are first proven on the
 synthetic line, where the answer is known by construction (engineered
@@ -131,7 +135,8 @@ python src/kpi/export_html_dashboard.py  # rebuild the interactive dashboard
 - What is borrowed from the public **SMT2020** semiconductor testbed is the
   structural idea — re-entrant flow and batch tools — not its tool sets,
   routes, or process-time distributions.
-- Cost rates are illustrative; every cost conclusion is a **ranking** under
-  shared assumptions, tested under ±50% sensitivity, never a dollar forecast.
+- Cost rates and station-specific tool costs are illustrative; every cost
+  conclusion is a **ranking** under explicit assumptions, tested for sensitivity,
+  never a dollar forecast.
 - Where AI assistance was used for implementation, the modeling assumptions and
   method choices are documented so they can be explained and challenged.

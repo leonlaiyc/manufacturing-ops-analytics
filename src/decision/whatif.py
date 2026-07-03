@@ -43,11 +43,13 @@ def with_demand(cfg, factor: float):
 # --------------------------------------------------------------------------- #
 def run_capacity_cost(base_cfg=None, stations=("LITHO", "DEPO", "FURNACE", "METRO"),
                       n_reps: int = 30, seed0: int = 1000,
-                      rates: CostRates | None = None) -> pd.DataFrame:
+                      rates: CostRates | None = None,
+                      added_tool_costs: dict[str, float] | None = None) -> pd.DataFrame:
     """Paired Δ (cycle time, throughput, total cost) from +1 tool per station.
 
     Δcost includes the added tool's capacity cost, so it is the net cost change of
-    the decision (machine cost minus any holding-cost savings).
+    the decision (machine cost minus any holding-cost savings). ``added_tool_costs``
+    can override the default tool cost by station for investment-stress scenarios.
     """
     base_cfg = base_cfg or default_config()
     rates = rates or CostRates()
@@ -63,11 +65,14 @@ def run_capacity_cost(base_cfg=None, stations=("LITHO", "DEPO", "FURNACE", "METR
         for s in stations:
             log_t, life_t, _ = simulate(treat[s], draws)
             th_t, ct_t = steady_state_kpis(life_t, t0, t1)
-            cost_t = cost_components(log_t, t0, t1, rates, tools_added=1)["total"]
+            tool_cost = None if added_tool_costs is None else added_tool_costs.get(s)
+            cost_t = cost_components(log_t, t0, t1, rates, tools_added=1,
+                                     added_tool_cost=tool_cost)["total"]
             rows.append({"rep": rep, "intervention": f"{s}+1",
                          "d_cycle_time": ct_t - ct_b,
                          "d_throughput": th_t - th_b,
-                         "d_cost": cost_t - cost_b})
+                         "d_cost": cost_t - cost_b,
+                         "added_tool_cost": rates.tool_cost if tool_cost is None else tool_cost})
     return pd.DataFrame(rows)
 
 
