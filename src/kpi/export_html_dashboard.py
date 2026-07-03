@@ -289,7 +289,8 @@ def build_baseline_figure() -> go.Figure:
                  "FOUP · steady-state window only</span>",
             x=0.5),
         height=1050, showlegend=False, template="plotly_white",
-        margin=dict(t=115, l=60, r=40, b=50),
+        # t=150 leaves room for the 3-line title above the subplot titles
+        margin=dict(t=150, l=60, r=40, b=50),
     )
     fig.update_yaxes(range=[0, 1.0], row=2, col=1)
     return fig
