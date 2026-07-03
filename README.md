@@ -5,7 +5,7 @@ do**: which station is the real constraint (with proof), when a KPI is drifting
 out of control (with measured detection quality), and what a capacity or demand
 change would do to cycle time, throughput, and cost — before spending the money.
 
-**[▶ Interactive KPI dashboard](https://leonlaiyc.github.io/manufacturing-ops-analytics/)** ·
+**[▶ Interactive KPI baseline](https://leonlaiyc.github.io/manufacturing-ops-analytics/)** ·
 built on a validated discrete-event model of a fab-style line
 (batch furnace, re-entrant litho bottleneck), plus process mining on a real
 production log.
@@ -53,7 +53,7 @@ on the same day.
 |---|---|---|
 | M1 Process mining | Reconstructs the actual flow of a **real** production log: DFG, cycle time, waiting-time decomposition, rework/variant analysis | [notebook 01](notebooks/01_process_mining_real_log.ipynb) |
 | M2 Fab-style simulator | Transparent hand-built DES: batch furnace, re-entrant litho, engineered ground-truth bottleneck; validated via Little's Law (gap 0.2%) | [notebook 02](notebooks/02_synthetic_generator_demo.ipynb), `src/generator` |
-| M3 KPI dashboard | Output, WIP, slot utilization, cycle time, **X-factor** — static + [interactive](https://leonlaiyc.github.io/manufacturing-ops-analytics/) | [notebook 03](notebooks/03_kpi_dashboard.ipynb) |
+| M3 KPI baseline | Shared baseline signals for the three findings: output, WIP, slot utilization, cycle time, **X-factor**; static + [interactive](https://leonlaiyc.github.io/manufacturing-ops-analytics/) | [notebook 03](notebooks/03_kpi_dashboard.ipynb) |
 | M4 Bottleneck proof | Multi-evidence convergence + naive-baseline refutation + **CRN paired counterfactual**; then applied to the real log with stated limits | [notebook 04](notebooks/04_bottleneck_identification.ipynb) |
 | M5 Anomaly monitoring | Injected, labeled OEE-style anomalies (Availability / Performance losses); control chart + EWMA scored on delay, FAR, precision/recall | [notebook 05](notebooks/05_kpi_anomaly_monitoring.ipynb) |
 | M6 Decision support | Capacity / demand / degradation what-ifs with a transparent cost model; improvement ranking under ±50% sensitivity | [notebook 06](notebooks/06_capacity_demand_cost_whatif.ipynb) |
