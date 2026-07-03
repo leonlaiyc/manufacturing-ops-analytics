@@ -485,49 +485,37 @@
 
     <div class="table-wrap">
       <table class="metric-table">
-        <thead class="en"><tr><th>Monitoring approach</th><th>Signal watched</th><th>Alert logic</th><th>Result</th></tr></thead>
-        <thead class="zh"><tr><th>監控方式</th><th>監控訊號</th><th>alert 邏輯</th><th>結果</th></tr></thead>
+        <thead class="en"><tr><th>Monitoring approach</th><th>Signal watched</th><th>Alert logic</th><th>Result</th><th>Consequence</th></tr></thead>
+        <thead class="zh"><tr><th>監控方式</th><th>監控訊號</th><th>alert 邏輯</th><th>結果</th><th>後果</th></tr></thead>
         <tbody>
           <tr>
             <td><strong class="en">Output-only monitor</strong><strong class="zh">只看 output 的監控</strong></td>
             <td><span class="en">Daily output / throughput</span><span class="zh">Daily output / throughput</span></td>
             <td><span class="en">Alert only when output drops below the clean baseline lower control limit.</span><span class="zh">只有當 output 低於乾淨 baseline 的下控制線時才 alert。</span></td>
             <td><span class="en">No alert within 160 days</span><span class="zh">160 天內沒有 alert</span></td>
+            <td><span class="en">No alert — the problem runs to day 160 and ≈$249k of extra cost accumulates</span><span class="zh">沒有 alert——問題一路跑到 day 160，累積約 $249k 的額外成本</span></td>
           </tr>
           <tr class="metric-hot">
             <td><strong class="en">EWMA drift monitor</strong><strong class="zh">EWMA 漂移監控</strong></td>
             <td><span class="en">Daily median lot cycle time</span><span class="zh">每日 lot cycle time 中位數</span></td>
             <td><span class="en">Alert when small persistent cycle-time drift accumulates.</span><span class="zh">小而持續的 cycle-time 偏移累積後 alert。</span></td>
             <td><span class="en">Alert on day 84</span><span class="zh">day 84 alert</span></td>
+            <td><span class="en">Alert on day 84 — only ≈$12k has accumulated; ≈$237k (95%) is still avoidable</span><span class="zh">day 84 alert——此時只累積約 $12k；約 $237k（95%）仍可避免</span></td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div class="stats four">
-      <div class="stat"><div class="big">160 days</div>
-        <div class="lbl en">Backtest horizon</div><div class="lbl zh">backtest horizon</div></div>
-      <div class="stat"><div class="big">day 30 to 84</div>
-        <div class="lbl en">EWMA alerts 54 days after degradation starts</div><div class="lbl zh">劣化開始 54 天後，EWMA 發出 alert</div></div>
-      <div class="stat"><div class="big">Output-only</div>
-        <div class="lbl en">No alert within 160 days</div><div class="lbl zh">160 天內沒有 alert</div></div>
-      <div class="stat"><div class="big">~$249k</div>
-        <div class="lbl en">Extra waiting / congestion cost if not handled by day 160</div><div class="lbl zh">若到 day 160 都不處理，額外等待與壅塞成本</div></div>
-    </div>
-
-    <p class="method-note en" style="margin-top:.7rem;"><strong>Why cost rises:</strong>
-    as LITHO slows down, each lot spends more time waiting in the system. Output may remain
-    stable for a while, but queue wait and WIP burden increase. The illustrative cost model
-    converts that extra waiting and congestion into cost.</p>
-    <p class="method-note zh" style="margin-top:.7rem;"><strong>為什麼成本上升：</strong>LITHO 變慢後，每個 lot 在系統中等待的時間變長。Output 可能短時間仍然穩定，但 queue wait 和 WIP 負擔會增加。示意成本模型把額外等待與壅塞轉換成成本。</p>
-
-    <p class="method-note en" style="margin-top:.7rem;"><strong>Cost estimate:</strong>
-    run the same line in two versions, one without degradation and one where LITHO slowly
-    degrades from day 30. The cumulative cost gap by day 160 is the extra cost caused by
-    degradation. Because EWMA alerts on day 84, the cost that has not yet accumulated after
-    day 84 is the cost that could be avoided if action is taken after detection. In the
-    reference run, that avoidable amount is about $236,942 of $249,164, or 95.1%.</p>
-    <p class="method-note zh" style="margin-top:.7rem;"><strong>成本估算：</strong>同一條產線跑兩個版本，一個沒有劣化，另一個從 day 30 開始讓 LITHO 慢慢劣化。到 day 160 的累積成本差，就是這次劣化造成的額外成本。因為 EWMA 在 day 84 alert，day 84 之後尚未累積的成本，就是偵測後採取行動可能避免的成本。在 reference run 中，可避免金額約為 $236,942，占 $249,164 的 95.1%。</p>
+    <p class="method-note en" style="margin-top:.7rem;"><strong>Where does $249k come from?</strong>
+    Waiting is priced at an illustrative $10 per lot-hour in queue, and the gap is measured
+    against a no-degradation twin of the same run. Degradation makes queues grow on themselves,
+    so the cost accelerates: the first 54 days accumulate only ≈$12k, the next 76 days ≈$237k.
+    The rate is an assumption; the structure — cost accelerates, early detection saves most of
+    it — is not.</p>
+    <p class="method-note zh" style="margin-top:.7rem;"><strong>$249k 是怎麼算出來的？</strong>等待以示意費率
+    $10／lot·小時計價，成本差距是與同一次 run 的無劣化對照（twin）相比。劣化會讓排隊自我放大，所以成本是
+    加速累積的：前 54 天只累積約 $12k，後 76 天累積約 $237k。費率是假設；但結構——成本加速累積、及早偵測
+    能省下大部分——不是假設。</p>
 
     <p class="caption en">Another advantage is that this workflow can be backtested: it checks
     whether a drift detector finds the problem before output makes it obvious, then estimates
