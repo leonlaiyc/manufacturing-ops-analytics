@@ -141,15 +141,15 @@
   <header class="hero">
     <p class="kicker">Manufacturing Operations Analytics &amp; Decision Support</p>
     <div class="en">
-      <h1>Turning production data into decisions a team can act on — and challenge</h1>
+      <h1>Turning production data into decisions a team can act on and challenge</h1>
       <p class="lede">Find the station that's really holding the line back, catch a machine
-      degrading before it hurts, and know which fix is actually worth the money — built on a
+      degrading before it hurts, and know which fix is actually worth the money, built on a
       transparent, validated simulation of a semiconductor-style production line.</p>
     </div>
     <div class="zh">
       <h1>把產線數據，變成團隊能執行、也能被檢驗的決策</h1>
       <p class="lede">找出真正拖累產線的那一站、在機台劣化造成損失前先抓到、並判斷哪一個改善方案
-      真的划算——整套方法建立在一個透明、可被驗證的「半導體式產線」模擬之上。</p>
+      真的划算。整套方法建立在一個透明、可被驗證的「半導體式產線」模擬之上。</p>
     </div>
   </header>
 
@@ -493,14 +493,14 @@
             <td><span class="en">Daily output / throughput</span><span class="zh">Daily output / throughput</span></td>
             <td><span class="en">Alert only when output drops below the clean baseline lower control limit.</span><span class="zh">只有當 output 低於乾淨 baseline 的下控制線時才 alert。</span></td>
             <td><span class="en">No alert within 160 days</span><span class="zh">160 天內沒有 alert</span></td>
-            <td><span class="en">No alert — the problem runs to day 160 and ≈$249k of extra cost accumulates</span><span class="zh">沒有 alert——問題一路跑到 day 160，累積約 $249k 的額外成本</span></td>
+            <td><span class="en">No alert: the problem runs to day 160 and ≈$249k of extra cost accumulates</span><span class="zh">沒有 alert，問題一路跑到 day 160，累積約 $249k 的額外成本</span></td>
           </tr>
           <tr class="metric-hot">
             <td><strong class="en">EWMA drift monitor</strong><strong class="zh">EWMA 漂移監控</strong></td>
             <td><span class="en">Daily median lot cycle time</span><span class="zh">每日 lot cycle time 中位數</span></td>
             <td><span class="en">Alert when small persistent cycle-time drift accumulates.</span><span class="zh">小而持續的 cycle-time 偏移累積後 alert。</span></td>
             <td><span class="en">Alert on day 84</span><span class="zh">day 84 alert</span></td>
-            <td><span class="en">Alert on day 84 — only ≈$12k has accumulated; ≈$237k (95%) is still avoidable</span><span class="zh">day 84 alert——此時只累積約 $12k；約 $237k（95%）仍可避免</span></td>
+            <td><span class="en">Alert on day 84: only ≈$12k has accumulated; ≈$237k (95%) is still avoidable</span><span class="zh">day 84 alert，此時只累積約 $12k；約 $237k（95%）仍可避免</span></td>
           </tr>
         </tbody>
       </table>
@@ -510,12 +510,12 @@
     Waiting is priced at an illustrative $10 per lot-hour in queue, and the gap is measured
     against a no-degradation twin of the same run. Degradation makes queues grow on themselves,
     so the cost accelerates: the first 54 days accumulate only ≈$12k, the next 76 days ≈$237k.
-    The rate is an assumption; the structure — cost accelerates, early detection saves most of
-    it — is not.</p>
+    The rate is an assumption; the structure is not: cost accelerates, and early detection
+    saves most of it.</p>
     <p class="method-note zh" style="margin-top:.7rem;"><strong>$249k 是怎麼算出來的？</strong>等待以示意費率
     $10／lot·小時計價，成本差距是與同一次 run 的無劣化對照（twin）相比。劣化會讓排隊自我放大，所以成本是
-    加速累積的：前 54 天只累積約 $12k，後 76 天累積約 $237k。費率是假設；但結構——成本加速累積、及早偵測
-    能省下大部分——不是假設。</p>
+    加速累積的：前 54 天只累積約 $12k，後 76 天累積約 $237k。費率是假設；但結構不是假設：
+    成本會加速累積，及早偵測能省下大部分。</p>
 
     <p class="caption en">Another advantage is that this workflow can be backtested: it checks
     whether a drift detector finds the problem before output makes it obvious, then estimates
@@ -542,11 +542,11 @@
       <span class="en">View the full analysis on GitHub</span><span class="zh">在 GitHub 看完整分析</span></a>
   </div>
 
-  <p class="note en">Honest scope: the simulated line is clearly labeled synthetic — it exists to
+  <p class="note en">Honest scope: the simulated line is clearly labeled synthetic; it exists to
   give the methods a known ground truth (an engineered bottleneck, labeled fault windows).
   The real production log is used for diagnosis only. Cost figures are illustrative and used for
   ranking, not as dollar forecasts.</p>
-  <p class="note zh">誠實聲明:模擬產線全程標示為合成資料——它的用途是給方法一個已知的「標準答案」
+  <p class="note zh">誠實聲明:模擬產線全程標示為合成資料。它的用途是給方法一個已知的「標準答案」
   (刻意設計的瓶頸、標記好的故障區間)。真實生產紀錄僅用於診斷。成本數字為示意性質,用於相對排序,
   並非金額預測。</p>
 

@@ -12,7 +12,7 @@ Writes (plotly.js via CDN on the first figure of each page, so files stay small)
 
   - docs/dashboard.html                  (evidence page: the three findings)
   - docs/baseline.html                   (M3 KPI baseline page)
-  - reports/html/03_kpi_dashboard.html   (repo copy of the BASELINE page —
+  - reports/html/03_kpi_dashboard.html   (repo copy of the BASELINE page:
                                           it is the M3 artifact, so its name
                                           matches its content)
 
@@ -71,7 +71,7 @@ def load_findings_cache() -> dict:
 
 
 # --------------------------------------------------------------------------- #
-# Finding 01 — CRN counterfactual dot-plot with 95% CI
+# Finding 01: CRN counterfactual dot-plot with 95% CI
 # --------------------------------------------------------------------------- #
 def build_finding01_figure(cache: dict) -> go.Figure:
     f1 = cache["finding_01"]
@@ -97,7 +97,7 @@ def build_finding01_figure(cache: dict) -> go.Figure:
                       "<extra></extra>",
     ))
     fig.update_layout(
-        title=dict(text=f"Finding 01 — Δ mean cycle time, +1 tool vs baseline "
+        title=dict(text=f"Finding 01: Δ mean cycle time, +1 tool vs baseline "
                         f"(CRN-paired, N={f1['n_reps']})", x=0.5, font=dict(size=14)),
         xaxis_title="Mean cycle-time reduction (h), +1 tool vs baseline (CRN-paired, N=30)",
         yaxis=dict(autorange="reversed"),
@@ -108,9 +108,9 @@ def build_finding01_figure(cache: dict) -> go.Figure:
 
 
 # --------------------------------------------------------------------------- #
-# Finding 02 — break-even chart: what each +1 tool is WORTH (max worthwhile
-# price = break-even added-tool cost) vs what it COSTS (the two price
-# assumptions). A price marker inside the bar means the option pays for itself.
+# Finding 02: break-even chart: what each +1 tool is WORTH (max worthwhile
+# price = break-even added-tool cost) vs one illustrative quoted price. A price
+# marker inside the bar means the option pays for itself.
 # --------------------------------------------------------------------------- #
 def _fmt_k(value_k: float) -> str:
     """Format $k values like the owner's copy: −$12k, +$8.0k, +$10.3k, −$1.7k.
@@ -124,24 +124,20 @@ def _fmt_k(value_k: float) -> str:
     return f"{sign}${body}k"
 
 
-EQUAL_PRICE_K = 20.0  # the equal-price base-case assumption ($20k per tool)
-
-
 def build_finding02_figure(cache: dict) -> go.Figure:
     f2 = cache["finding_02"]
     stations = f2["stations"]
-    base = [v / 1000 for v in f2["base_cost"]]
     stress = [v / 1000 for v in f2["stress_cost"]]
     break_even = [v / 1000 for v in f2["break_even"]]
     prices = [v / 1000 for v in f2["stress_tool_costs"]]
     gains = cache["finding_01"]["delta_mean"]  # same station order as finding_02
 
-    labels = [f"{s} (−{g:.2f} h)" for s, g in zip(stations, gains)]
+    labels = [f"{s} (-{g:.2f} h)" for s, g in zip(stations, gains)]
     colors = [STATION_COLORS.get(s, DEFAULT_STATION_COLOR) for s in stations]
-    # hover shows: break-even, both prices, both net costs (from the cache)
-    hover_data = [[_fmt_k(b), p, _fmt_k(s)] for b, p, s in zip(base, prices, stress)]
+    # hover shows the break-even, illustrative quote, and net cost at that quote.
+    hover_data = [[p, _fmt_k(s)] for p, s in zip(prices, stress)]
 
-    xmax = max(break_even + prices + [EQUAL_PRICE_K]) * 1.12
+    xmax = max(break_even + prices) * 1.12
 
     fig = go.Figure()
 
@@ -151,40 +147,36 @@ def build_finding02_figure(cache: dict) -> go.Figure:
         customdata=hover_data,
         hovertemplate="<b>%{y}</b>"
                       "<br>Break-even (max worthwhile price): $%{x:.1f}k"
-                      "<br>Equal-price assumption $20k → net %{customdata[0]}"
-                      "<br>Station-specific price $%{customdata[1]:.0f}k → net "
-                      "%{customdata[2]}<extra></extra>",
+                      "<br>Illustrative quote: $%{customdata[0]:.0f}k"
+                      "<br>Net cost at quote: %{customdata[1]}<extra></extra>",
     ))
     fig.add_trace(go.Scatter(
-        x=prices, y=labels, mode="markers", name="station-specific price",
+        x=prices, y=labels, mode="markers", name="illustrative quote",
         marker=dict(symbol="diamond", size=12, color="#EF6C00",
                     line=dict(color="#B34700", width=1)),
         customdata=hover_data,
         hovertemplate="<b>%{y}</b>"
-                      "<br>Station-specific price: $%{x:.0f}k → net %{customdata[2]}"
+                      "<br>Illustrative quote: $%{x:.0f}k"
+                      "<br>Net cost at quote: %{customdata[1]}"
                       "<extra></extra>",
     ))
 
-    fig.add_vline(x=EQUAL_PRICE_K, line_dash="dash", line_color="#37474F",
-                  line_width=1.2, annotation_text="equal-price assumption ($20k)",
-                  annotation_position="top")
-
     fig.update_layout(
-        title=dict(text="Finding 02 — what each +1 tool is worth vs what it costs",
-                  x=0.5, font=dict(size=14)),
-        xaxis=dict(title="Added-tool cost ($k) — pay less than the bar and the "
+        title=dict(text="Finding 02: what each +1 tool is worth vs what it costs",
+                   x=0.5, font=dict(size=14)),
+        xaxis=dict(title="Added-tool cost ($k): pay less than the bar and the "
                          "option pays for itself",
                    range=[0, xmax]),
         yaxis=dict(autorange="reversed"),
         height=400, template="plotly_white",
-        legend=dict(orientation="h", yanchor="bottom", y=1.06, xanchor="center", x=0.5),
-        margin=dict(t=95, l=130, r=30, b=55),
+        legend=dict(orientation="h", yanchor="bottom", y=1.04, xanchor="center", x=0.5),
+        margin=dict(t=85, l=130, r=30, b=55),
     )
     return fig
 
 
 # --------------------------------------------------------------------------- #
-# Finding 03 — 2-row subplot: daily output (top) vs daily median cycle time (bottom)
+# Finding 03: 2-row subplot: daily output (top) vs daily median cycle time (bottom)
 # --------------------------------------------------------------------------- #
 def build_finding03_figure(cache: dict) -> go.Figure:
     f3 = cache["finding_03"]
@@ -194,8 +186,8 @@ def build_finding03_figure(cache: dict) -> go.Figure:
     fig = make_subplots(
         rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.10,
         subplot_titles=(
-            "Daily output (lots/day) — stays in its normal band",
-            "Daily median cycle time (h) — diverges long before output does",
+            "Daily output (lots/day): stays in its normal band",
+            "Daily median cycle time (h): diverges long before output does",
         ),
     )
     fig.add_trace(go.Scatter(x=day, y=f3["deg_output"], mode="lines",
@@ -216,7 +208,7 @@ def build_finding03_figure(cache: dict) -> go.Figure:
 
     # Labels on the top row only: passing annotation_text=None makes Plotly fall
     # back to its "new text" default, and the bottom row's CT curves diverge right
-    # where labels would sit — so the bottom-row reference lines stay unlabeled
+    # where labels would sit, so the bottom-row reference lines stay unlabeled
     # (same colors/dash as the labeled top-row lines).
     fig.add_vline(x=onset, line_dash="dot", line_color="#8E24AA", row=1, col=1,
                   annotation_text="degradation onset (day 30)",
@@ -231,7 +223,7 @@ def build_finding03_figure(cache: dict) -> go.Figure:
     fig.update_yaxes(title_text="lots/day", row=1, col=1)
     fig.update_yaxes(title_text="median CT (h)", row=2, col=1)
     fig.update_layout(
-        title=dict(text="Finding 03 — degradation shows up in cycle time long before output",
+        title=dict(text="Finding 03: degradation shows up in cycle time long before output",
                   x=0.5, font=dict(size=14)),
         height=580, template="plotly_white",
         # horizontal legend BELOW the plot area so it never crowds the title
@@ -242,7 +234,7 @@ def build_finding03_figure(cache: dict) -> go.Figure:
 
 
 # --------------------------------------------------------------------------- #
-# Baseline — the M3 6-panel figure (own page), with visible annotation labels
+# Baseline: the M3 6-panel figure (own page), with visible annotation labels
 # on every reference line.
 # --------------------------------------------------------------------------- #
 def build_baseline_figure() -> go.Figure:
@@ -275,14 +267,14 @@ def build_baseline_figure() -> go.Figure:
         vertical_spacing=0.12, horizontal_spacing=0.08,
     )
 
-    # 1 — daily throughput
+    # 1: daily throughput
     fig.add_trace(go.Bar(x=thr["day"], y=thr["count"], name="lots/day",
                          marker_color="#4878A8"), row=1, col=1)
     fig.add_hline(y=meta["validation"]["throughput_per_hour"] * 24,
                   line_dash="dash", line_color="darkorange", row=1, col=1,
                   annotation_text="throughput target", annotation_position="top left")
 
-    # 2 — WIP step function (thin the point cloud for page weight)
+    # 2: WIP step function (thin the point cloud for page weight)
     step = max(1, len(times) // 4000)
     fig.add_trace(go.Scatter(x=times[::step], y=wip[::step], mode="lines",
                              name="WIP", line=dict(color="#4878A8", width=1)),
@@ -290,7 +282,7 @@ def build_baseline_figure() -> go.Figure:
     fig.add_vline(x=t0, line_dash="dash", line_color="crimson", row=1, col=2,
                   annotation_text="warm-up ends", annotation_position="top right")
 
-    # 3 — slot utilization
+    # 3: slot utilization
     colors = ["#EF5350" if s == meta["ground_truth_bottleneck"] else "#90A4AE"
               for s in util["station"]]
     fig.add_trace(go.Bar(x=util["station"], y=util["utilization"],
@@ -301,12 +293,12 @@ def build_baseline_figure() -> go.Figure:
                              marker=dict(symbol="diamond", size=10,
                                          color="darkorange")), row=2, col=1)
 
-    # 4 — daily median cycle time
+    # 4: daily median cycle time
     fig.add_trace(go.Scatter(x=dct["day"], y=dct["median_ct"], mode="lines+markers",
                              name="median CT", line=dict(color="#4878A8")),
                   row=2, col=2)
 
-    # 5 — cycle time histogram
+    # 5: cycle time histogram
     fig.add_trace(go.Histogram(x=ct_series, nbinsx=40, name="cycle time",
                                marker_color="#4878A8"), row=3, col=1)
     fig.add_vline(x=ct_med, line_dash="dash", line_color="darkorange", row=3, col=1,
@@ -314,7 +306,7 @@ def build_baseline_figure() -> go.Figure:
     fig.add_vline(x=ct_p90, line_dash="dot", line_color="crimson", row=3, col=1,
                   annotation_text="p90", annotation_position="top right")
 
-    # 6 — X-factor histogram
+    # 6: X-factor histogram
     fig.add_trace(go.Histogram(x=x_series, nbinsx=40, name="X-factor",
                                marker_color="#00897B"), row=3, col=2)
     fig.add_vline(x=x_med, line_dash="dash", line_color="darkorange", row=3, col=2,
@@ -391,10 +383,10 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 </div>
 <div class="wrap">
   <div class="en"><h1>Interactive evidence for the three findings</h1>
-    <p class="lede">These charts ARE the evidence — hover to read exact values, zoom to inspect.
+    <p class="lede">These charts ARE the evidence: hover to read exact values, zoom to inspect.
     (SYNTHETIC fab-style line; steady-state window only.)</p></div>
   <div class="zh"><h1>三個 Findings 的互動證據</h1>
-    <p class="lede">這些圖表就是證據本身——把滑鼠移上去可以看到精確數值，也可以放大檢視。
+    <p class="lede">這些圖表就是證據本身，把滑鼠移上去可以看到精確數值，也可以放大檢視。
     （合成資料，僅使用穩態時間窗。）</p></div>
 
   <!-- FINDING 01 -->
@@ -402,11 +394,11 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
     <span class="tag">FINDING 01</span>
     <div class="en"><h2>Local metrics show candidates; the what-if test gives the answer</h2>
       <p class="takeaway">Adding one LITHO tool cuts mean cycle time by 2.46 h (95% CI
-      2.13–2.79). Adding one FURNACE tool adds four lot slots per run but buys only 0.70 h —
+      2.13–2.79). Adding one FURNACE tool adds four lot slots per run but buys only 0.70 h:
       batching-delay relief, not constraint relief. (CRN-paired what-if, N=30 replications.)</p></div>
     <div class="zh"><h2>局部指標指出候選，what-if 測試給出答案</h2>
       <p class="takeaway">新增一台 LITHO 工具可讓平均 cycle time 降低 2.46 小時（95% CI
-      2.13–2.79）。新增一台 FURNACE 工具，每次運轉多增加 4 個 lot 處理槽，卻只換來 0.70 小時的改善——
+      2.13–2.79）。新增一台 FURNACE 工具，每次運轉多增加 4 個 lot 處理槽，卻只換來 0.70 小時的改善，
       這是批次等待的緩解，不是瓶頸的緩解。（CRN 配對 what-if，N=30 次重複。）</p></div>
     <div id="fig-finding01" class="plot">{fig_finding01}</div>
     <p class="method-note en">Method: Common Random Numbers (CRN) pair baseline and +1-tool
@@ -420,31 +412,30 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
   <!-- FINDING 02 -->
   <div class="finding-section">
     <span class="tag">FINDING 02</span>
-    <div class="en"><h2>Biggest operational win is not automatically the best financial case</h2>
-      <p class="takeaway">The what-if turns each option's operational gain into a maximum
-      worthwhile investment: one more LITHO tool is worth up to $32k; one more FURNACE tool
-      up to $9.7k. The rest is price comparison. At $20k per tool only LITHO pays for itself;
-      if a litho tool costs $40k it no longer does, while an $8k furnace tool becomes the best
-      financial buy. The operational ranking never changes — whether it pays depends on the
-      price.</p>
-      <p class="method-note">Bar = the most you should pay for that station's extra tool
-      (break-even). Markers = assumed prices. A price below the end of the bar means the
-      option pays for itself.</p></div>
-    <div class="zh"><h2>營運效益最大的方案，不一定是財務上最划算的方案</h2>
-      <p class="takeaway">What-if 把每個方案的營運效益換算成「最高值得投資的金額」：多買一台
-      LITHO 工具最多值 $32k；多買一台 FURNACE 工具最多值 $9.7k。剩下的就是比價。若每台工具都是
-      $20k，只有 LITHO 能自己回本；若一台 litho 工具要價 $40k 就不再划算，而 $8k 的 furnace
-      工具反而成為財務上最好的選擇。營運排序從未改變——划不划算取決於價格。</p>
-      <p class="method-note">長條＝該站點多買一台工具最多值得付的金額（損益平衡）。標記＝假設的價格。
-      價格落在長條末端之內，代表該方案能自己回本。</p></div>
+    <div class="en"><h2>The biggest cycle-time gain is not worth any price</h2>
+      <p class="takeaway">Finding 01 shows that LITHO removes the most cycle time. Finding 02
+      asks the next business question: how much can we pay for that improvement before it stops
+      paying back? In this model, one more LITHO tool is worth about $32k and one more FURNACE
+      tool is worth about $9.7k. If the LITHO quote is below $32k, the case clears break-even.
+      If the quote is above $32k, the operational improvement is still real, but the cost case
+      no longer pays for itself.</p>
+      <p class="method-note">Bar = maximum worthwhile tool price. Marker = illustrative quote.
+      Marker inside the bar means the option pays for itself.</p></div>
+    <div class="zh"><h2>能降最多 cycle time，不代表任何價格都值得買</h2>
+      <p class="takeaway">Finding 01 顯示 LITHO 是最強的營運改善，因為它讓 cycle time 降最多。
+      Finding 02 只問下一個商業問題：這個改善最多值得花多少錢？在這個模型裡，多一台 LITHO
+      約值 $32k，多一台 FURNACE 約值 $9.7k。LITHO 如果報價低於 $32k，就能自己回本；如果報價
+      高於 $32k，營運改善仍然存在，但成本面不一定值得。</p>
+      <p class="method-note">長條＝最多值得付的工具價格。標記＝示範報價。標記落在長條內，
+      代表該方案能自己回本。</p></div>
     <div id="fig-finding02" class="plot">{fig_finding02}</div>
     <p class="method-note en">Method: net cost change = scenario total cost − baseline total
     cost (processing + waiting/holding + added-tool cost); break-even is the added-tool cost
-    at which that net change hits zero. Hover each bar for the break-even, both price
-    assumptions, and both net costs.</p>
+    at which that net change hits zero. Hover each bar for the break-even, illustrative
+    quote, and net cost at that quote.</p>
     <p class="method-note zh">方法：淨成本變化 = 情境總成本 − 基準總成本（處理成本 + 等待/持有成本 +
-    新增工具成本）；損益平衡是讓淨變化歸零的新增工具成本。將滑鼠移到長條上可看到損益平衡、兩種價格假設
-    與兩種淨成本。</p>
+    新增工具成本）；損益平衡是讓淨變化歸零的新增工具成本。將滑鼠移到長條上可看到損益平衡、示範報價
+    與該報價下的淨成本。</p>
   </div>
 
   <!-- FINDING 03 -->
@@ -452,20 +443,20 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
     <span class="tag">FINDING 03</span>
     <div class="en"><h2>Degradation shows up in cycle time long before output</h2>
       <p class="takeaway">LITHO starts degrading on day 30. Daily output never leaves its
-      normal band — an output-only monitor gives no alert within the 160-day horizon — while
+      normal band; an output-only monitor gives no alert within the 160-day horizon, while
       EWMA on daily median cycle time alerts on day 84. About 95% of the ≈ $249k extra cost is
       still avoidable at the alert.</p>
       <p class="method-note">The "no degradation (twin)" line is the same production line
-      re-run with identical random numbers but the drift switched off — any gap between the
+      re-run with identical random numbers but the drift switched off; any gap between the
       two lines is the pure effect of degradation. In the top panel the two lines are barely
       distinguishable: output alone never reveals the problem. In the bottom panel they
       separate within weeks.</p></div>
     <div class="zh"><h2>劣化會先反映在 cycle time，遠早於 output</h2>
-      <p class="takeaway">LITHO 從第 30 天開始劣化。Daily output 始終沒有脫離正常區間——只看
-      output 的監控在 160 天的觀察期內完全不會 alert——而以 EWMA 監控每日 cycle time 中位數則在第
+      <p class="takeaway">LITHO 從第 30 天開始劣化。Daily output 始終沒有脫離正常區間，只看
+      output 的監控在 160 天的觀察期內完全不會 alert；以 EWMA 監控每日 cycle time 中位數則在第
       84 天 alert。在 alert 當下，約 $249k 額外成本中仍有 95% 可被避免。</p>
       <p class="method-note">「no degradation (twin)」這條線，是同一條產線用完全相同的隨機數重跑
-      一次、只是把劣化關掉——兩條線之間的任何差距，都是劣化本身的純粹效果。上圖中兩條線幾乎無法分辨：
+      一次，只是把劣化關掉；兩條線之間的任何差距，都是劣化本身的純粹效果。上圖中兩條線幾乎無法分辨：
       只看 output 永遠發現不了問題；下圖中兩條線在幾週內就分開了。</p></div>
     <div id="fig-finding03" class="plot">{fig_finding03}</div>
     <p class="method-note en">Method: reference pair = one clean twin run and one degraded run
@@ -506,7 +497,7 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 
 # --------------------------------------------------------------------------- #
 # Baseline page shell (docs/baseline.html + reports/html/03_kpi_dashboard.html)
-# — the M3 KPI baseline lives on its own page; the evidence page links to it.
+# The M3 KPI baseline lives on its own page; the evidence page links to it.
 # --------------------------------------------------------------------------- #
 BASELINE_TEMPLATE = """<!DOCTYPE html>
 <html lang="zh-Hant">
@@ -544,20 +535,20 @@ BASELINE_TEMPLATE = """<!DOCTYPE html>
 </div>
 <div class="wrap">
   <div class="en"><h1>Shared KPI baseline (M3)</h1>
-    <p class="lede">The five baseline KPIs — output, WIP, utilization, cycle time, X-factor —
-    behind the three findings. The findings test these signals with what-if simulation,
+    <p class="lede">The five baseline KPIs: output, WIP, utilization, cycle time, and X-factor.
+    These sit behind the three findings. The findings test these signals with what-if simulation,
     cost modeling, and a monitoring backtest.</p></div>
   <div class="zh"><h1>Shared KPI baseline（M3）</h1>
-    <p class="lede">三個 findings 背後的五個 baseline KPI——output、WIP、utilization、
+    <p class="lede">三個 findings 背後的五個 baseline KPI：output、WIP、utilization、
     cycle time、X-factor。Findings 用 what-if simulation、成本模型與監控 backtest
     進一步測試這些訊號。</p></div>
 
   <div class="plot">{fig_baseline}</div>
 
-  <p class="note en">Synthetic data, clearly labeled — the simulated line exists to give the
+  <p class="note en">Synthetic data, clearly labeled. The simulated line exists to give the
   methods a known ground truth. Cost/rate assumptions live in the notebooks; this page shows
   physical KPIs only.</p>
-  <p class="note zh">合成資料，明確標示——模擬產線的用途是給方法一個已知的標準答案。成本與費率假設
+  <p class="note zh">合成資料，明確標示。模擬產線的用途是給方法一個已知的標準答案。成本與費率假設
   放在 notebook，本頁只呈現物理 KPI。</p>
 </div>
 <script>
@@ -606,8 +597,8 @@ def main() -> None:
     OUT_DOCS.write_text(evidence_html, encoding="utf-8")
     print(f"wrote {OUT_DOCS}  ({OUT_DOCS.stat().st_size/1024:.0f} KB)  [evidence page]")
 
-    # The M3 artifact (03_kpi_dashboard.html) is the BASELINE page — its name
-    # must match its content — and docs/baseline.html is its published copy.
+    # The M3 artifact (03_kpi_dashboard.html) is the BASELINE page; its name
+    # must match its content, and docs/baseline.html is its published copy.
     for out in (OUT_BASELINE_DOCS, OUT_REPORT):
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(baseline_html, encoding="utf-8")
