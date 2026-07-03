@@ -173,14 +173,14 @@
     <div class="en">
       <h2>Local metrics show candidates, not the final answer</h2>
       <p>Local metrics identify which stations deserve attention, but they do not directly answer
-      which capacity addition improves the whole line most. FURNACE is slow per batch and carries
-      the largest batch, while LITHO has the highest utilization. The decision needs a system-level
-      what-if comparison.</p>
+      which capacity addition improves the whole line most. FURNACE is slow per batch and processes
+      the most lots per run, while LITHO has the highest utilization. The decision needs a
+      system-level what-if comparison.</p>
     </div>
     <div class="zh">
       <h2>局部指標能指出候選站點，但不是最後答案</h2>
       <p>局部指標可以告訴我們哪些站點值得注意，但不能直接回答「加哪一站的產能，對整條線改善最大」。
-      FURNACE 單批加工時間最長、每批容量最大；LITHO 的稼動率最高。因此還需要用整體系統的 what-if 比較來判斷。</p>
+      FURNACE 單批加工時間最長、每次運轉可處理最多 lots；LITHO 的稼動率最高。因此還需要用整體系統的 what-if 比較來判斷。</p>
     </div>
 
     <div class="en">
@@ -192,7 +192,7 @@
               <th>Station</th>
               <th>Processing Time</th>
               <th>Utilization</th>
-              <th>Capacity per Run</th>
+              <th>Lots Processed per Run</th>
             </tr>
           </thead>
           <tbody>
@@ -223,8 +223,9 @@
           </tbody>
         </table>
       </div>
-      <p class="caption">FURNACE looks important because it is slow per batch and has the largest
-      batch capacity. LITHO looks important because it is loaded closest to its capacity limit.</p>
+      <p class="method-note"><strong>Note:</strong> A lot is the production batch unit tracked through the line.</p>
+      <p class="caption">FURNACE looks important because it is slow per batch and can process 4 lots
+      each time it runs. LITHO looks important because it is loaded closest to its capacity limit.</p>
     </div>
 
     <div class="zh">
@@ -236,7 +237,7 @@
               <th>站點</th>
               <th>加工時間</th>
               <th>稼動率</th>
-              <th>每次運轉容量</th>
+              <th>每次運轉可處理的 lots</th>
             </tr>
           </thead>
           <tbody>
@@ -267,7 +268,8 @@
           </tbody>
         </table>
       </div>
-      <p class="caption">FURNACE 看起來重要，是因為單批加工時間長、批次容量最大。LITHO 看起來重要，是因為它最接近產能上限。</p>
+      <p class="method-note"><strong>註：</strong>lot 是生產流程中被追蹤的一個批次單位。</p>
+      <p class="caption">FURNACE 看起來重要，是因為單批加工時間長，而且每次運轉可處理 4 lots。LITHO 看起來重要，是因為它最接近產能上限。</p>
     </div>
 
     <div class="en">
@@ -277,39 +279,48 @@
           <thead>
             <tr>
               <th>Station</th>
-              <th>Added raw capacity</th>
-              <th>Average cycle-time reduction</th>
+              <th>Added Tool</th>
+              <th>Added Lot-Processing Slots</th>
+              <th>Avg Cycle-Time Reduction</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><strong>LITHO</strong></td>
-              <td class="barcell"><div class="barlabel"><span>+1 lot-capacity unit</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
-              <td class="barcell"><div class="barlabel"><span>2.46 h</span><span>largest</span></div><div class="track"><div class="fill blue" style="width:100%"></div></div></td>
+              <td><strong>+1 tool</strong></td>
+              <td class="barcell"><div class="barlabel"><span>+1 lot</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
+              <td class="barcell"><div class="barlabel"><span>-2.46 h</span><span>largest</span></div><div class="track"><div class="fill blue" style="width:100%"></div></div></td>
             </tr>
             <tr>
               <td><strong>FURNACE</strong></td>
-              <td class="barcell"><div class="barlabel"><span>+4 lot-capacity units</span><span>most raw</span></div><div class="track"><div class="fill green" style="width:100%"></div></div></td>
-              <td class="barcell"><div class="barlabel"><span>0.70 h</span><span></span></div><div class="track"><div class="fill" style="width:28%"></div></div></td>
+              <td><strong>+1 tool</strong></td>
+              <td class="barcell"><div class="barlabel"><span>+4 lots</span><span>most slots</span></div><div class="track"><div class="fill green" style="width:100%"></div></div></td>
+              <td class="barcell"><div class="barlabel"><span>-0.70 h</span><span></span></div><div class="track"><div class="fill" style="width:28%"></div></div></td>
             </tr>
             <tr>
               <td><strong>DEPO</strong></td>
-              <td class="barcell"><div class="barlabel"><span>+1 lot-capacity unit</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
-              <td class="barcell"><div class="barlabel"><span>0.26 h</span><span></span></div><div class="track"><div class="fill" style="width:10%"></div></div></td>
+              <td><strong>+1 tool</strong></td>
+              <td class="barcell"><div class="barlabel"><span>+1 lot</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
+              <td class="barcell"><div class="barlabel"><span>-0.26 h</span><span></span></div><div class="track"><div class="fill" style="width:10%"></div></div></td>
             </tr>
             <tr>
               <td><strong>METRO</strong></td>
-              <td class="barcell"><div class="barlabel"><span>+1 lot-capacity unit</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
-              <td class="barcell"><div class="barlabel"><span>0.05 h</span><span></span></div><div class="track"><div class="fill tiny" style="width:2%"></div></div></td>
+              <td><strong>+1 tool</strong></td>
+              <td class="barcell"><div class="barlabel"><span>+1 lot</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
+              <td class="barcell"><div class="barlabel"><span>-0.05 h</span><span></span></div><div class="track"><div class="fill tiny" style="width:2%"></div></div></td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p class="method-note"><strong>Method:</strong> Reduction = baseline average lot cycle time - scenario average lot cycle time after adding one tool.</p>
-      <p class="finding-note">Capacity decisions should not be based only on added raw capacity. They
-      should compare how much each option actually reduces the line's average cycle time. FURNACE
-      adds the most raw lot-capacity units, but LITHO produces the largest whole-line cycle-time
-      reduction.</p>
+      <p class="method-note"><strong>Method:</strong> Cycle-time reduction = baseline average lot cycle time minus the average lot cycle time after adding one tool to that station. Negative table values mean the scenario's average cycle time is lower than baseline.</p>
+      <p class="finding-note">Each scenario adds one tool to one station. The question is not only how
+      many lots the added tool can process, but whether adding it actually reduces the whole line's
+      average cycle time.</p>
+      <p class="finding-note">FURNACE looks important because one added tool can process 4 lots at a
+      time. But adding one FURNACE tool only reduces average cycle time by about 0.70 hours. Adding
+      one LITHO tool processes only 1 additional lot at a time, but reduces average cycle time by
+      about 2.46 hours. In this scenario, the better capacity decision is the station that reduces
+      whole-line cycle time the most, not the station that adds the most lot-processing slots.</p>
     </div>
 
     <div class="zh">
@@ -319,37 +330,42 @@
           <thead>
             <tr>
               <th>站點</th>
-              <th>新增原始容量</th>
-              <th>平均週期時間下降</th>
+              <th>新增工具</th>
+              <th>新增可處理的 lots</th>
+              <th>平均 cycle time 下降</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><strong>LITHO</strong></td>
-              <td class="barcell"><div class="barlabel"><span>+1 lot-capacity unit</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
-              <td class="barcell"><div class="barlabel"><span>2.46 小時</span><span>最大</span></div><div class="track"><div class="fill blue" style="width:100%"></div></div></td>
+              <td><strong>+1 台</strong></td>
+              <td class="barcell"><div class="barlabel"><span>+1 lot</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
+              <td class="barcell"><div class="barlabel"><span>-2.46 小時</span><span>最大</span></div><div class="track"><div class="fill blue" style="width:100%"></div></div></td>
             </tr>
             <tr>
               <td><strong>FURNACE</strong></td>
-              <td class="barcell"><div class="barlabel"><span>+4 lot-capacity units</span><span>原始容量最多</span></div><div class="track"><div class="fill green" style="width:100%"></div></div></td>
-              <td class="barcell"><div class="barlabel"><span>0.70 小時</span><span></span></div><div class="track"><div class="fill" style="width:28%"></div></div></td>
+              <td><strong>+1 台</strong></td>
+              <td class="barcell"><div class="barlabel"><span>+4 lots</span><span>最多</span></div><div class="track"><div class="fill green" style="width:100%"></div></div></td>
+              <td class="barcell"><div class="barlabel"><span>-0.70 小時</span><span></span></div><div class="track"><div class="fill" style="width:28%"></div></div></td>
             </tr>
             <tr>
               <td><strong>DEPO</strong></td>
-              <td class="barcell"><div class="barlabel"><span>+1 lot-capacity unit</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
-              <td class="barcell"><div class="barlabel"><span>0.26 小時</span><span></span></div><div class="track"><div class="fill" style="width:10%"></div></div></td>
+              <td><strong>+1 台</strong></td>
+              <td class="barcell"><div class="barlabel"><span>+1 lot</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
+              <td class="barcell"><div class="barlabel"><span>-0.26 小時</span><span></span></div><div class="track"><div class="fill" style="width:10%"></div></div></td>
             </tr>
             <tr>
               <td><strong>METRO</strong></td>
-              <td class="barcell"><div class="barlabel"><span>+1 lot-capacity unit</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
-              <td class="barcell"><div class="barlabel"><span>0.05 小時</span><span></span></div><div class="track"><div class="fill tiny" style="width:2%"></div></div></td>
+              <td><strong>+1 台</strong></td>
+              <td class="barcell"><div class="barlabel"><span>+1 lot</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
+              <td class="barcell"><div class="barlabel"><span>-0.05 小時</span><span></span></div><div class="track"><div class="fill tiny" style="width:2%"></div></div></td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p class="method-note"><strong>方法：</strong>下降幅度 = 基準情境的平均 lot cycle time - 加一台工具後的平均 lot cycle time。</p>
-      <p class="finding-note">產能決策不應該只看新增多少 raw capacity，而是要比較每個選項實際讓整條線的平均
-      cycle time 下降多少。FURNACE 新增最多原始 lot-capacity units，但 LITHO 帶來最大的整體週期時間下降。</p>
+      <p class="method-note"><strong>方法：</strong>cycle-time 下降 = 基準情境的平均 lot cycle time - 加一台工具後的平均 lot cycle time。表中的負值代表該情境的平均 cycle time 比基準更短。</p>
+      <p class="finding-note">每個情境都是在一個站點新增一台工具。問題不只是新增工具一次能處理多少 lots，而是新增後是否真的讓整條線的平均 cycle time 下降。</p>
+      <p class="finding-note">FURNACE 看起來重要，因為新增一台工具一次可以處理 4 lots。可是新增一台 FURNACE 工具，只讓平均 cycle time 下降約 0.70 小時。新增一台 LITHO 工具一次只多處理 1 lot，卻讓平均 cycle time 下降約 2.46 小時。在這個情境裡，較好的產能決策不是新增最多 lot-processing slots 的站點，而是最能降低整條線 cycle time 的站點。</p>
     </div>
   </div>
   <!-- FINDING 2 -->
