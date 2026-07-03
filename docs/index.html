@@ -21,8 +21,10 @@
   .topbar { display:flex; justify-content:flex-end; align-items:center; gap:.4rem;
             max-width:880px; margin:0 auto; padding:1rem 1.2rem .2rem; }
   .langbtn { border:1px solid var(--line); background:#fff; color:var(--muted);
-             font-size:.82rem; padding:.3rem .7rem; border-radius:999px; cursor:pointer;
-             font-weight:600; letter-spacing:.02em; }
+             display:inline-flex; align-items:center; justify-content:center;
+             min-width:3.1rem; height:1.9rem; padding:0 .7rem;
+             font-size:.8rem; border-radius:999px; cursor:pointer;
+             font-weight:600; letter-spacing:0; line-height:1; }
   .langbtn[aria-pressed="true"] { background:var(--blue); color:#fff; border-color:var(--blue); }
 
   /* language visibility */
