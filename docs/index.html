@@ -55,6 +55,25 @@
   .finding h2 { font-size:1.22rem; margin:.1rem 0 .4rem; line-height:1.3; }
   .finding p { margin:.35rem 0 0; color:var(--ink); font-size:.98rem; }
   .finding p.small { color:var(--muted); font-size:.9rem; }
+  .finding h3 { font-size:.95rem; margin:1rem 0 .45rem; color:var(--ink); }
+  .table-wrap { width:100%; overflow-x:auto; margin:.65rem 0 .95rem; border:1px solid var(--line);
+                border-radius:10px; background:#fff; }
+  table.metric-table { width:100%; min-width:720px; border-collapse:collapse; font-size:.85rem; }
+  .metric-table th, .metric-table td { padding:.65rem .7rem; border-bottom:1px solid var(--line);
+                                       vertical-align:top; text-align:left; }
+  .metric-table th { color:var(--muted); font-size:.74rem; letter-spacing:.04em;
+                     text-transform:uppercase; background:#F2F6F8; }
+  .metric-table tr:last-child td { border-bottom:0; }
+  .metric-table strong { color:var(--ink); }
+  .barcell { min-width:170px; }
+  .barlabel { display:flex; justify-content:space-between; gap:.7rem; font-weight:700; }
+  .track { height:.62rem; background:#EAF0F4; border-radius:999px; overflow:hidden; margin-top:.32rem; }
+  .fill { height:100%; border-radius:999px; background:var(--grey); min-width:4px; }
+  .fill.blue { background:var(--blue); }
+  .fill.green { background:var(--green); }
+  .fill.tiny { min-width:6px; }
+  .finding-note { background:var(--bg); border:1px solid var(--line); border-radius:10px;
+                  padding:.75rem .85rem; margin:.85rem 0 0; }
 
   figure { margin:1rem 0 .2rem; }
   svg { width:100%; height:auto; display:block; }
@@ -86,6 +105,8 @@
   @media (max-width:620px){
     .steps,.stats { grid-template-columns:1fr; }
     h1 { font-size:1.5rem; }
+    .finding { padding:1.05rem 1rem; }
+    table.metric-table { min-width:660px; font-size:.8rem; }
   }
 </style>
 </head>
@@ -143,43 +164,208 @@
   <!-- FINDING 1 -->
   <div class="finding">
     <span class="tag">01</span>
-    <div class="en"><h2>The “obvious” bottleneck is usually the wrong one</h2>
-      <p>The busiest station and the slowest-looking machine are both <em>not</em> the real
-      constraint. The method pinpoints it — and adding one tool there shortens the production
-      cycle far more than adding one anywhere else.</p></div>
-    <div class="zh"><h2>「看起來最像瓶頸」的那一站,通常是錯的</h2>
-      <p>最忙的站、單次最慢的機台,其實都<em>不是</em>真正的限制點。這套方法能精準指出它——在對的站
-      加一台機,縮短生產週期的效果,遠大於加在其他任何一站。</p></div>
+    <div class="en">
+      <h2>Surface metrics can point to the wrong bottleneck</h2>
+      <p>Before deciding where to add capacity, several stations can look suspicious from local
+      metrics alone. A station may have the longest single-run time, look highly utilized, or add
+      the most raw capacity when expanded. But none of those signals proves it is the true system
+      constraint.</p>
+    </div>
+    <div class="zh">
+      <h2>表面指標可能指向錯的瓶頸</h2>
+      <p>在決定要把產能加在哪一站之前，單看局部指標會讓好幾個站點看起來可疑。某個站可能單次加工時間最長、
+      看起來稼動率很高，或加一台設備時增加最多原始容量；但這些訊號本身都不能證明它就是整條線的真正限制。</p>
+    </div>
 
-    <figure>
-      <!-- cycle-time reduction per +1 tool -->
-      <svg viewBox="0 0 480 200" role="img" aria-label="cycle time reduction per added tool">
-        <!-- LITHO -->
-        <text x="100" y="36" text-anchor="end" font-size="13" font-weight="700" fill="#22303C">LITHO</text>
-        <rect x="110" y="20" width="300" height="24" rx="4" fill="#1565C0"/>
-        <text x="418" y="37" font-size="13" font-weight="700" fill="#1565C0">2.5 h</text>
-        <!-- FURNACE -->
-        <text x="100" y="76" text-anchor="end" font-size="13" fill="#5B7180">FURNACE</text>
-        <rect x="110" y="60" width="85" height="24" rx="4" fill="#9AA9B4"/>
-        <text x="203" y="77" font-size="13" fill="#5B7180">0.7 h</text>
-        <!-- DEPO -->
-        <text x="100" y="116" text-anchor="end" font-size="13" fill="#5B7180">DEPO</text>
-        <rect x="110" y="100" width="32" height="24" rx="4" fill="#9AA9B4"/>
-        <text x="150" y="117" font-size="13" fill="#5B7180">0.3 h</text>
-        <!-- METRO -->
-        <text x="100" y="156" text-anchor="end" font-size="13" fill="#5B7180">METRO</text>
-        <rect x="110" y="140" width="7" height="24" rx="3" fill="#9AA9B4"/>
-        <text x="125" y="157" font-size="13" fill="#5B7180">0.05 h</text>
-        <text x="110" y="190" font-size="11.5" fill="#9AA9B4" class="en">Cycle-time reduction from one extra tool (bar = benefit)</text>
-        <text x="110" y="190" font-size="11.5" fill="#9AA9B4" class="zh">每多加一台機帶來的生產週期縮短(長條 = 效益)</text>
-      </svg>
-      <p class="caption en">The furnace gets <strong>4× the capacity</strong> added and still
-      barely moves the line — raw capacity isn't the point, relieving the true constraint is.</p>
-      <p class="caption zh">爐管加了<strong>整整 4 倍的產能</strong>,產線幾乎不動——重點從來不是加多少
-      產能,而是有沒有解到真正的限制點。</p>
-    </figure>
+    <div class="en">
+      <h3>Step 1 - Local metrics create competing candidates</h3>
+      <div class="table-wrap">
+        <table class="metric-table">
+          <thead>
+            <tr>
+              <th>Station</th>
+              <th>Role / tool type</th>
+              <th>Single-run processing time</th>
+              <th>Busy level / utilization</th>
+              <th>Capacity format</th>
+              <th>Why it looks suspicious</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>LITHO / lithography</strong></td>
+              <td>Serial scanner, visited twice</td>
+              <td>0.85 h per visit</td>
+              <td><strong>Slot utilization 0.850</strong>, highest planned load</td>
+              <td>1 lot per tool-run; +1 tool adds +1 lot-capacity unit</td>
+              <td>Highest effective load and the station where queueing pressure concentrates.</td>
+            </tr>
+            <tr>
+              <td><strong>FURNACE / batch furnace</strong></td>
+              <td>Batch tool, 2 tools x 4 lots</td>
+              <td><strong>3.00 h per run, longest single run</strong></td>
+              <td>Slot utilization 0.375; raw busy-looking signals can mislead</td>
+              <td>4 lots per tool-run; +1 tool adds +4 lot-capacity units</td>
+              <td>Long runs and large batch slots make it look obvious, but each run carries four lots.</td>
+            </tr>
+            <tr>
+              <td><strong>DEPO / deposition</strong></td>
+              <td>Serial deposition tool</td>
+              <td>1.30 h per run</td>
+              <td>Slot utilization 0.650, second-highest serial load here</td>
+              <td>1 lot per tool-run; +1 tool adds +1 lot-capacity unit</td>
+              <td>A plausible non-bottleneck control: busy, but not the limiting station.</td>
+            </tr>
+            <tr>
+              <td><strong>METRO / metrology</strong></td>
+              <td>Serial inspection / measurement</td>
+              <td>0.90 h per run</td>
+              <td>Slot utilization 0.450</td>
+              <td>1 lot per tool-run; +1 tool adds +1 lot-capacity unit</td>
+              <td>A low-load control: if capacity here helps, the method would be suspect.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="zh">
+      <h3>步驟 1 - 局部指標會產生多個候選瓶頸</h3>
+      <div class="table-wrap">
+        <table class="metric-table">
+          <thead>
+            <tr>
+              <th>站點</th>
+              <th>角色 / 設備型態</th>
+              <th>單次加工時間</th>
+              <th>忙碌程度 / 稼動率</th>
+              <th>產能格式</th>
+              <th>為什麼看起來可疑</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>LITHO / 光刻</strong></td>
+              <td>單片式光刻機，路線中會經過兩次</td>
+              <td>每次 0.85 小時</td>
+              <td><strong>槽位稼動率 0.850</strong>，計畫負載最高</td>
+              <td>每次工具運轉處理 1 lot；加一台工具增加 +1 lot-capacity unit</td>
+              <td>有效負載最高，也是排隊壓力集中的站點。</td>
+            </tr>
+            <tr>
+              <td><strong>FURNACE / 批次爐</strong></td>
+              <td>批次設備，2 台工具 x 每批 4 lots</td>
+              <td><strong>每批 3.00 小時，單次運轉最長</strong></td>
+              <td>槽位稼動率 0.375；只看忙碌外觀容易誤判</td>
+              <td>每次工具運轉處理 4 lots；加一台工具增加 +4 lot-capacity units</td>
+              <td>加工時間長、批次槽位多，看起來很像瓶頸，但每次運轉可同時帶四個 lots。</td>
+            </tr>
+            <tr>
+              <td><strong>DEPO / 薄膜沉積</strong></td>
+              <td>單片式沉積設備</td>
+              <td>每次 1.30 小時</td>
+              <td>槽位稼動率 0.650，是此處第二高的單片式負載</td>
+              <td>每次工具運轉處理 1 lot；加一台工具增加 +1 lot-capacity unit</td>
+              <td>是一個合理的非瓶頸對照：負載不低，但不是限制整條線的站點。</td>
+            </tr>
+            <tr>
+              <td><strong>METRO / 量測</strong></td>
+              <td>單片式檢查 / 量測設備</td>
+              <td>每次 0.90 小時</td>
+              <td>槽位稼動率 0.450</td>
+              <td>每次工具運轉處理 1 lot；加一台工具增加 +1 lot-capacity unit</td>
+              <td>低負載對照組：如果在這裡加產能也很有效，方法本身就值得懷疑。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="en">
+      <h3>Step 2 - System impact decides where capacity matters</h3>
+      <div class="table-wrap">
+        <table class="metric-table">
+          <thead>
+            <tr>
+              <th>Station</th>
+              <th>Added raw capacity from +1 tool</th>
+              <th>Total cycle-time reduction from +1 tool</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>LITHO</strong></td>
+              <td class="barcell"><div class="barlabel"><span>+1 lot-capacity unit</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
+              <td class="barcell"><div class="barlabel"><span>-2.46 h</span><span>largest</span></div><div class="track"><div class="fill blue" style="width:100%"></div></div></td>
+            </tr>
+            <tr>
+              <td><strong>FURNACE</strong></td>
+              <td class="barcell"><div class="barlabel"><span>+4 lot-capacity units</span><span>most raw</span></div><div class="track"><div class="fill green" style="width:100%"></div></div></td>
+              <td class="barcell"><div class="barlabel"><span>-0.70 h</span><span></span></div><div class="track"><div class="fill" style="width:28%"></div></div></td>
+            </tr>
+            <tr>
+              <td><strong>DEPO</strong></td>
+              <td class="barcell"><div class="barlabel"><span>+1 lot-capacity unit</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
+              <td class="barcell"><div class="barlabel"><span>-0.26 h</span><span></span></div><div class="track"><div class="fill" style="width:10%"></div></div></td>
+            </tr>
+            <tr>
+              <td><strong>METRO</strong></td>
+              <td class="barcell"><div class="barlabel"><span>+1 lot-capacity unit</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
+              <td class="barcell"><div class="barlabel"><span>-0.05 h</span><span></span></div><div class="track"><div class="fill tiny" style="width:2%"></div></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="caption">Bars compare within each column. FURNACE / batch furnace adds the most raw
+      lot-capacity units, but the line barely moves compared with adding LITHO capacity.</p>
+      <p class="finding-note">FURNACE looks like the obvious candidate because it has the longest
+      single-run processing time and one added batch tool brings multiple lot-capacity units. But the
+      system-level improvement is limited. The largest cycle-time reduction comes from LITHO, which
+      means the decision should be based on constraint impact, not raw capacity added.</p>
+    </div>
+
+    <div class="zh">
+      <h3>步驟 2 - 用整體影響判斷產能該加在哪裡</h3>
+      <div class="table-wrap">
+        <table class="metric-table">
+          <thead>
+            <tr>
+              <th>站點</th>
+              <th>加一台工具帶來的原始容量</th>
+              <th>加一台工具帶來的總週期時間下降</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>LITHO</strong></td>
+              <td class="barcell"><div class="barlabel"><span>+1 lot-capacity unit</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
+              <td class="barcell"><div class="barlabel"><span>-2.46 小時</span><span>最大</span></div><div class="track"><div class="fill blue" style="width:100%"></div></div></td>
+            </tr>
+            <tr>
+              <td><strong>FURNACE</strong></td>
+              <td class="barcell"><div class="barlabel"><span>+4 lot-capacity units</span><span>原始容量最多</span></div><div class="track"><div class="fill green" style="width:100%"></div></div></td>
+              <td class="barcell"><div class="barlabel"><span>-0.70 小時</span><span></span></div><div class="track"><div class="fill" style="width:28%"></div></div></td>
+            </tr>
+            <tr>
+              <td><strong>DEPO</strong></td>
+              <td class="barcell"><div class="barlabel"><span>+1 lot-capacity unit</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
+              <td class="barcell"><div class="barlabel"><span>-0.26 小時</span><span></span></div><div class="track"><div class="fill" style="width:10%"></div></div></td>
+            </tr>
+            <tr>
+              <td><strong>METRO</strong></td>
+              <td class="barcell"><div class="barlabel"><span>+1 lot-capacity unit</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
+              <td class="barcell"><div class="barlabel"><span>-0.05 小時</span><span></span></div><div class="track"><div class="fill tiny" style="width:2%"></div></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="caption">長條只在同一欄內比較。FURNACE / 批次爐增加最多原始 lot-capacity units，但相較於增加
+      LITHO 產能，整條線的週期時間改善很小。</p>
+      <p class="finding-note">FURNACE / 批次爐看起來像最直覺的候選，因為它的單次加工時間最長，而且加一台批次設備
+      會增加多個 lot-capacity units。可是整體系統改善有限；最大的週期時間下降來自 LITHO。因此決策應該看限制點影響，
+      而不是只看新增多少原始容量。</p>
+    </div>
   </div>
-
   <!-- FINDING 2 -->
   <div class="finding">
     <span class="tag">02</span>
