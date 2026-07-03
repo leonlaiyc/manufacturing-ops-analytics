@@ -108,9 +108,8 @@ def build_finding01_figure(cache: dict) -> go.Figure:
 
 
 # --------------------------------------------------------------------------- #
-# Finding 02: break-even chart: what each +1 tool is WORTH (max worthwhile
-# price = break-even added-tool cost) vs one illustrative quoted price. A price
-# marker inside the bar means the option pays for itself.
+# Finding 02: compare operating savings before the added-tool price against one
+# illustrative quote. A price marker inside the bar means savings cover the quote.
 # --------------------------------------------------------------------------- #
 def _fmt_k(value_k: float) -> str:
     """Format $k values like the owner's copy: −$12k, +$8.0k, +$10.3k, −$1.7k.
@@ -128,27 +127,27 @@ def build_finding02_figure(cache: dict) -> go.Figure:
     f2 = cache["finding_02"]
     stations = f2["stations"]
     stress = [v / 1000 for v in f2["stress_cost"]]
-    break_even = [v / 1000 for v in f2["break_even"]]
+    operating_savings = [v / 1000 for v in f2["break_even"]]
     prices = [v / 1000 for v in f2["stress_tool_costs"]]
     gains = cache["finding_01"]["delta_mean"]  # same station order as finding_02
 
     labels = [f"{s} (-{g:.2f} h)" for s, g in zip(stations, gains)]
     colors = [STATION_COLORS.get(s, DEFAULT_STATION_COLOR) for s in stations]
-    # hover shows the break-even, illustrative quote, and net cost at that quote.
+    # hover shows operating savings, illustrative quote, and net cost at that quote.
     hover_data = [[p, _fmt_k(s)] for p, s in zip(prices, stress)]
 
-    xmax = max(break_even + prices) * 1.12
+    xmax = max(operating_savings + prices) * 1.12
 
     fig = go.Figure()
 
     fig.add_trace(go.Bar(
-        x=break_even, y=labels, orientation="h", marker_color=colors,
+        x=operating_savings, y=labels, orientation="h", marker_color=colors,
         showlegend=False,
         customdata=hover_data,
         hovertemplate="<b>%{y}</b>"
-                      "<br>Break-even (max worthwhile price): $%{x:.1f}k"
+                      "<br>Operating savings before tool price: $%{x:.1f}k"
                       "<br>Illustrative quote: $%{customdata[0]:.0f}k"
-                      "<br>Net cost at quote: %{customdata[1]}<extra></extra>",
+                      "<br>Net cost = quote - savings: %{customdata[1]}<extra></extra>",
     ))
     fig.add_trace(go.Scatter(
         x=prices, y=labels, mode="markers", name="illustrative quote",
@@ -157,15 +156,14 @@ def build_finding02_figure(cache: dict) -> go.Figure:
         customdata=hover_data,
         hovertemplate="<b>%{y}</b>"
                       "<br>Illustrative quote: $%{x:.0f}k"
-                      "<br>Net cost at quote: %{customdata[1]}"
+                      "<br>Net cost = quote - savings: %{customdata[1]}"
                       "<extra></extra>",
     ))
 
     fig.update_layout(
-        title=dict(text="Finding 02: what each +1 tool is worth vs what it costs",
+        title=dict(text="Finding 02: cycle-time gain must clear the tool quote",
                    x=0.5, font=dict(size=14)),
-        xaxis=dict(title="Added-tool cost ($k): pay less than the bar and the "
-                         "option pays for itself",
+        xaxis=dict(title="Operating savings before tool price ($k): quote must be lower than the bar",
                    range=[0, xmax]),
         yaxis=dict(autorange="reversed"),
         height=400, template="plotly_white",
@@ -412,30 +410,31 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
   <!-- FINDING 02 -->
   <div class="finding-section">
     <span class="tag">FINDING 02</span>
-    <div class="en"><h2>The biggest cycle-time gain is not worth any price</h2>
-      <p class="takeaway">Finding 01 shows that LITHO removes the most cycle time. Finding 02
-      asks the next business question: how much can we pay for that improvement before it stops
-      paying back? In this model, one more LITHO tool is worth about $32k and one more FURNACE
-      tool is worth about $9.7k. If the LITHO quote is below $32k, the case clears break-even.
-      If the quote is above $32k, the operational improvement is still real, but the cost case
-      no longer pays for itself.</p>
-      <p class="method-note">Bar = maximum worthwhile tool price. Marker = illustrative quote.
-      Marker inside the bar means the option pays for itself.</p></div>
-    <div class="zh"><h2>能降最多 cycle time，不代表任何價格都值得買</h2>
-      <p class="takeaway">Finding 01 顯示 LITHO 是最強的營運改善，因為它讓 cycle time 降最多。
-      Finding 02 只問下一個商業問題：這個改善最多值得花多少錢？在這個模型裡，多一台 LITHO
-      約值 $32k，多一台 FURNACE 約值 $9.7k。LITHO 如果報價低於 $32k，就能自己回本；如果報價
-      高於 $32k，營運改善仍然存在，但成本面不一定值得。</p>
-      <p class="method-note">長條＝最多值得付的工具價格。標記＝示範報價。標記落在長條內，
-      代表該方案能自己回本。</p></div>
+    <div class="en"><h2>The biggest cycle-time gain still needs a price check</h2>
+      <p class="takeaway">Finding 01 shows that LITHO cuts cycle time the most. Finding 02
+      asks whether that improvement saves enough operating cost to pay for the extra tool.
+      In this model, +1 LITHO removes about $32k of waiting, congestion, and processing cost
+      before paying for the tool. With a $40k illustrative quote, net cost = $40k - $32k =
+      +$8k, so the cost case does not pay back. FURNACE saves less cycle time, but removes
+      about $9.7k of operating cost; with an $8k quote, net cost = $8k - $9.7k = -$1.7k.</p>
+      <p class="method-note">Bar = operating cost removed before tool price. Marker =
+      illustrative quote. Marker inside the bar means the savings cover the quote.</p></div>
+    <div class="zh"><h2>降 cycle time 最多，仍然要過價格檢查</h2>
+      <p class="takeaway">Finding 01 顯示 LITHO 最能降低 cycle time。Finding 02 只問一件事：
+      這個改善省下的營運成本，是否足以付掉新增機台？在這個模型裡，+1 LITHO 在不計機台價格前，
+      約可少掉 $32k 的等待、壅塞與處理成本。若示範報價是 $40k，淨成本 = $40k - $32k =
+      +$8k，所以成本面不回本。FURNACE 降 cycle time 較少，但約可少掉 $9.7k；若報價 $8k，
+      淨成本 = $8k - $9.7k = -$1.7k。</p>
+      <p class="method-note">長條＝不計機台價格前可省下的營運成本。標記＝示範報價。標記落在長條內，
+      代表節省金額足以付掉報價。</p></div>
     <div id="fig-finding02" class="plot">{fig_finding02}</div>
     <p class="method-note en">Method: net cost change = scenario total cost − baseline total
-    cost (processing + waiting/holding + added-tool cost); break-even is the added-tool cost
-    at which that net change hits zero. Hover each bar for the break-even, illustrative
-    quote, and net cost at that quote.</p>
+    cost (processing + waiting/holding + added-tool cost). Here the bar is the operating
+    cost saved before the added-tool price, so net cost = illustrative quote - bar. Hover
+    each bar for the savings, quote, and net cost.</p>
     <p class="method-note zh">方法：淨成本變化 = 情境總成本 − 基準總成本（處理成本 + 等待/持有成本 +
-    新增工具成本）；損益平衡是讓淨變化歸零的新增工具成本。將滑鼠移到長條上可看到損益平衡、示範報價
-    與該報價下的淨成本。</p>
+    新增工具成本）。這裡的長條是不計新增機台價格前省下的營運成本，所以淨成本 = 示範報價 - 長條。
+    將滑鼠移到長條上可看到節省金額、報價與淨成本。</p>
   </div>
 
   <!-- FINDING 03 -->
