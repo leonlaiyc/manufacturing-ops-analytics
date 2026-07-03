@@ -1,53 +1,294 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Manufacturing Operations Analytics &amp; Decision Support</title>
 <style>
-  :root { color-scheme: light; }
-  body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-         max-width: 780px; margin: 3rem auto; padding: 0 1.2rem; color: #263238;
-         line-height: 1.55; }
-  h1 { font-size: 1.7rem; margin-bottom: .3rem; }
-  .sub { color: #607D8B; margin-top: 0; }
-  .card { border: 1px solid #CFD8DC; border-radius: 10px; padding: 1rem 1.2rem;
-          margin: 1rem 0; }
-  .card h2 { font-size: 1.05rem; margin: 0 0 .35rem; }
-  .card p { margin: .25rem 0 .6rem; font-size: .95rem; }
-  a.btn { display: inline-block; background: #1565C0; color: #fff; text-decoration: none;
-          padding: .45rem .9rem; border-radius: 7px; font-size: .92rem; }
-  a.btn.alt { background: #37474F; }
-  .note { font-size: .85rem; color: #78909C; margin-top: 2rem; }
-  code { background: #ECEFF1; padding: .1rem .35rem; border-radius: 4px; font-size: .88em; }
+  :root {
+    --ink:#22303C; --muted:#5B7180; --line:#DCE3E8; --bg:#F7F9FA;
+    --blue:#1565C0; --blue-soft:#E3F0FB; --grey:#9AA9B4;
+    --green:#2E7D32; --green-soft:#E6F4E7; --red:#C62828; --red-soft:#FBE9E9;
+    color-scheme:light;
+  }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,"Segoe UI",Roboto,"Noto Sans TC",Helvetica,Arial,sans-serif;
+         color:var(--ink); background:var(--bg); margin:0; line-height:1.6;
+         -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:880px; margin:0 auto; padding:0 1.2rem 4rem; }
+
+  /* language toggle */
+  .topbar { display:flex; justify-content:flex-end; align-items:center; gap:.4rem;
+            max-width:880px; margin:0 auto; padding:1rem 1.2rem .2rem; }
+  .langbtn { border:1px solid var(--line); background:#fff; color:var(--muted);
+             font-size:.82rem; padding:.3rem .7rem; border-radius:999px; cursor:pointer;
+             font-weight:600; letter-spacing:.02em; }
+  .langbtn[aria-pressed="true"] { background:var(--blue); color:#fff; border-color:var(--blue); }
+
+  /* language visibility */
+  .lang-zh .en { display:none; } .lang-en .zh { display:none; }
+
+  /* hero */
+  header.hero { padding:1.4rem 0 1.2rem; border-bottom:1px solid var(--line); }
+  .kicker { color:var(--blue); font-weight:700; font-size:.8rem; letter-spacing:.08em;
+            text-transform:uppercase; margin:0 0 .5rem; }
+  h1 { font-size:1.85rem; line-height:1.25; margin:.1rem 0 .5rem; }
+  .lede { font-size:1.06rem; color:var(--muted); margin:.3rem 0 0; }
+
+  /* what I did */
+  .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; margin:1.6rem 0 .4rem; }
+  .step { background:#fff; border:1px solid var(--line); border-radius:12px; padding:.9rem 1rem; }
+  .step .n { display:inline-flex; width:1.5rem; height:1.5rem; border-radius:50%;
+             background:var(--blue-soft); color:var(--blue); font-weight:700; font-size:.82rem;
+             align-items:center; justify-content:center; margin-bottom:.4rem; }
+  .step h3 { font-size:.98rem; margin:.1rem 0 .2rem; }
+  .step p { font-size:.86rem; color:var(--muted); margin:0; line-height:1.5; }
+
+  /* findings */
+  .section-label { font-size:.8rem; letter-spacing:.06em; text-transform:uppercase;
+                   color:var(--muted); font-weight:700; margin:2.4rem 0 .8rem; }
+  .finding { background:#fff; border:1px solid var(--line); border-radius:14px;
+             padding:1.3rem 1.4rem; margin:0 0 1rem; }
+  .finding .tag { display:inline-block; font-size:.74rem; font-weight:700; letter-spacing:.04em;
+                  color:var(--blue); background:var(--blue-soft); padding:.15rem .6rem;
+                  border-radius:999px; margin-bottom:.55rem; }
+  .finding h2 { font-size:1.22rem; margin:.1rem 0 .4rem; line-height:1.3; }
+  .finding p { margin:.35rem 0 0; color:var(--ink); font-size:.98rem; }
+  .finding p.small { color:var(--muted); font-size:.9rem; }
+
+  figure { margin:1rem 0 .2rem; }
+  svg { width:100%; height:auto; display:block; }
+  .caption { font-size:.82rem; color:var(--muted); margin:.5rem 0 0; }
+  .legend { display:flex; gap:1.2rem; font-size:.82rem; color:var(--muted); margin:.5rem 0 0; }
+  .legend span::before { content:""; display:inline-block; width:.7rem; height:.7rem;
+                         border-radius:3px; margin-right:.35rem; vertical-align:-1px; }
+  .legend .g::before { background:var(--green); } .legend .r::before { background:var(--red); }
+
+  /* stat callout */
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; margin:.9rem 0 .2rem; }
+  .stat { background:var(--bg); border:1px solid var(--line); border-radius:10px;
+          padding:.8rem .9rem; text-align:center; }
+  .stat .big { font-size:1.5rem; font-weight:800; color:var(--ink); line-height:1.1; }
+  .stat .lbl { font-size:.78rem; color:var(--muted); margin-top:.25rem; }
+
+  /* bottom line + links */
+  .bottomline { background:var(--ink); color:#EAF1F5; border-radius:14px;
+                padding:1.3rem 1.5rem; margin:2rem 0 1.4rem; }
+  .bottomline h2 { color:#fff; font-size:1.1rem; margin:0 0 .4rem; }
+  .bottomline p { margin:.3rem 0 0; color:#C4D2DC; font-size:.98rem; }
+  .links { display:flex; flex-wrap:wrap; gap:.7rem; margin:1.2rem 0 0; }
+  a.btn { display:inline-block; text-decoration:none; font-weight:600; font-size:.94rem;
+          padding:.6rem 1.1rem; border-radius:9px; }
+  a.btn.primary { background:var(--blue); color:#fff; }
+  a.btn.ghost { background:#fff; color:var(--ink); border:1px solid var(--line); }
+  .note { font-size:.82rem; color:var(--grey); margin-top:1.8rem; line-height:1.6; }
+
+  @media (max-width:620px){
+    .steps,.stats { grid-template-columns:1fr; }
+    h1 { font-size:1.5rem; }
+  }
 </style>
 </head>
-<body>
-<h1>Manufacturing Operations Analytics &amp; Decision Support</h1>
-<p class="sub">Bottleneck diagnosis &middot; KPI &amp; anomaly monitoring &middot; capacity / cost what-if — on a fab-style production line</p>
+<body class="lang-zh">
 
-<p>Production data tells you what happened. This project turns it into <strong>what to do</strong>:
-which station is the constraint (and the proof), when a KPI drifts out of control,
-and what a capacity or demand change would do to cycle time, throughput, and cost.</p>
-
-<div class="card">
-  <h2>Interactive KPI dashboard</h2>
-  <p>Output, WIP, slot utilization vs design targets, cycle time, and X-factor on the
-     synthetic fab-style line (batch furnace, re-entrant litho bottleneck). Hover and zoom.</p>
-  <a class="btn" href="dashboard.html">Open dashboard</a>
+<div class="topbar">
+  <button class="langbtn" data-lang="zh" onclick="setLang('zh')">中文</button>
+  <button class="langbtn" data-lang="en" onclick="setLang('en')">EN</button>
 </div>
 
-<div class="card">
-  <h2>Full analysis (GitHub)</h2>
-  <p>Process mining on a real production log, a validated discrete-event fab model,
-     CRN counterfactual bottleneck proof, OEE-style anomaly monitoring with measured
-     detection quality, and cost-ranked improvement decisions — each in its own notebook.</p>
-  <a class="btn alt" href="https://github.com/leonlaiyc/manufacturing-ops-analytics">View repository</a>
+<div class="wrap">
+
+  <header class="hero">
+    <p class="kicker">Manufacturing Operations Analytics &amp; Decision Support</p>
+    <div class="en">
+      <h1>Turning production data into decisions a team can act on — and challenge</h1>
+      <p class="lede">Find the station that's really holding the line back, catch a machine
+      degrading before it hurts, and know which fix is actually worth the money — built on a
+      transparent, validated simulation of a semiconductor-style production line.</p>
+    </div>
+    <div class="zh">
+      <h1>把產線數據，變成團隊能執行、也能被檢驗的決策</h1>
+      <p class="lede">找出真正拖累產線的那一站、在機台劣化造成損失前先抓到、並判斷哪一個改善方案
+      真的划算——整套方法建立在一個透明、可被驗證的「半導體式產線」模擬之上。</p>
+    </div>
+  </header>
+
+  <!-- WHAT I DID -->
+  <div class="steps">
+    <div class="step">
+      <span class="n">1</span>
+      <div class="en"><h3>Diagnose</h3><p>Process-mine a real production log to reconstruct the
+        actual flow and see where time is lost.</p></div>
+      <div class="zh"><h3>診斷</h3><p>用 process mining 把真實生產紀錄還原成實際流程,看出時間到底
+        耗在哪裡。</p></div>
+    </div>
+    <div class="step">
+      <span class="n">2</span>
+      <div class="en"><h3>Model</h3><p>Build a transparent factory simulation whose correct
+        answer is known in advance — so the methods can be validated, not just shown.</p></div>
+      <div class="zh"><h3>建模</h3><p>打造一個「正確答案已知」的透明工廠模擬——讓方法能被驗證,而不
+        只是展示。</p></div>
+    </div>
+    <div class="step">
+      <span class="n">3</span>
+      <div class="en"><h3>Decide</h3><p>Turn the diagnosis into capacity and cost what-if
+        decisions, each tested for robustness.</p></div>
+      <div class="zh"><h3>決策</h3><p>把診斷變成產能與成本的 what-if 決策,每個結論都做過穩健度
+        測試。</p></div>
+    </div>
+  </div>
+
+  <p class="section-label"><span class="en">Three things it shows</span><span class="zh">三個關鍵發現</span></p>
+
+  <!-- FINDING 1 -->
+  <div class="finding">
+    <span class="tag">01</span>
+    <div class="en"><h2>The “obvious” bottleneck is usually the wrong one</h2>
+      <p>The busiest station and the slowest-looking machine are both <em>not</em> the real
+      constraint. The method pinpoints it — and adding one tool there shortens the production
+      cycle far more than adding one anywhere else.</p></div>
+    <div class="zh"><h2>「看起來最像瓶頸」的那一站,通常是錯的</h2>
+      <p>最忙的站、單次最慢的機台,其實都<em>不是</em>真正的限制點。這套方法能精準指出它——在對的站
+      加一台機,縮短生產週期的效果,遠大於加在其他任何一站。</p></div>
+
+    <figure>
+      <!-- cycle-time reduction per +1 tool -->
+      <svg viewBox="0 0 480 200" role="img" aria-label="cycle time reduction per added tool">
+        <!-- LITHO -->
+        <text x="100" y="36" text-anchor="end" font-size="13" font-weight="700" fill="#22303C">LITHO</text>
+        <rect x="110" y="20" width="300" height="24" rx="4" fill="#1565C0"/>
+        <text x="418" y="37" font-size="13" font-weight="700" fill="#1565C0">2.5 h</text>
+        <!-- FURNACE -->
+        <text x="100" y="76" text-anchor="end" font-size="13" fill="#5B7180">FURNACE</text>
+        <rect x="110" y="60" width="85" height="24" rx="4" fill="#9AA9B4"/>
+        <text x="203" y="77" font-size="13" fill="#5B7180">0.7 h</text>
+        <!-- DEPO -->
+        <text x="100" y="116" text-anchor="end" font-size="13" fill="#5B7180">DEPO</text>
+        <rect x="110" y="100" width="32" height="24" rx="4" fill="#9AA9B4"/>
+        <text x="150" y="117" font-size="13" fill="#5B7180">0.3 h</text>
+        <!-- METRO -->
+        <text x="100" y="156" text-anchor="end" font-size="13" fill="#5B7180">METRO</text>
+        <rect x="110" y="140" width="7" height="24" rx="3" fill="#9AA9B4"/>
+        <text x="125" y="157" font-size="13" fill="#5B7180">0.05 h</text>
+        <text x="110" y="190" font-size="11.5" fill="#9AA9B4" class="en">Cycle-time reduction from one extra tool (bar = benefit)</text>
+        <text x="110" y="190" font-size="11.5" fill="#9AA9B4" class="zh">每多加一台機帶來的生產週期縮短(長條 = 效益)</text>
+      </svg>
+      <p class="caption en">The furnace gets <strong>4× the capacity</strong> added and still
+      barely moves the line — raw capacity isn't the point, relieving the true constraint is.</p>
+      <p class="caption zh">爐管加了<strong>整整 4 倍的產能</strong>,產線幾乎不動——重點從來不是加多少
+      產能,而是有沒有解到真正的限制點。</p>
+    </figure>
+  </div>
+
+  <!-- FINDING 2 -->
+  <div class="finding">
+    <span class="tag">02</span>
+    <div class="en"><h2>A visible improvement can still lose money</h2>
+      <p>Buying a tool at the wrong station can make a metric look better and still destroy
+      value. Only the bottleneck investment pays for itself; every other option here costs more
+      than doing nothing at all.</p></div>
+    <div class="zh"><h2>看得到的改善,也可能是賠錢的</h2>
+      <p>在錯的站買機台,數字會變好看,錢卻是虧的。只有投資在瓶頸上才會回本;其他每一個選項,都比
+      「什麼都不做」還要貴。</p></div>
+
+    <figure>
+      <!-- net cost of the decision -->
+      <svg viewBox="0 0 480 200" role="img" aria-label="net cost of each decision">
+        <line x1="240" y1="12" x2="240" y2="176" stroke="#B7C3CC" stroke-width="1"/>
+        <!-- LITHO saves -->
+        <text x="10" y="36" font-size="13" font-weight="700" fill="#22303C">LITHO</text>
+        <rect x="110" y="20" width="130" height="24" rx="4" fill="#2E7D32"/>
+        <text x="175" y="37" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">−$12k</text>
+        <!-- FURNACE -->
+        <text x="10" y="76" font-size="13" fill="#5B7180">FURNACE</text>
+        <rect x="240" y="60" width="111" height="24" rx="4" fill="#C62828"/>
+        <text x="356" y="77" font-size="12.5" fill="#C62828">+$10k</text>
+        <!-- DEPO -->
+        <text x="10" y="116" font-size="13" fill="#5B7180">DEPO</text>
+        <rect x="240" y="100" width="181" height="24" rx="4" fill="#C62828"/>
+        <text x="426" y="117" font-size="12.5" fill="#C62828">+$17k</text>
+        <!-- METRO -->
+        <text x="10" y="156" font-size="13" fill="#5B7180">METRO</text>
+        <rect x="240" y="140" width="210" height="24" rx="4" fill="#C62828"/>
+        <text x="455" y="157" text-anchor="end" font-size="12.5" font-weight="700" fill="#fff">+$19k</text>
+      </svg>
+      <div class="legend">
+        <span class="g en">saves money</span><span class="g zh">省錢(回本)</span>
+        <span class="r en">costs money</span><span class="r zh">賠錢</span>
+      </div>
+      <p class="caption en">Net cost of each “+1 tool” decision. FURNACE improved cycle time
+      (Finding 01) yet still recovers only about half its price. Illustrative rates — the
+      conclusion is the <em>ranking</em>, and it holds under ±50% on every cost.</p>
+      <p class="caption zh">每個「加一台機」決策的淨成本。FURNACE 明明改善了週期(發現 01),卻只賺回
+      約一半的機台錢。費率為示意——結論看的是<em>排序</em>,而且在每項成本 ±50% 下都不翻盤。</p>
+    </figure>
+  </div>
+
+  <!-- FINDING 3 -->
+  <div class="finding">
+    <span class="tag">03</span>
+    <div class="en"><h2>Slow degradation is expensive — but catchable</h2>
+      <p>A machine quietly slowing down barely changes output, so nobody notices — while it
+      silently piles up a large cost. An early-warning monitor flags it in time to avoid almost
+      all of it.</p></div>
+    <div class="zh"><h2>緩慢劣化很貴——但抓得到</h2>
+      <p>機台悄悄變慢,產出幾乎不變,所以沒人察覺——但成本卻在背後默默累積。一個早期預警監控能及時
+      抓到,幾乎把損失全部避掉。</p></div>
+
+    <div class="stats">
+      <div class="stat"><div class="big">~$249k</div>
+        <div class="lbl en">hidden cost if ignored</div><div class="lbl zh">放著不管的隱形成本</div></div>
+      <div class="stat"><div class="big">~95%</div>
+        <div class="lbl en">avoided by catching it early</div><div class="lbl zh">及早抓到可避免的比例</div></div>
+      <div class="stat"><div class="big">day 84</div>
+        <div class="lbl en">flagged (drift began day 30)</div><div class="lbl zh">被偵測到(第 30 天開始劣化)</div></div>
+    </div>
+    <p class="caption en" style="margin-top:.7rem;">This is the concrete link from monitoring to
+    money: the same detector, scored honestly against a known start date.</p>
+    <p class="caption zh" style="margin-top:.7rem;">這就是「監控」到「金錢」的具體連結:同一個偵測器,
+    對著已知的劣化起始日,誠實地被打分數。</p>
+  </div>
+
+  <!-- BOTTOM LINE -->
+  <div class="bottomline">
+    <div class="en"><h2>What this is really about</h2>
+      <p>Turning messy operational data into clear, defensible decisions. Every number here is
+      traceable to a raw log row or a stated assumption, and every method is explainable from
+      first principles — no black boxes. Decisions an operations team can act on, and argue with.</p></div>
+    <div class="zh"><h2>這個專案真正想傳達的</h2>
+      <p>把雜亂的營運數據,變成清楚、站得住腳的決策。這裡每個數字都能追溯到一筆原始紀錄或一個明講的
+      假設,每個方法都能從第一原理解釋清楚——沒有黑盒子。是營運團隊能拿去執行、也能拿來反駁的決策。</p></div>
+  </div>
+
+  <div class="links">
+    <a class="btn primary" href="dashboard.html">
+      <span class="en">▶ Explore the interactive data</span><span class="zh">▶ 看互動式詳細數據</span></a>
+    <a class="btn ghost" href="https://github.com/leonlaiyc/manufacturing-ops-analytics">
+      <span class="en">View the full analysis on GitHub</span><span class="zh">在 GitHub 看完整分析</span></a>
+  </div>
+
+  <p class="note en">Honest scope: the simulated line is clearly labeled synthetic — it exists to
+  give the methods a known ground truth (an engineered bottleneck, labeled fault windows).
+  The real production log is used for diagnosis only. Cost figures are illustrative and used for
+  ranking, not as dollar forecasts.</p>
+  <p class="note zh">誠實聲明:模擬產線全程標示為合成資料——它的用途是給方法一個已知的「標準答案」
+  (刻意設計的瓶頸、標記好的故障區間)。真實生產紀錄僅用於診斷。成本數字為示意性質,用於相對排序,
+  並非金額預測。</p>
+
 </div>
 
-<p class="note">Synthetic line data is clearly labeled synthetic — it exists to give the
-methods a known ground truth (engineered bottleneck, labeled anomalies) so they can be
-validated, not just demonstrated. The real production log is used for diagnosis only.
-Cost rates are illustrative; conclusions are rankings tested under &plusmn;50% sensitivity.</p>
+<script>
+  function setLang(l){
+    document.body.className = 'lang-' + l;
+    document.documentElement.lang = (l === 'zh') ? 'zh-Hant' : 'en';
+    try { localStorage.setItem('mfg_lang', l); } catch(e){}
+    document.querySelectorAll('.langbtn').forEach(function(b){
+      b.setAttribute('aria-pressed', b.dataset.lang === l);
+    });
+  }
+  var saved;
+  try { saved = localStorage.getItem('mfg_lang'); } catch(e){}
+  setLang(saved || 'zh');
+</script>
 </body>
 </html>
