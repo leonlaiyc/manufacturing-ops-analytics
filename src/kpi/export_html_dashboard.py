@@ -108,9 +108,9 @@ def build_finding01_figure(cache: dict) -> go.Figure:
 
 
 # --------------------------------------------------------------------------- #
-# Finding 02 — dumbbell chart: base-case vs investment-stress net cost change
-# per station, with the equal-cost and station-specific-cost verdicts joined
-# by a connector so a flip across the break-even line is visible at a glance.
+# Finding 02 — break-even chart: what each +1 tool is WORTH (max worthwhile
+# price = break-even added-tool cost) vs what it COSTS (the two price
+# assumptions). A price marker inside the bar means the option pays for itself.
 # --------------------------------------------------------------------------- #
 def _fmt_k(value_k: float) -> str:
     """Format $k values like the owner's copy: −$12k, +$8.0k, +$10.3k, −$1.7k.
@@ -124,82 +124,61 @@ def _fmt_k(value_k: float) -> str:
     return f"{sign}${body}k"
 
 
+EQUAL_PRICE_K = 20.0  # the equal-price base-case assumption ($20k per tool)
+
+
 def build_finding02_figure(cache: dict) -> go.Figure:
     f2 = cache["finding_02"]
     stations = f2["stations"]
     base = [v / 1000 for v in f2["base_cost"]]
     stress = [v / 1000 for v in f2["stress_cost"]]
     break_even = [v / 1000 for v in f2["break_even"]]
+    prices = [v / 1000 for v in f2["stress_tool_costs"]]
     gains = cache["finding_01"]["delta_mean"]  # same station order as finding_02
 
     labels = [f"{s} (−{g:.2f} h)" for s, g in zip(stations, gains)]
+    colors = [STATION_COLORS.get(s, DEFAULT_STATION_COLOR) for s in stations]
+    # hover shows: break-even, both prices, both net costs (from the cache)
+    hover_data = [[_fmt_k(b), p, _fmt_k(s)] for b, p, s in zip(base, prices, stress)]
 
-    all_vals = base + stress
-    pad = 0.22 * (max(all_vals) - min(all_vals))
-    xmin, xmax = min(all_vals) - pad, max(all_vals) + pad
+    xmax = max(break_even + prices + [EQUAL_PRICE_K]) * 1.12
 
     fig = go.Figure()
 
-    # green "net saving" zone left of break-even
-    fig.add_vrect(x0=xmin, x1=0, fillcolor="#E6F4E7", opacity=0.65,
-                  layer="below", line_width=0)
-
-    # grey connectors between the two scenario dots per station
-    cx, cy = [], []
-    for lab, b, s in zip(labels, base, stress):
-        cx += [b, s, None]
-        cy += [lab, lab, None]
-    fig.add_trace(go.Scatter(x=cx, y=cy, mode="lines",
-                             line=dict(color="#B0BEC5", width=3),
-                             hoverinfo="skip", showlegend=False))
-
-    fig.add_trace(go.Scatter(
-        x=base, y=labels, mode="markers", name="Base case (equal $20k tool cost)",
-        marker=dict(color="#4878A8", size=13),
-        customdata=break_even,
-        hovertemplate="<b>%{y}</b><br>Base case (equal $20k tool cost)"
-                      "<br>Net cost change: $%{x:.1f}k"
-                      "<br>Break-even added-tool cost: $%{customdata:.1f}k<extra></extra>",
+    fig.add_trace(go.Bar(
+        x=break_even, y=labels, orientation="h", marker_color=colors,
+        showlegend=False,
+        customdata=hover_data,
+        hovertemplate="<b>%{y}</b>"
+                      "<br>Break-even (max worthwhile price): $%{x:.1f}k"
+                      "<br>Equal-price assumption $20k → net %{customdata[0]}"
+                      "<br>Station-specific price $%{customdata[1]:.0f}k → net "
+                      "%{customdata[2]}<extra></extra>",
     ))
     fig.add_trace(go.Scatter(
-        x=stress, y=labels, mode="markers",
-        name="Investment-stress (station-specific tool cost)",
-        marker=dict(color="#EF6C00", size=13),
-        customdata=break_even,
-        hovertemplate="<b>%{y}</b><br>Investment-stress (station-specific tool cost)"
-                      "<br>Net cost change: $%{x:.1f}k"
-                      "<br>Break-even added-tool cost: $%{customdata:.1f}k<extra></extra>",
+        x=prices, y=labels, mode="markers", name="station-specific price",
+        marker=dict(symbol="diamond", size=12, color="#EF6C00",
+                    line=dict(color="#B34700", width=1)),
+        customdata=hover_data,
+        hovertemplate="<b>%{y}</b>"
+                      "<br>Station-specific price: $%{x:.0f}k → net %{customdata[2]}"
+                      "<extra></extra>",
     ))
 
-    fig.add_vline(x=0, line_color="#37474F", line_width=1.2,
-                  annotation_text="break-even", annotation_position="bottom right")
-
-    # zone labels (inside the plot, at the bottom, clear of legend and rows)
-    fig.add_annotation(x=xmin / 2, y=0.02, xref="x", yref="paper", yanchor="bottom",
-                       text="net saving", showarrow=False,
-                       font=dict(size=11, color="#2E7D32"))
-    fig.add_annotation(x=xmax / 2, y=0.02, xref="x", yref="paper", yanchor="bottom",
-                       text="net cost", showarrow=False,
-                       font=dict(size=11, color="#C62828"))
-
-    # call out the rows whose verdict flips across break-even
-    for lab, b, s in zip(labels, base, stress):
-        if (b < 0) != (s < 0):
-            fig.add_annotation(x=(b + s) / 2, y=lab, xref="x", yref="y",
-                               text=f"{_fmt_k(b)} → {_fmt_k(s)}",
-                               showarrow=False, yshift=20,
-                               font=dict(size=11, color="#37474F"))
+    fig.add_vline(x=EQUAL_PRICE_K, line_dash="dash", line_color="#37474F",
+                  line_width=1.2, annotation_text="equal-price assumption ($20k)",
+                  annotation_position="top")
 
     fig.update_layout(
-        title=dict(text="Finding 02 — same option, different cost assumption, "
-                        "opposite financial verdict",
+        title=dict(text="Finding 02 — what each +1 tool is worth vs what it costs",
                   x=0.5, font=dict(size=14)),
-        xaxis=dict(title="net cost change vs baseline ($k)", range=[xmin, xmax],
-                   zeroline=False),
+        xaxis=dict(title="Added-tool cost ($k) — pay less than the bar and the "
+                         "option pays for itself",
+                   range=[0, xmax]),
         yaxis=dict(autorange="reversed"),
         height=400, template="plotly_white",
-        legend=dict(orientation="h", yanchor="bottom", y=1.10, xanchor="center", x=0.5),
-        margin=dict(t=110, l=130, r=30, b=50),
+        legend=dict(orientation="h", yanchor="bottom", y=1.06, xanchor="center", x=0.5),
+        margin=dict(t=95, l=130, r=30, b=55),
     )
     return fig
 
@@ -442,29 +421,30 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
   <div class="finding-section">
     <span class="tag">FINDING 02</span>
     <div class="en"><h2>Biggest operational win is not automatically the best financial case</h2>
-      <p class="takeaway">One decision, two cost assumptions. Under equal tool costs ($20k
-      everywhere), adding a LITHO tool pays for itself (≈ −$12k net) and FURNACE does not
-      (≈ +$10.3k). Under station-specific costs (LITHO $40k, FURNACE $8k), the verdict flips:
-      LITHO ≈ +$8.0k, FURNACE ≈ −$1.7k. The operational winner never changes — the financial
-      winner depends on what a tool costs, so the business objective decides.</p>
-      <p class="method-note">Each row is a station (cycle-time gain in the label). Blue dot =
-      equal-cost base case; orange dot = investment-stress case. A dot in the green zone means
-      the option saves more than it costs.</p></div>
+      <p class="takeaway">The what-if turns each option's operational gain into a maximum
+      worthwhile investment: one more LITHO tool is worth up to $32k; one more FURNACE tool
+      up to $9.7k. The rest is price comparison. At $20k per tool only LITHO pays for itself;
+      if a litho tool costs $40k it no longer does, while an $8k furnace tool becomes the best
+      financial buy. The operational ranking never changes — whether it pays depends on the
+      price.</p>
+      <p class="method-note">Bar = the most you should pay for that station's extra tool
+      (break-even). Markers = assumed prices. A price below the end of the bar means the
+      option pays for itself.</p></div>
     <div class="zh"><h2>營運效益最大的方案，不一定是財務上最划算的方案</h2>
-      <p class="takeaway">同一個決策、兩種成本假設。在每站工具成本相同（$20k）的情況下，新增一台
-      LITHO 工具本身就划算（淨成本約 −$12k），FURNACE 則不然（約 +$10.3k）。改用站點別成本假設
-      （LITHO $40k、FURNACE $8k）之後，結論反轉：LITHO 約 +$8.0k、FURNACE 約 −$1.7k。營運上的
-      贏家從未改變——財務上的贏家取決於一台工具的價格，因此由商業目標決定。</p>
-      <p class="method-note">每一列是一個站點（括號內為 cycle-time 改善幅度）。藍點＝等成本基準情境；
-      橘點＝投資壓力情境。落在綠色區域的點，代表該方案省下的比花掉的多。</p></div>
+      <p class="takeaway">What-if 把每個方案的營運效益換算成「最高值得投資的金額」：多買一台
+      LITHO 工具最多值 $32k；多買一台 FURNACE 工具最多值 $9.7k。剩下的就是比價。若每台工具都是
+      $20k，只有 LITHO 能自己回本；若一台 litho 工具要價 $40k 就不再划算，而 $8k 的 furnace
+      工具反而成為財務上最好的選擇。營運排序從未改變——划不划算取決於價格。</p>
+      <p class="method-note">長條＝該站點多買一台工具最多值得付的金額（損益平衡）。標記＝假設的價格。
+      價格落在長條末端之內，代表該方案能自己回本。</p></div>
     <div id="fig-finding02" class="plot">{fig_finding02}</div>
     <p class="method-note en">Method: net cost change = scenario total cost − baseline total
-    cost (processing + waiting/holding + added-tool cost). Hover each dot for that station's
-    break-even added-tool cost — how expensive the tool could be before the option stops
-    net-saving.</p>
+    cost (processing + waiting/holding + added-tool cost); break-even is the added-tool cost
+    at which that net change hits zero. Hover each bar for the break-even, both price
+    assumptions, and both net costs.</p>
     <p class="method-note zh">方法：淨成本變化 = 情境總成本 − 基準總成本（處理成本 + 等待/持有成本 +
-    新增工具成本）。將滑鼠移到圓點上可看到該站點的損益平衡新增工具成本——工具可以多貴而不讓方案由淨節省
-    轉為淨增加。</p>
+    新增工具成本）；損益平衡是讓淨變化歸零的新增工具成本。將滑鼠移到長條上可看到損益平衡、兩種價格假設
+    與兩種淨成本。</p>
   </div>
 
   <!-- FINDING 03 -->
