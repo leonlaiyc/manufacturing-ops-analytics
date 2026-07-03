@@ -106,39 +106,98 @@ def build_finding01_figure(cache: dict) -> go.Figure:
 
 
 # --------------------------------------------------------------------------- #
-# Finding 02 — grouped bar: base-case vs investment-stress net cost change
+# Finding 02 — dumbbell chart: base-case vs investment-stress net cost change
+# per station, with the equal-cost and station-specific-cost verdicts joined
+# by a connector so a flip across the break-even line is visible at a glance.
 # --------------------------------------------------------------------------- #
+def _fmt_k(value_k: float) -> str:
+    """Format $k values like the owner's copy: −$12k, +$8.0k, +$10.3k, −$1.7k.
+
+    One decimal by default; the decimal is dropped only when the value is both
+    ≥ $10k and rounds to a whole number (so 11.98 → −$12k but 10.28 → +$10.3k).
+    """
+    sign = "−" if value_k < 0 else "+"
+    mag = round(abs(value_k), 1)
+    body = f"{mag:.0f}" if (mag >= 10 and mag == int(mag)) else f"{mag:.1f}"
+    return f"{sign}${body}k"
+
+
 def build_finding02_figure(cache: dict) -> go.Figure:
     f2 = cache["finding_02"]
     stations = f2["stations"]
-    base = f2["base_cost"]
-    stress = f2["stress_cost"]
-    break_even = f2["break_even"]
+    base = [v / 1000 for v in f2["base_cost"]]
+    stress = [v / 1000 for v in f2["stress_cost"]]
+    break_even = [v / 1000 for v in f2["break_even"]]
+    gains = cache["finding_01"]["delta_mean"]  # same station order as finding_02
+
+    labels = [f"{s} (−{g:.2f} h)" for s, g in zip(stations, gains)]
+
+    all_vals = base + stress
+    pad = 0.22 * (max(all_vals) - min(all_vals))
+    xmin, xmax = min(all_vals) - pad, max(all_vals) + pad
 
     fig = go.Figure()
-    fig.add_trace(go.Bar(
-        x=stations, y=[v / 1000 for v in base], name="Base case (equal $20k tool cost)",
-        marker_color="#4878A8",
+
+    # green "net saving" zone left of break-even
+    fig.add_vrect(x0=xmin, x1=0, fillcolor="#E6F4E7", opacity=0.65,
+                  layer="below", line_width=0)
+
+    # grey connectors between the two scenario dots per station
+    cx, cy = [], []
+    for lab, b, s in zip(labels, base, stress):
+        cx += [b, s, None]
+        cy += [lab, lab, None]
+    fig.add_trace(go.Scatter(x=cx, y=cy, mode="lines",
+                             line=dict(color="#B0BEC5", width=3),
+                             hoverinfo="skip", showlegend=False))
+
+    fig.add_trace(go.Scatter(
+        x=base, y=labels, mode="markers", name="Base case (equal $20k tool cost)",
+        marker=dict(color="#4878A8", size=13),
         customdata=break_even,
-        hovertemplate="<b>%{x}</b><br>Base-case net cost: $%{y:.1f}k"
+        hovertemplate="<b>%{y}</b><br>Base case (equal $20k tool cost)"
+                      "<br>Net cost change: $%{x:.1f}k"
                       "<br>Break-even added-tool cost: $%{customdata:.1f}k<extra></extra>",
     ))
-    fig.add_trace(go.Bar(
-        x=stations, y=[v / 1000 for v in stress], name="Investment-stress (station-specific cost)",
-        marker_color="#EF6C00",
+    fig.add_trace(go.Scatter(
+        x=stress, y=labels, mode="markers",
+        name="Investment-stress (station-specific tool cost)",
+        marker=dict(color="#EF6C00", size=13),
         customdata=break_even,
-        hovertemplate="<b>%{x}</b><br>Investment-stress net cost: $%{y:.1f}k"
+        hovertemplate="<b>%{y}</b><br>Investment-stress (station-specific tool cost)"
+                      "<br>Net cost change: $%{x:.1f}k"
                       "<br>Break-even added-tool cost: $%{customdata:.1f}k<extra></extra>",
     ))
-    fig.add_hline(y=0, line_color="black", line_width=1,
-                  annotation_text="net cost = 0", annotation_position="top left")
+
+    fig.add_vline(x=0, line_color="#37474F", line_width=1.2,
+                  annotation_text="break-even", annotation_position="bottom right")
+
+    # zone labels (inside the plot, at the bottom, clear of legend and rows)
+    fig.add_annotation(x=xmin / 2, y=0.02, xref="x", yref="paper", yanchor="bottom",
+                       text="net saving", showarrow=False,
+                       font=dict(size=11, color="#2E7D32"))
+    fig.add_annotation(x=xmax / 2, y=0.02, xref="x", yref="paper", yanchor="bottom",
+                       text="net cost", showarrow=False,
+                       font=dict(size=11, color="#C62828"))
+
+    # call out the rows whose verdict flips across break-even
+    for lab, b, s in zip(labels, base, stress):
+        if (b < 0) != (s < 0):
+            fig.add_annotation(x=(b + s) / 2, y=lab, xref="x", yref="y",
+                               text=f"{_fmt_k(b)} → {_fmt_k(s)}",
+                               showarrow=False, yshift=20,
+                               font=dict(size=11, color="#37474F"))
+
     fig.update_layout(
-        title=dict(text="Finding 02 — net cost change: base case vs investment stress",
+        title=dict(text="Finding 02 — same option, different cost assumption, "
+                        "opposite financial verdict",
                   x=0.5, font=dict(size=14)),
-        yaxis_title="net cost change vs baseline ($k)",
-        barmode="group", height=380, template="plotly_white",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
-        margin=dict(t=80, l=60, r=30, b=50),
+        xaxis=dict(title="net cost change vs baseline ($k)", range=[xmin, xmax],
+                   zeroline=False),
+        yaxis=dict(autorange="reversed"),
+        height=400, template="plotly_white",
+        legend=dict(orientation="h", yanchor="bottom", y=1.10, xanchor="center", x=0.5),
+        margin=dict(t=110, l=130, r=30, b=50),
     )
     return fig
 
@@ -158,15 +217,19 @@ def build_finding03_figure(cache: dict) -> go.Figure:
             "Daily median cycle time (h) — diverges long before output does",
         ),
     )
-    fig.add_trace(go.Scatter(x=day, y=f3["deg_output"], mode="lines", name="degraded run",
+    fig.add_trace(go.Scatter(x=day, y=f3["deg_output"], mode="lines",
+                             name="with degradation",
                              line=dict(color="#D32F2F", width=1.4)), row=1, col=1)
-    fig.add_trace(go.Scatter(x=day, y=f3["clean_output"], mode="lines", name="clean twin",
+    fig.add_trace(go.Scatter(x=day, y=f3["clean_output"], mode="lines",
+                             name="no degradation (twin)",
                              line=dict(color="#607D8B", width=1.4)), row=1, col=1)
 
-    fig.add_trace(go.Scatter(x=day, y=f3["deg_cycle_time"], mode="lines", name="degraded run",
+    fig.add_trace(go.Scatter(x=day, y=f3["deg_cycle_time"], mode="lines",
+                             name="with degradation",
                              line=dict(color="#D32F2F", width=1.8), showlegend=False),
                   row=2, col=1)
-    fig.add_trace(go.Scatter(x=day, y=f3["clean_cycle_time"], mode="lines", name="clean twin",
+    fig.add_trace(go.Scatter(x=day, y=f3["clean_cycle_time"], mode="lines",
+                             name="no degradation (twin)",
                              line=dict(color="#607D8B", width=1.8), showlegend=False),
                   row=2, col=1)
 
@@ -189,9 +252,10 @@ def build_finding03_figure(cache: dict) -> go.Figure:
     fig.update_layout(
         title=dict(text="Finding 03 — degradation shows up in cycle time long before output",
                   x=0.5, font=dict(size=14)),
-        height=560, template="plotly_white",
-        legend=dict(orientation="h", yanchor="bottom", y=1.06, xanchor="center", x=0.5),
-        margin=dict(t=90, l=60, r=30, b=50),
+        height=580, template="plotly_white",
+        # horizontal legend BELOW the plot area so it never crowds the title
+        legend=dict(orientation="h", yanchor="top", y=-0.10, xanchor="center", x=0.5),
+        margin=dict(t=70, l=60, r=30, b=85),
     )
     return fig
 
@@ -377,23 +441,28 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
   <div class="finding-section">
     <span class="tag">FINDING 02</span>
     <div class="en"><h2>Biggest operational win is not automatically the best financial case</h2>
-      <p class="takeaway">Under equal tool costs ($20k for every station), LITHO wins both
-      filters: largest cycle-time reduction and the only negative net cost (≈ −$12k). Under
-      station-specific costs (LITHO $40k, FURNACE $8k, DEPO $5k, METRO $2k), LITHO becomes
-      ≈ +$8.0k while FURNACE turns into the best financial result (≈ −$1.7k) — the business
-      objective decides.</p></div>
+      <p class="takeaway">One decision, two cost assumptions. Under equal tool costs ($20k
+      everywhere), adding a LITHO tool pays for itself (≈ −$12k net) and FURNACE does not
+      (≈ +$10.3k). Under station-specific costs (LITHO $40k, FURNACE $8k), the verdict flips:
+      LITHO ≈ +$8.0k, FURNACE ≈ −$1.7k. The operational winner never changes — the financial
+      winner depends on what a tool costs, so the business objective decides.</p>
+      <p class="method-note">Each row is a station (cycle-time gain in the label). Blue dot =
+      equal-cost base case; orange dot = investment-stress case. A dot in the green zone means
+      the option saves more than it costs.</p></div>
     <div class="zh"><h2>營運效益最大的方案，不一定是財務上最划算的方案</h2>
-      <p class="takeaway">在每站工具成本相同（$20k）的假設下，LITHO 同時勝出：cycle time 降幅最大，
-      也是唯一淨成本為負的方案（約 −$12k）。若改用站點別成本假設（LITHO $40k、FURNACE $8k、
-      DEPO $5k、METRO $2k），LITHO 的淨成本變成約 +$8.0k，而 FURNACE 反而成為財務上最佳結果
-      （約 −$1.7k）——最終選擇取決於商業目標。</p></div>
+      <p class="takeaway">同一個決策、兩種成本假設。在每站工具成本相同（$20k）的情況下，新增一台
+      LITHO 工具本身就划算（淨成本約 −$12k），FURNACE 則不然（約 +$10.3k）。改用站點別成本假設
+      （LITHO $40k、FURNACE $8k）之後，結論反轉：LITHO 約 +$8.0k、FURNACE 約 −$1.7k。營運上的
+      贏家從未改變——財務上的贏家取決於一台工具的價格，因此由商業目標決定。</p>
+      <p class="method-note">每一列是一個站點（括號內為 cycle-time 改善幅度）。藍點＝等成本基準情境；
+      橘點＝投資壓力情境。落在綠色區域的點，代表該方案省下的比花掉的多。</p></div>
     <div id="fig-finding02" class="plot">{fig_finding02}</div>
     <p class="method-note en">Method: net cost change = scenario total cost − baseline total
-    cost (processing + waiting/holding + added-tool cost). Hover each bar for that station's
+    cost (processing + waiting/holding + added-tool cost). Hover each dot for that station's
     break-even added-tool cost — how expensive the tool could be before the option stops
     net-saving.</p>
     <p class="method-note zh">方法：淨成本變化 = 情境總成本 − 基準總成本（處理成本 + 等待/持有成本 +
-    新增工具成本）。將滑鼠移到長條上可看到該站點的損益平衡新增工具成本——工具可以多貴而不讓方案由淨節省
+    新增工具成本）。將滑鼠移到圓點上可看到該站點的損益平衡新增工具成本——工具可以多貴而不讓方案由淨節省
     轉為淨增加。</p>
   </div>
 
@@ -404,11 +473,19 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
       <p class="takeaway">LITHO starts degrading on day 30. Daily output never leaves its
       normal band — an output-only monitor gives no alert within the 160-day horizon — while
       EWMA on daily median cycle time alerts on day 84. About 95% of the ≈ $249k extra cost is
-      still avoidable at the alert.</p></div>
+      still avoidable at the alert.</p>
+      <p class="method-note">The "no degradation (twin)" line is the same production line
+      re-run with identical random numbers but the drift switched off — any gap between the
+      two lines is the pure effect of degradation. In the top panel the two lines are barely
+      distinguishable: output alone never reveals the problem. In the bottom panel they
+      separate within weeks.</p></div>
     <div class="zh"><h2>劣化會先反映在 cycle time，遠早於 output</h2>
       <p class="takeaway">LITHO 從第 30 天開始劣化。Daily output 始終沒有脫離正常區間——只看
       output 的監控在 160 天的觀察期內完全不會 alert——而以 EWMA 監控每日 cycle time 中位數則在第
-      84 天 alert。在 alert 當下，約 $249k 額外成本中仍有 95% 可被避免。</p></div>
+      84 天 alert。在 alert 當下，約 $249k 額外成本中仍有 95% 可被避免。</p>
+      <p class="method-note">「no degradation (twin)」這條線，是同一條產線用完全相同的隨機數重跑
+      一次、只是把劣化關掉——兩條線之間的任何差距，都是劣化本身的純粹效果。上圖中兩條線幾乎無法分辨：
+      只看 output 永遠發現不了問題；下圖中兩條線在幾週內就分開了。</p></div>
     <div id="fig-finding03" class="plot">{fig_finding03}</div>
     <p class="method-note en">Method: reference pair = one clean twin run and one degraded run
     sharing the same CRN draw table, differing only in the LITHO degradation. EWMA (λ=0.2,
