@@ -1,6 +1,6 @@
 """
-Export the interactive evidence page for the three findings, plus the demoted
-KPI baseline, as a standalone HTML page.
+Export two standalone Plotly HTML pages: the interactive evidence page for the
+three findings, and the M3 KPI baseline page.
 
 Reads:
   - the committed synthetic artifacts (data/synthetic/event_log.csv,
@@ -8,16 +8,17 @@ Reads:
   - data/synthetic/findings_cache.json (written by precompute_findings.py) for
     the three finding figures.
 
-Writes one self-contained Plotly page (plotly.js via CDN on the first figure
-only, so the file stays small) to:
+Writes (plotly.js via CDN on the first figure of each page, so files stay small):
 
-  - reports/html/03_kpi_dashboard.html   (repo artifact)
-  - docs/dashboard.html                  (published via GitHub Pages)
+  - docs/dashboard.html                  (evidence page: the three findings)
+  - docs/baseline.html                   (M3 KPI baseline page)
+  - reports/html/03_kpi_dashboard.html   (repo copy of the BASELINE page —
+                                          it is the M3 artifact, so its name
+                                          matches its content)
 
-The page leads with the evidence for the three findings (CRN counterfactual,
-cost trade-off, degradation backtest) and demotes the KPI baseline to a
-"shared context" section at the bottom. Carries the same honest-scope
-labeling (synthetic data, clearly stated) as before.
+The evidence page leads with the three findings (CRN counterfactual, cost
+trade-off, degradation backtest) and links to the baseline page in its footer.
+Both pages carry the same honest-scope labeling (synthetic data, clearly stated).
 
 Run:  py src/kpi/export_html_dashboard.py
       (run src/kpi/precompute_findings.py first if findings_cache.json is missing)
@@ -51,6 +52,7 @@ DATA = ROOT / "data" / "synthetic"
 CACHE = DATA / "findings_cache.json"
 OUT_REPORT = ROOT / "reports" / "html" / "03_kpi_dashboard.html"
 OUT_DOCS = ROOT / "docs" / "dashboard.html"
+OUT_BASELINE_DOCS = ROOT / "docs" / "baseline.html"
 
 STATION_COLORS = {"LITHO": "#EF5350"}
 DEFAULT_STATION_COLOR = "#90A4AE"
@@ -261,8 +263,8 @@ def build_finding03_figure(cache: dict) -> go.Figure:
 
 
 # --------------------------------------------------------------------------- #
-# Baseline — existing 6-panel figure, demoted; now with visible annotation
-# labels on every reference line.
+# Baseline — the M3 6-panel figure (own page), with visible annotation labels
+# on every reference line.
 # --------------------------------------------------------------------------- #
 def build_baseline_figure() -> go.Figure:
     event_log = pd.read_csv(DATA / "event_log.csv")
@@ -392,10 +394,9 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
   .finding-section h2 { margin-top:.1rem; }
   .takeaway { color:#22303C; font-size:.94rem; margin:.2rem 0 .8rem; }
   .method-note { font-size:.8rem; color:#7C8B96; margin-top:.55rem; }
-  .baseline-intro { color:#5B7180; font-size:.9rem; margin:.2rem 0 .8rem; }
   .plot { background:#fff; border:1px solid #DCE3E8; border-radius:12px; padding:.4rem; }
-  .baseline-section { margin-top:2.2rem; }
   .note { font-size:.8rem; color:#9AA9B4; margin-top:1.2rem; }
+  .note a { color:#1565C0; }
   @media (max-width:720px) {
     .topbar { align-items:flex-start; gap:.75rem; }
   }
@@ -496,22 +497,88 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
     從未「看過」它要偵測的異常。</p>
   </div>
 
-  <!-- BASELINE (demoted) -->
-  <div class="baseline-section">
-    <div class="en"><h2>Shared KPI baseline (context for the findings)</h2>
-      <p class="baseline-intro">Output, WIP, utilization, cycle time, and X-factor are the
-      background signals the three findings above test with what-if simulation, cost
-      modeling, and a monitoring backtest.</p></div>
-    <div class="zh"><h2>共用 KPI Baseline（三個 findings 的背景資料）</h2>
-      <p class="baseline-intro">Output、WIP、utilization、cycle time 與 X-factor 是上面三個
-      findings 用 what-if simulation、成本模型與監控 backtest 進一步測試的背景訊號。</p></div>
-    <div class="plot">{fig_baseline}</div>
-  </div>
+  <p class="note en">KPI baseline (M3 deliverable) →
+    <a href="baseline.html">baseline.html</a></p>
+  <p class="note zh">KPI baseline（M3 交付物）→
+    <a href="baseline.html">baseline.html</a></p>
 
   <p class="note en">Synthetic data, clearly labeled. Cost/rate assumptions live in the
-  notebooks; the findings above test the signals in this baseline with additional analysis.</p>
+  notebooks; the findings above test the baseline KPI signals with additional analysis.</p>
   <p class="note zh">合成資料，明確標示。成本與費率假設放在 notebook；上面的 findings 用後續分析
-  測試這組 baseline 訊號。</p>
+  測試 baseline 的 KPI 訊號。</p>
+</div>
+<script>
+  function setLang(l){
+    document.body.className = 'lang-' + l;
+    document.documentElement.lang = (l === 'zh') ? 'zh-Hant' : 'en';
+    try { localStorage.setItem('mfg_lang', l); } catch(e){}
+    document.querySelectorAll('.langbtn').forEach(function(b){
+      b.setAttribute('aria-pressed', b.dataset.lang === l);
+    });
+  }
+  var saved; try { saved = localStorage.getItem('mfg_lang'); } catch(e){}
+  setLang(saved || 'zh');
+</script>
+</body>
+</html>
+"""
+
+
+# --------------------------------------------------------------------------- #
+# Baseline page shell (docs/baseline.html + reports/html/03_kpi_dashboard.html)
+# — the M3 KPI baseline lives on its own page; the evidence page links to it.
+# --------------------------------------------------------------------------- #
+BASELINE_TEMPLATE = """<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shared KPI Baseline (M3): Manufacturing Operations Analytics</title>
+<style>
+  body { font-family:-apple-system,"Segoe UI",Roboto,"Noto Sans TC",Helvetica,Arial,sans-serif;
+         color:#22303C; background:#F7F9FA; margin:0; line-height:1.6; }
+  .wrap { max-width:1000px; margin:0 auto; padding:0 1.1rem 3rem; }
+  .topbar { display:flex; justify-content:space-between; align-items:center;
+             max-width:1000px; margin:0 auto; padding:.9rem 1.1rem .2rem; }
+  .back { font-size:.86rem; color:#1565C0; text-decoration:none; font-weight:600; }
+  .langbtn { border:1px solid #DCE3E8; background:#fff; color:#5B7180; font-size:.8rem;
+              padding:.28rem .66rem; border-radius:999px; cursor:pointer; font-weight:600; margin-left:.35rem; }
+  .langbtn[aria-pressed="true"] { background:#1565C0; color:#fff; border-color:#1565C0; }
+  .lang-zh .en { display:none; } .lang-en .zh { display:none; }
+  h1 { font-size:1.35rem; margin:.7rem 0 .2rem; }
+  .lede { color:#5B7180; margin:.1rem 0 1rem; font-size:.98rem; }
+  .plot { background:#fff; border:1px solid #DCE3E8; border-radius:12px; padding:.4rem; }
+  .note { font-size:.8rem; color:#9AA9B4; margin-top:1.2rem; }
+  @media (max-width:720px) {
+    .topbar { align-items:flex-start; gap:.75rem; }
+  }
+</style>
+</head>
+<body class="lang-zh">
+<div class="topbar">
+  <a class="back" href="dashboard.html"><span class="en">← Back to the findings evidence</span><span class="zh">← 回到 findings 證據頁</span></a>
+  <div>
+    <button class="langbtn" data-lang="zh" onclick="setLang('zh')">中文</button>
+    <button class="langbtn" data-lang="en" onclick="setLang('en')">EN</button>
+  </div>
+</div>
+<div class="wrap">
+  <div class="en"><h1>Shared KPI baseline (M3)</h1>
+    <p class="lede">The five baseline KPIs — output, WIP, utilization, cycle time, X-factor —
+    behind the three findings. The findings test these signals with what-if simulation,
+    cost modeling, and a monitoring backtest.</p></div>
+  <div class="zh"><h1>Shared KPI baseline（M3）</h1>
+    <p class="lede">三個 findings 背後的五個 baseline KPI——output、WIP、utilization、
+    cycle time、X-factor。Findings 用 what-if simulation、成本模型與監控 backtest
+    進一步測試這些訊號。</p></div>
+
+  <div class="plot">{fig_baseline}</div>
+
+  <p class="note en">Synthetic data, clearly labeled — the simulated line exists to give the
+  methods a known ground truth. Cost/rate assumptions live in the notebooks; this page shows
+  physical KPIs only.</p>
+  <p class="note zh">合成資料，明確標示——模擬產線的用途是給方法一個已知的標準答案。成本與費率假設
+  放在 notebook，本頁只呈現物理 KPI。</p>
 </div>
 <script>
   function setLang(l){
@@ -544,21 +611,27 @@ def main() -> None:
     print("Building baseline 6-panel figure ...")
     fig_baseline = build_baseline_figure()
 
-    print("Rendering HTML (plotly.js via CDN on the first figure only) ...")
+    print("Rendering HTML (plotly.js via CDN on the first figure of each page) ...")
     div1 = fig1.to_html(include_plotlyjs="cdn", full_html=False)
     div2 = fig2.to_html(include_plotlyjs=False, full_html=False)
     div3 = fig3.to_html(include_plotlyjs=False, full_html=False)
-    div_baseline = fig_baseline.to_html(include_plotlyjs=False, full_html=False)
+    div_baseline = fig_baseline.to_html(include_plotlyjs="cdn", full_html=False)
 
-    html = PAGE_TEMPLATE.replace("{fig_finding01}", div1) \
-                        .replace("{fig_finding02}", div2) \
-                        .replace("{fig_finding03}", div3) \
-                        .replace("{fig_baseline}", div_baseline)
+    evidence_html = PAGE_TEMPLATE.replace("{fig_finding01}", div1) \
+                                 .replace("{fig_finding02}", div2) \
+                                 .replace("{fig_finding03}", div3)
+    baseline_html = BASELINE_TEMPLATE.replace("{fig_baseline}", div_baseline)
 
-    for out in (OUT_REPORT, OUT_DOCS):
+    OUT_DOCS.parent.mkdir(parents=True, exist_ok=True)
+    OUT_DOCS.write_text(evidence_html, encoding="utf-8")
+    print(f"wrote {OUT_DOCS}  ({OUT_DOCS.stat().st_size/1024:.0f} KB)  [evidence page]")
+
+    # The M3 artifact (03_kpi_dashboard.html) is the BASELINE page — its name
+    # must match its content — and docs/baseline.html is its published copy.
+    for out in (OUT_BASELINE_DOCS, OUT_REPORT):
         out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(html, encoding="utf-8")
-        print(f"wrote {out}  ({out.stat().st_size/1024:.0f} KB)")
+        out.write_text(baseline_html, encoding="utf-8")
+        print(f"wrote {out}  ({out.stat().st_size/1024:.0f} KB)  [baseline page]")
 
     print(f"done in {time.time()-t0:.1f}s")
 
