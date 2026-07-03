@@ -39,11 +39,13 @@ defined in one sentence.
 
 - **Control chart**: flags points outside mean ± k·sigma as out-of-control.
 - **EWMA**: a smoothing-based monitor that accumulates small persistent shifts over time, useful for slow drift.
+- **Output-only monitor**: a baseline monitor that watches daily output / throughput and alerts only when output drops outside the normal range.
 - **Lead time of detection**: how early a monitor flags an injected anomaly before its full impact.
 - **Clean baseline**: a baseline fitted only on known clean pre-anomaly data, without using future anomaly periods.
 - **Clean twin**: a comparable no-degradation simulation run used as the counterfactual reference.
-- **Avoidable cost**: the remaining degradation cost after the alert day, assuming action is taken after detection.
+- **Avoidable cost**: the future extra degradation cost that has not yet accumulated at the alert day, assuming action is taken after detection.
 - **Degradation cost**: the extra cost gap between a degraded line and its clean twin.
+- **Backtest horizon**: the time window over which a detection and cost scenario is evaluated.
 
 ## Process mining
 

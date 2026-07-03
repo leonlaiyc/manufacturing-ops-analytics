@@ -37,11 +37,15 @@ commitment, financial return, or a minimum improvement threshold
 **3. Slow equipment drift is expensive and catchable.** A gentle bottleneck
 degradation (an OEE Performance loss) barely touches output at first, but it
 raises cycle time and congestion cost. [Notebook 05](notebooks/05_kpi_anomaly_monitoring.ipynb)
-validates the monitoring method with labeled anomalies, a clean pre-anomaly
-baseline, and EWMA detection on daily median lot cycle time. [Notebook 06](notebooks/06_capacity_demand_cost_whatif.ipynb)
-connects the alert timing to cost impact by comparing the degraded line with a
-clean twin: about $249k total degradation cost in the reference run, with about
-95% still avoidable after the day 84 alert.
+validates the EWMA monitoring method with labeled anomalies and clean
+pre-anomaly baselines. [Notebook 06](notebooks/06_capacity_demand_cost_whatif.ipynb)
+uses a 160-day synthetic backtest: LITHO starts degrading on day 30, an
+output-only throughput monitor gives no alert within the horizon, and EWMA on
+daily median lot cycle time alerts on day 84. The same scenario translates alert
+timing into avoidable cost: about $249k total extra cost in the reference run,
+with about 95% still avoidable after the EWMA alert. This is a backtested
+synthetic scenario, not a real-world guarantee that every drift will be caught
+on the same day.
 
 ## What's inside
 

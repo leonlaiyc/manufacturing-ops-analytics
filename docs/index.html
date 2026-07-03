@@ -102,6 +102,7 @@
 
   /* stat callout */
   .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; margin:.9rem 0 .2rem; }
+  .stats.four { grid-template-columns:repeat(4,1fr); }
   .stat { background:var(--bg); border:1px solid var(--line); border-radius:10px;
           padding:.8rem .9rem; text-align:center; }
   .stat .big { font-size:1.5rem; font-weight:800; color:var(--ink); line-height:1.1; }
@@ -121,6 +122,7 @@
 
   @media (max-width:620px){
     .steps,.stats,.workflow { grid-template-columns:1fr; }
+    .stats.four { grid-template-columns:1fr; }
     h1 { font-size:1.5rem; }
     .finding { padding:1.05rem 1rem; }
     table.metric-table { min-width:660px; font-size:.8rem; }
@@ -477,53 +479,63 @@
   <!-- FINDING 3 -->
   <div class="finding">
     <span class="tag">03</span>
-    <div class="en"><h2>Slow degradation may not cut output first, but it raises cost early</h2>
-      <p>Equipment degradation does not always reduce output immediately. Processing time can
-      drift upward first, causing queue wait and WIP cost to accumulate while output still
-      looks normal.</p></div>
-    <div class="zh"><h2>緩慢劣化不一定先讓 output 下降，但會先推高成本</h2>
-      <p>設備劣化不一定會立刻讓 output 明顯下降。處理時間可能先慢慢上升，讓 queue wait 和 WIP 成本開始累積，而 output 看起來仍然正常。</p></div>
+    <div class="en"><h2>Slow degradation may not reduce output first, but it raises waiting cost early</h2>
+      <p>In this 160-day synthetic backtest, LITHO starts slowing down on day 30.
+      Output stays close to normal, but lot waiting time, cycle time, and WIP pressure
+      start accumulating.</p></div>
+    <div class="zh"><h2>緩慢劣化不一定先讓 output 下降，但會先推高等待成本</h2>
+      <p>在這個 160 天的 synthetic backtest 中，LITHO 從 day 30 開始慢慢變慢。Output 仍接近正常，但 lot 等待時間、cycle time 和 WIP 壓力已經開始累積。</p></div>
 
-    <div class="workflow">
-      <div class="workflow-step">
-        <div class="n">01</div>
-        <div class="en"><h3>Monitor signal</h3><p>Track daily median lot cycle time, not just output.</p></div>
-        <div class="zh"><h3>監控訊號</h3><p>追蹤每日 lot cycle time 中位數，不只看 output。</p></div>
-      </div>
-      <div class="workflow-step">
-        <div class="n">02</div>
-        <div class="en"><h3>Fit clean baseline</h3><p>Fit the baseline only on clean pre-anomaly days, so future anomaly data cannot tune the threshold.</p></div>
-        <div class="zh"><h3>建立乾淨 baseline</h3><p>只用已知乾淨的異常前資料建立 baseline，避免用到未來異常資料調整門檻。</p></div>
-      </div>
-      <div class="workflow-step">
-        <div class="n">03</div>
-        <div class="en"><h3>Detect slow drift</h3><p>Use EWMA to accumulate small persistent deviations that a classic control chart may miss.</p></div>
-        <div class="zh"><h3>偵測緩慢漂移</h3><p>用 EWMA 累積小而持續的偏移，補足傳統 control chart 可能漏掉的慢性劣化。</p></div>
-      </div>
-      <div class="workflow-step">
-        <div class="n">04</div>
-        <div class="en"><h3>Act after alert</h3><p>Trigger maintenance, scheduling, or capacity response before degradation cost keeps accumulating.</p></div>
-        <div class="zh"><h3>alert 後行動</h3><p>alert 後啟動維修、排程或產能應對，避免劣化成本繼續累積。</p></div>
-      </div>
+    <div class="table-wrap">
+      <table class="metric-table">
+        <thead class="en"><tr><th>Monitoring approach</th><th>Signal watched</th><th>Alert logic</th><th>Result</th></tr></thead>
+        <thead class="zh"><tr><th>監控方式</th><th>監控訊號</th><th>alert 邏輯</th><th>結果</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong class="en">Output-only monitor</strong><strong class="zh">只看 output 的監控</strong></td>
+            <td><span class="en">Daily output / throughput</span><span class="zh">Daily output / throughput</span></td>
+            <td><span class="en">Alert only when output drops below the clean baseline lower control limit.</span><span class="zh">只有當 output 低於乾淨 baseline 的下控制線時才 alert。</span></td>
+            <td><span class="en">No alert within 160 days</span><span class="zh">160 天內沒有 alert</span></td>
+          </tr>
+          <tr class="metric-hot">
+            <td><strong class="en">EWMA drift monitor</strong><strong class="zh">EWMA 漂移監控</strong></td>
+            <td><span class="en">Daily median lot cycle time</span><span class="zh">每日 lot cycle time 中位數</span></td>
+            <td><span class="en">Alert when small persistent cycle-time drift accumulates.</span><span class="zh">小而持續的 cycle-time 偏移累積後 alert。</span></td>
+            <td><span class="en">Alert on day 84</span><span class="zh">day 84 alert</span></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
-    <div class="stats">
+    <div class="stats four">
+      <div class="stat"><div class="big">160 days</div>
+        <div class="lbl en">Backtest horizon</div><div class="lbl zh">backtest horizon</div></div>
+      <div class="stat"><div class="big">day 30 to 84</div>
+        <div class="lbl en">EWMA alerts 54 days after degradation starts</div><div class="lbl zh">劣化開始 54 天後，EWMA 發出 alert</div></div>
+      <div class="stat"><div class="big">Output-only</div>
+        <div class="lbl en">No alert within 160 days</div><div class="lbl zh">160 天內沒有 alert</div></div>
       <div class="stat"><div class="big">~$249k</div>
-        <div class="lbl en">Estimated degradation cost if ignored</div><div class="lbl zh">若忽略劣化的估計總成本</div></div>
-      <div class="stat"><div class="big">~95%</div>
-        <div class="lbl en">Cost still avoidable after alert</div><div class="lbl zh">alert 後仍可避免的成本比例</div></div>
-      <div class="stat"><div class="big">day 84</div>
-        <div class="lbl en">First EWMA alert, degradation started on day 30</div><div class="lbl zh">EWMA 首次 alert，劣化從 day 30 開始</div></div>
+        <div class="lbl en">Extra waiting / congestion cost if not handled by day 160</div><div class="lbl zh">若到 day 160 都不處理，額外等待與壅塞成本</div></div>
     </div>
-    <p class="method-note en" style="margin-top:.7rem;"><strong>Calculation:</strong> compare
-    cumulative cost between the degraded line and its clean twin. Total degradation cost is
-    the cost gap at the end of the run. Cost already incurred is the cost gap at the alert day.
-    Avoidable cost is the remaining gap after the alert, assuming action is taken after detection.</p>
-    <p class="method-note zh" style="margin-top:.7rem;"><strong>計算方式：</strong>比較 degraded line 與 clean twin 的累積成本差。總劣化成本是模擬結束時的成本差。已發生成本是 alert day 當下的成本差。可避免成本是在 alert 之後仍未發生的剩餘差額，前提是假設偵測後會採取行動。</p>
-    <p class="caption en">This is a backtested monitoring setup, not a guarantee that every real
-    degradation will be caught on day 84. The point is to validate the detector against a known
-    degradation start and translate alert timing into avoidable cost.</p>
-    <p class="caption zh">這是 backtested monitoring setup，不保證每一次真實劣化都會在 day 84 被抓到。重點是用已知劣化起始日驗證 detector，並把 alert 時間轉換成可避免成本。</p>
+
+    <p class="method-note en" style="margin-top:.7rem;"><strong>Why cost rises:</strong>
+    as LITHO slows down, each lot spends more time waiting in the system. Output may remain
+    stable for a while, but queue wait and WIP burden increase. The illustrative cost model
+    converts that extra waiting and congestion into cost.</p>
+    <p class="method-note zh" style="margin-top:.7rem;"><strong>為什麼成本上升：</strong>LITHO 變慢後，每個 lot 在系統中等待的時間變長。Output 可能短時間仍然穩定，但 queue wait 和 WIP 負擔會增加。示意成本模型把額外等待與壅塞轉換成成本。</p>
+
+    <p class="method-note en" style="margin-top:.7rem;"><strong>Cost estimate:</strong>
+    run the same line in two versions, one without degradation and one where LITHO slowly
+    degrades from day 30. The cumulative cost gap by day 160 is the extra cost caused by
+    degradation. Because EWMA alerts on day 84, the cost that has not yet accumulated after
+    day 84 is the cost that could be avoided if action is taken after detection. In the
+    reference run, that avoidable amount is about $236,942 of $249,164, or 95.1%.</p>
+    <p class="method-note zh" style="margin-top:.7rem;"><strong>成本估算：</strong>同一條產線跑兩個版本，一個沒有劣化，另一個從 day 30 開始讓 LITHO 慢慢劣化。到 day 160 的累積成本差，就是這次劣化造成的額外成本。因為 EWMA 在 day 84 alert，day 84 之後尚未累積的成本，就是偵測後採取行動可能避免的成本。在 reference run 中，可避免金額約為 $236,942，占 $249,164 的 95.1%。</p>
+
+    <p class="caption en">The value is not that day 84 is universal. The value is that this
+    workflow can be backtested: it checks whether a drift detector finds the problem before
+    output makes it obvious, then estimates how much future cost early action can avoid.</p>
+    <p class="caption zh">重點不是 day 84 可以套用到所有情境。重點是這個流程可以 backtest：先檢查 drift detector 是否能在 output 明顯變差前找到問題，再估算及早行動可以避免多少後續成本。</p>
   </div>
 
   <!-- BOTTOM LINE -->
