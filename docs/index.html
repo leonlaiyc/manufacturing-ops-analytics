@@ -532,10 +532,10 @@
     reference run, that avoidable amount is about $236,942 of $249,164, or 95.1%.</p>
     <p class="method-note zh" style="margin-top:.7rem;"><strong>成本估算：</strong>同一條產線跑兩個版本，一個沒有劣化，另一個從 day 30 開始讓 LITHO 慢慢劣化。到 day 160 的累積成本差，就是這次劣化造成的額外成本。因為 EWMA 在 day 84 alert，day 84 之後尚未累積的成本，就是偵測後採取行動可能避免的成本。在 reference run 中，可避免金額約為 $236,942，占 $249,164 的 95.1%。</p>
 
-    <p class="caption en">The value is not that day 84 is universal. The value is that this
-    workflow can be backtested: it checks whether a drift detector finds the problem before
-    output makes it obvious, then estimates how much future cost early action can avoid.</p>
-    <p class="caption zh">重點不是 day 84 可以套用到所有情境。重點是這個流程可以 backtest：先檢查 drift detector 是否能在 output 明顯變差前找到問題，再估算及早行動可以避免多少後續成本。</p>
+    <p class="caption en">Another advantage is that this workflow can be backtested: it checks
+    whether a drift detector finds the problem before output makes it obvious, then estimates
+    how much future cost early action can avoid.</p>
+    <p class="caption zh">另一個優勢是這個流程可以 backtest：先檢查 drift detector 是否能在 output 明顯變差前找到問題，再估算及早行動可以避免多少後續成本。</p>
   </div>
 
   <!-- BOTTOM LINE -->
