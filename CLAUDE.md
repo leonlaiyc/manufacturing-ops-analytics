@@ -31,6 +31,12 @@ trigger applies; do not paraphrase from memory:
 - **Interpretability first:** simple, explainable methods only (utilization /
   Theory of Constraints for bottlenecks; control-chart / EWMA for monitoring).
   If a technique cannot be explained from first principles, choose a simpler one.
+  Owner-approved exception (2026-07-04): gradient boosting + SHAP is allowed for
+  the M8 equipment-health module, framed as measuring detection quality against
+  known synthetic ground truth, never as claimed predictive power.
+- **Style:** never use the em dash character (—) in reader-facing text: README,
+  docs/, notebooks, dashboard copy, reports, commit messages. Use a comma,
+  colon, period, or parentheses instead. (Owner instruction, 2026-07-04.)
 - **Reproducibility:** all synthetic generation uses a fixed seed.
 - **Charts on GitHub = matplotlib static images** (GitHub does not run Plotly's
   JavaScript). Interactive versions are exported separately as standalone HTML.

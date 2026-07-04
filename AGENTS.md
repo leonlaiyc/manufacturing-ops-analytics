@@ -18,6 +18,12 @@ anomaly detection, and capacity / scenario planning.
   Theory of Constraints for bottlenecks; control-chart / EWMA for monitoring) over
   black-box models. Every method must be explainable from first principles. If a
   technique cannot be explained simply, choose a simpler one.
+  Owner-approved exception (2026-07-04): gradient boosting + SHAP is allowed for
+  the M8 equipment-health module, framed as measuring detection quality against
+  known synthetic ground truth, never as claimed predictive power.
+- **Style:** never use the em dash character in reader-facing text: README,
+  docs/, notebooks, dashboard copy, reports, commit messages. Use a comma,
+  colon, period, or parentheses instead. (Owner instruction, 2026-07-04.)
 - **Reproducibility:** all synthetic generation uses a fixed seed.
 - **Charts that must be visible on GitHub use matplotlib static images**
   (GitHub does not execute the JavaScript that interactive Plotly needs).
@@ -52,12 +58,13 @@ Interactive dashboard is a standalone Plotly HTML published via GitHub Pages
 
 ## Status
 
-- M0–M6: complete (see README status table and notebooks 01–06).
-- M7 fab-ization: complete — fab station names, batch FURNACE tool, slot
-  utilization, X-factor KPI, OEE anomaly framing, value-first README,
-  interactive dashboard on GitHub Pages, PM4Py/Streamlit removed from scope.
-- Regenerate/validate: `python src/generator/validate_m2.py`,
-  `python src/generator/crn_check.py`, `python src/monitoring/monitoring_check.py`.
+Status is tracked in the README roadmap table and `git log`, not in this file.
+Numbering note: the V1 "fab-ization" iteration was historically labeled M7;
+from V2 onward, M7 means the quality/yield module (see the README V2 roadmap
+and `V2-PLAN.md`).
+Regenerate/validate (use `py`, not `python`; bare `python` is a broken Windows
+Store stub on this machine): `py src/generator/validate_m2.py`,
+`py src/generator/crn_check.py`, `py src/monitoring/monitoring_check.py`.
 
 ## Working agreement
 
