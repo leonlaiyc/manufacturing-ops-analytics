@@ -147,11 +147,13 @@
       <p class="lede">This project builds a data-to-decision workflow: reconstruct the actual
       production flow, validate methods on a semiconductor-style simulated line, and turn
       bottlenecks, anomalies, and capacity-investment options into decisions a team can discuss,
-      test, and execute.</p>
+      test, and execute. The V2 iteration now in progress extends this core into quality-aware
+      fab operations analytics: the validated what-if engine becomes the simulation-in-the-loop
+      decision core that agentic fab architectures call before acting on the real line.</p>
     </div>
     <div class="zh">
       <h1>為製造營運打造可驗證的瓶頸診斷、異常監控與決策支援流程</h1>
-      <p class="lede">這個專案建立了一套從資料到決策的流程：還原實際生產流程，在半導體式模擬產線上驗證方法，最後把瓶頸、異常與產能投資選項轉成團隊能討論、能測試、能執行的決策。</p>
+      <p class="lede">這個專案建立了一套從資料到決策的流程：還原實際生產流程，在半導體式模擬產線上驗證方法，最後把瓶頸、異常與產能投資選項轉成團隊能討論、能測試、能執行的決策。正在進行的 V2 迭代將這個核心擴充為考量良率的 fab 營運分析：這套經過驗證的 what-if 引擎，正是 agentic fab 架構在對真實產線行動之前，用來呼叫的模擬決策核心。</p>
     </div>
   </header>
 
@@ -523,6 +525,32 @@
     whether a drift detector finds the problem before output makes it obvious, then estimates
     how much future cost early action can avoid.</p>
     <p class="caption zh">另一個優勢是這個流程可以 backtest：先檢查 drift detector 是否能在 output 明顯變差前找到問題，再估算及早行動可以避免多少後續成本。</p>
+  </div>
+
+  <p class="section-label"><span class="en">Where this is going (V2)</span><span class="zh">下一步：V2 迭代</span></p>
+
+  <div class="finding">
+    <span class="tag">V2</span>
+    <div class="en">
+      <h2>From operations analytics to quality-aware decision support</h2>
+      <p>V2 extends the validated core along the questions a fab actually weighs.
+      M7 adds lot-level yield risk and queue-time limits, so what-ifs report cycle
+      time and yield risk together. M8 adds SEMI E10 equipment states and the
+      maintenance-timing trade-off. M9 compares dispatching policies on identical
+      arrivals with CRN pairing. M10 adds an agent layer that calls the what-if
+      simulator as a tool and drafts decision memos where every number traces to a
+      logged run. M11 hardens data quality and model reliability. Each module has
+      a stated, testable outcome; the README roadmap is the contract.</p>
+    </div>
+    <div class="zh">
+      <h2>從營運分析升級為考量良率的決策支援</h2>
+      <p>V2 沿著 fab 實際權衡的問題擴充已驗證的核心。M7 加入 lot 層級良率風險與
+      queue-time 限制，讓 what-if 同時回報 cycle time 與良率風險；M8 加入 SEMI E10
+      設備狀態與維修時機取捨；M9 以 CRN 配對在相同到達序列下比較派工策略；M10 加入
+      會呼叫 what-if 模擬器、每個數字都可追溯到模擬紀錄的 agent 決策備忘錄；M11
+      強化資料品質與模型可靠度。每個模組都有明確可檢驗的預計成效，README 的 roadmap
+      就是這份契約。</p>
+    </div>
   </div>
 
   <!-- BOTTOM LINE -->
