@@ -141,19 +141,20 @@
 <div class="wrap">
 
   <header class="hero">
-    <p class="kicker">Manufacturing Operations Analytics &amp; Decision Support</p>
+    <p class="kicker">Fab Simulation, Monitoring &amp; Decision Support</p>
     <div class="en">
-      <h1>Verifiable bottleneck diagnosis, anomaly monitoring, and decision support for manufacturing operations</h1>
-      <p class="lede">This project builds a data-to-decision workflow: reconstruct the actual
-      production flow, validate methods on a semiconductor-style simulated line, and turn
-      bottlenecks, anomalies, and capacity-investment options into decisions a team can discuss,
-      test, and execute. The V2 iteration now in progress extends this core into quality-aware
-      fab operations analytics: the validated what-if engine becomes the simulation-in-the-loop
-      decision core that agentic fab architectures call before acting on the real line.</p>
+      <h1>A fab simulation and decision engine built for AI agents to call</h1>
+      <p class="lede">Fab operations decisions are hard for three reasons: local metrics contradict
+      each other, equipment degrades quietly, and every option is expensive. This project connects
+      process diagnosis of a real production log with a synthetic fab-style line whose bottleneck
+      and anomalies are known by design, into one data-to-decision workflow: capacity investment,
+      maintenance timing, dispatching policy, and yield trade-offs are tested in simulation, with a
+      traceable record, before they become decisions. This is the simulation decision layer that
+      agentic smart-manufacturing architectures call before an AI agent acts on the real line.</p>
     </div>
     <div class="zh">
-      <h1>為製造營運打造可驗證的瓶頸診斷、異常監控與決策支援流程</h1>
-      <p class="lede">這個專案建立了一套從資料到決策的流程：還原實際生產流程，在半導體式模擬產線上驗證方法，最後把瓶頸、異常與產能投資選項轉成團隊能討論、能測試、能執行的決策。正在進行的 V2 迭代將這個核心擴充為考量良率的 fab 營運分析：這套經過驗證的 what-if 引擎，正是 agentic fab 架構在對真實產線行動之前，用來呼叫的模擬決策核心。</p>
+      <h1>支援 AI Agent 呼叫的 fab 模擬決策引擎</h1>
+      <p class="lede">半導體產線的營運決策難在三件事：局部指標互相矛盾、設備劣化悄悄發生、而每一個選項都很貴。本專案把真實生產紀錄的流程診斷，與一條瓶頸和異常皆為已知設計的合成產線，接成同一套從資料到決策的流程：產能投資、維修時機、派工策略與良率取捨，先在模擬中驗證、留下可追溯的紀錄，再成為決策。這正是 agentic 智慧製造架構中，AI agent 在對真實產線行動之前，用來評估選項的模擬決策層。</p>
     </div>
   </header>
 
@@ -161,43 +162,46 @@
   <div class="steps">
     <div class="step">
       <span class="n">1</span>
-      <div class="en"><h3>Diagnose</h3><p>Process-mine a real production log to reconstruct the
-        actual flow and see where time is lost.</p></div>
-      <div class="zh"><h3>診斷</h3><p>用 process mining 把真實生產紀錄還原成實際流程,看出時間到底
-        耗在哪裡。</p></div>
+      <div class="en"><h3>Process reconstruction</h3><p>Process-mine a real production log to
+        recover the actual paths of re-entrant and batch flows and locate where time is lost.</p></div>
+      <div class="zh"><h3>流程還原</h3><p>用 process mining 從真實製程紀錄還原重入式與批次流程的實際路徑，定位時間損失。</p></div>
     </div>
     <div class="step">
       <span class="n">2</span>
-      <div class="en"><h3>Model</h3><p>Build a transparent factory where bottlenecks,
-        degradation, and improvement methods can be simulated and tested, validated with
-        Little's Law (0.2% gap between predicted and measured WIP).</p></div>
-      <div class="zh"><h3>建模</h3><p>打造一個透明工廠，讓瓶頸、劣化與改善方法能被模擬測試，並以 Little's Law 驗證
-        （預測與實測 WIP 誤差僅 0.2%）。</p></div>
+      <div class="en"><h3>Synthetic line model</h3><p>A transparent, hand-built line with a batch
+        furnace and re-entrant litho; the bottleneck and anomalies are known by design, so method
+        quality is measured, not just demonstrated.</p></div>
+      <div class="zh"><h3>合成產線模型</h3><p>手工打造含批次爐管、重入式微影的透明產線；瓶頸與異常皆為已知設計，方法的偵測與診斷品質因此可以被量測，而不是只被展示。</p></div>
     </div>
     <div class="step">
       <span class="n">3</span>
-      <div class="en"><h3>Decide</h3><p>Put capacity-improvement options into what-if
-        scenarios, so the team can compare trade-offs faster and more efficiently.</p></div>
-      <div class="zh"><h3>決策</h3><p>把產能改善方案放進 what-if 情境，讓團隊更快、更有效率的比較取捨。</p></div>
+      <div class="en"><h3>Decision support</h3><p>Every operational option goes through what-if
+        simulation comparing cycle time, yield risk, and cost, producing traceable decision
+        evidence.</p></div>
+      <div class="zh"><h3>決策支援</h3><p>把每一個營運選項放進 what-if 模擬，比較 cycle time、良率風險與成本的取捨，輸出可追溯的決策依據。</p></div>
     </div>
   </div>
 
-  <p class="section-label"><span class="en">Three things it shows</span><span class="zh">三個關鍵發現</span></p>
+  <p class="section-label"><span class="en">Three core highlights</span><span class="zh">三大核心亮點</span></p>
 
   <!-- FINDING 1 -->
   <div class="finding">
     <span class="tag">01</span>
     <div class="en">
-      <h2>Local metrics show candidates, not the final answer</h2>
-      <p>Local metrics identify which stations deserve attention, but they do not directly answer
-      which capacity addition improves the whole line most. FURNACE is slow per batch and processes
-      the most lots per run, while LITHO has the highest utilization. The decision needs a
-      system-level what-if comparison.</p>
+      <h2>System-level counterfactuals against intuition-driven capacity mistakes</h2>
+      <p>Local metrics often contradict each other: the furnace has the longest batch time and
+      carries the most lots per run, while litho runs at the highest utilization. This project uses
+      common-random-number (CRN) paired what-if simulation so every option is compared under
+      identical random conditions. In the project's baseline scenario, adding the right tool
+      improves mean cycle time 3.5 times more than the intuitive candidate; an investment-stress
+      scenario with differentiated tool costs then shows how the decision returns to the business
+      objective when operational and financial rankings reverse. These figures are rankings under
+      stated assumptions, not real-fab benefit claims; what they demonstrate is that the workflow
+      can evaluate capacity investments quantitatively.</p>
     </div>
     <div class="zh">
-      <h2>局部指標能指出候選站點，但不是最後答案</h2>
-      <p>局部指標可以告訴我們哪些站點值得注意，但不能直接回答「加哪一站的產能，對整條線改善最大」。
-      FURNACE 單批加工時間最長、每次運轉可處理最多 lots；LITHO 的稼動率最高。因此還需要用整體系統的 what-if 比較來判斷。</p>
+      <h2>系統級反事實分析，擋下直覺式的產能誤判</h2>
+      <p>局部指標常常互相矛盾：爐管單批加工時間最長、一次可處理最多 lots，微影機台的稼動率卻最高。本專案用共同隨機數（CRN）配對的 what-if 模擬，讓每個方案在完全相同的隨機條件下對比。在本專案的基準情境下，加對一台機台對平均 cycle time 的改善，是直覺候選方案的 3.5 倍；再引入機台成本差異化的投資壓力情境，展示營運排名與財務排名反轉時，決策如何回到業務目標本身。這些數字是給定假設下的排序依據，不是實廠效益承諾；它們證明的是這套流程具備量化評估產能投資的能力。</p>
     </div>
 
     <div class="en">
@@ -386,19 +390,7 @@
       <p class="finding-note">每個情境都是在一個站點新增一台工具。問題不只是新增工具一次能處理多少 lots，而是新增後是否真的讓整條線的平均 cycle time 下降。</p>
       <p class="finding-note">FURNACE 看起來重要，因為新增一台工具一次可以處理 4 lots。但新增一台 FURNACE 工具，只讓平均 cycle time 下降約 0.70 小時。新增一台 LITHO 工具一次只多處理 1 lot，卻讓平均 cycle time 下降約 2.46 小時。在這個情境裡，較好的產能決策不是新增最多 lot-processing slots 的站點，而是最能降低整條線 cycle time 的站點。</p>
     </div>
-  </div>
-  <!-- FINDING 2 -->
-  <div class="finding">
-    <span class="tag">02</span>
-    <div class="en"><h2>When cycle-time improvement and investment cost pull in different directions</h2>
-      <p>Finding 01 makes LITHO the strongest operational candidate because it reduces
-      average cycle time the most. But a capacity decision is not complete until the
-      investment side is tested.</p>
-      <p>Under station-specific cost assumptions, the option with the largest cycle-time
-      reduction may not be the easiest financial choice.</p></div>
-    <div class="zh"><h2>當 cycle-time 改善與投資成本拉向不同方向</h2>
-      <p>發現 01 讓 LITHO 成為最強的營運候選方案，因為它最能降低平均 cycle time。可是產能決策還必須檢查投資成本。</p>
-      <p>在站點別成本假設下，cycle time 降幅最大的方案，不一定是財務上最容易接受的方案。</p></div>
+    <h3><span class="en">Step 3 - Investment stress: when operational and financial rankings reverse</span><span class="zh">步驟 3 - 投資壓力情境：營運與財務排名的反轉</span></h3>
 
     <div class="table-wrap">
       <table class="metric-table">
@@ -477,15 +469,24 @@
     <p class="finding-note zh">營運影響、投資成本與商業目標必須綜合評估，在不同的當下情境找出最佳解。</p>
   </div>
 
-  <!-- FINDING 3 -->
+  <!-- FINDING 2 -->
   <div class="finding">
-    <span class="tag">03</span>
-    <div class="en"><h2>Slow degradation may not reduce output first, but it raises waiting cost early</h2>
-      <p>In this 160-day synthetic backtest, LITHO starts slowing down on day 30.
-      Output stays close to normal, but lot waiting time, cycle time, and WIP pressure
-      start accumulating.</p></div>
-    <div class="zh"><h2>緩慢劣化不一定先讓 output 下降，但會先推高等待成本</h2>
-      <p>在這個 160 天的 synthetic backtest 中，LITHO 從 day 30 開始慢慢變慢。Output 仍接近正常，但 lot 等待時間、cycle time 和 WIP 壓力已經開始累積。</p></div>
+    <span class="tag">02</span>
+    <div class="en"><h2>Slow-drift monitoring: turning detection time into decision value</h2>
+      <p>When equipment degrades slowly, output metrics often show nothing until congestion cost
+      has already accumulated. The monitoring design moves the question from "was it detected" to
+      "what is the detection time worth": EWMA, a transparent, classic control-chart method
+      sensitive to small persistent drift, serves as the baseline; labeled anomaly scenarios
+      measure its detection delay and false-alarm rate; and the alert time is converted into the
+      cost still avoidable. In a 160-day synthetic backtest, an output-only monitor stays silent
+      over the whole horizon, while EWMA alerts 54 days after degradation onset, when most (about
+      95%) of the extra congestion cost is still avoidable under illustrative waiting-cost
+      assumptions. This is not a real-fab savings promise; it shows how the workflow turns
+      detection time into decision value. The same monitoring design lets equipment-health risk
+      scores and forecast residuals feed the same alerting and costing pipeline, matching the
+      industry's move from univariate control charts toward predictive monitoring.</p></div>
+    <div class="zh"><h2>慢性劣化監控：把偵測時間轉成決策價值</h2>
+      <p>設備緩慢劣化時，產出指標往往毫無警訊，等產出真的掉下來，壅塞成本早已累積。本專案的監控設計把問題從「有沒有偵測到」推進到「偵測到的時間值多少」：以 EWMA 這個透明、經典、對小幅持續漂移敏感的管制圖方法作為基線，用標註好的異常情境量測偵測延遲與誤報率，再把警報時間點換算成仍可避免的成本。在 160 天的合成回測中，只看產出的監控整段期間沒有發出任何警報；EWMA 在劣化開始後 54 天發出警報，在示意等待成本假設下，此時大部分（約 95%）的額外壅塞成本仍可避免。這不是實廠節省承諾，而是展示這套流程如何把偵測時間轉成決策價值。同一套監控架構的設計，讓設備健康模型的風險分數與預測殘差可以接入同一條警報與成本評估流程，對應業界從單變數管制圖走向預測式監控的演進。</p></div>
 
     <div class="table-wrap">
       <table class="metric-table">
@@ -527,29 +528,57 @@
     <p class="caption zh">另一個優勢是這個流程可以 backtest：先檢查 drift detector 是否能在 output 明顯變差前找到問題，再估算及早行動可以避免多少後續成本。</p>
   </div>
 
-  <p class="section-label"><span class="en">Where this is going (V2)</span><span class="zh">下一步：V2 迭代</span></p>
-
+  <!-- FINDING 3 -->
   <div class="finding">
-    <span class="tag">V2</span>
+    <span class="tag">03</span>
     <div class="en">
-      <h2>From operations analytics to quality-aware decision support</h2>
-      <p>V2 extends the validated core along the questions a fab actually weighs.
-      M7 adds lot-level yield risk and queue-time limits, so what-ifs report cycle
-      time and yield risk together. M8 adds SEMI E10 equipment states and the
-      maintenance-timing trade-off. M9 compares dispatching policies on identical
-      arrivals with CRN pairing. M10 adds an agent layer that calls the what-if
-      simulator as a tool and drafts decision memos where every number traces to a
-      logged run. M11 hardens data quality and model reliability. Each module has
-      a stated, testable outcome; the README roadmap is the contract.</p>
+      <h2>One engine, four classes of fab operations questions</h2>
+      <p>Is the capacity investment worth it; maintain now or wait; which dispatching rule fits
+      current demand and quality targets; does faster flow buy queue-time violations and rework
+      risk: these four question classes share one simulation engine and one evidence standard,
+      and every answer traces back to a logged simulation run. An AI agent can call the engine to
+      run what-ifs and assemble the results into a decision memo in which every number is
+      checkable, in line with the agentic smart-manufacturing direction Samsung showed at GTC
+      2026. The re-entrant and batch structures modeled here are methodologically isomorphic to
+      advanced-packaging capacity problems (HBM stacking, bonding/molding batch tools): the
+      analysis workflow proven here transfers to packaging bottleneck scenarios. That is method
+      transferability, not a claim of completed modeling.</p>
     </div>
     <div class="zh">
-      <h2>從營運分析升級為考量良率的決策支援</h2>
-      <p>V2 沿著 fab 實際權衡的問題擴充已驗證的核心。M7 加入 lot 層級良率風險與
-      queue-time 限制，讓 what-if 同時回報 cycle time 與良率風險；M8 加入 SEMI E10
-      設備狀態與維修時機取捨；M9 以 CRN 配對在相同到達序列下比較派工策略；M10 加入
-      會呼叫 what-if 模擬器、每個數字都可追溯到模擬紀錄的 agent 決策備忘錄；M11
-      強化資料品質與模型可靠度。每個模組都有明確可檢驗的預計成效，README 的 roadmap
-      就是這份契約。</p>
+      <h2>一顆引擎，回答四類 fab 營運問題</h2>
+      <p>產能投資值不值得、維修現在做還是等一等、哪個派工規則在當前需求與品質目標下較好、更快的流動會不會換來 queue time 超限與重工風險：這四類問題共用同一顆模擬引擎與同一套證據標準，每個答案都能追溯到一筆模擬紀錄。AI agent 可以直接呼叫這顆引擎執行 what-if，把結果整理成每個數字都可查證的決策備忘錄，對齊 Samsung 於 GTC 2026 展示的 agentic 智慧製造方向。專案建模的重入式與批次結構，與先進封裝（HBM 堆疊、bonding/molding 批次製程）的產能問題在方法上同構：這裡驗證的分析流程可以遷移到封裝瓶頸情境，這是方法的可轉移性，不是已完成的建模宣稱。</p>
+    </div>
+  </div>
+
+  <p class="section-label"><span class="en">Methodology and validation</span><span class="zh">方法與驗證</span></p>
+
+  <div class="finding">
+    <div class="en">
+      <p><strong>Ground truth by design:</strong> the synthetic line's bottleneck and anomalies are
+      injected on purpose, so detection and diagnosis quality is measured against a known answer;
+      synthetic data is labeled synthetic throughout.</p>
+      <p><strong>Consistency check:</strong> the simulation core passes a Little's Law
+      internal-consistency check with a long-run WIP gap of 0.2%; per simulation V&amp;V methodology
+      this is a check of internal model correctness, not a validity claim about any real fab.</p>
+      <p><strong>Scope boundary:</strong> the cost model produces only relative rankings under
+      stated assumptions with sensitivity checks; the real production log is used only for
+      defensible process reconstruction and diagnosis; a live data link to a physical fab (the
+      defining feature of a digital twin) is explicitly outside the boundary.</p>
+      <p><strong>References:</strong>
+      <a href="https://pubsonline.informs.org/doi/10.1287/opre.9.3.383">Little (1961, Operations Research)</a>;
+      <a href="https://www.tandfonline.com/doi/abs/10.1057/jos.2012.20">Sargent (2013, Journal of Simulation)</a>;
+      <a href="https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc324.htm">NIST/SEMATECH e-Handbook 6.3.2.4</a>;
+      <a href="https://arxiv.org/abs/2403.03837">Capezza et al. (2024, Journal of Quality Technology)</a>.</p>
+    </div>
+    <div class="zh">
+      <p><strong>已知真值設計：</strong>合成產線的瓶頸與異常皆為刻意注入，方法的偵測與診斷品質有標準答案可對照量測；合成資料全程明示為合成。</p>
+      <p><strong>一致性檢查：</strong>模擬核心以 Little's Law 做內部一致性檢查，長期運行的 WIP 誤差 0.2%；依模擬驗證方法學，此為模型內部正確性檢查，不是對任何真實工廠的有效性宣稱。</p>
+      <p><strong>適用邊界：</strong>成本模型只做給定假設下的相對排序與敏感度分析；真實生產紀錄僅用於可辯護的流程還原與診斷；與實體工廠的即時資料連線（數位孿生的定義性特徵）明確劃在邊界之外。</p>
+      <p><strong>參考文獻：</strong>
+      <a href="https://pubsonline.informs.org/doi/10.1287/opre.9.3.383">Little (1961, Operations Research)</a>、
+      <a href="https://www.tandfonline.com/doi/abs/10.1057/jos.2012.20">Sargent (2013, Journal of Simulation)</a>、
+      <a href="https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc324.htm">NIST/SEMATECH e-Handbook 6.3.2.4</a>、
+      <a href="https://arxiv.org/abs/2403.03837">Capezza et al. (2024, Journal of Quality Technology)</a>。</p>
     </div>
   </div>
 
