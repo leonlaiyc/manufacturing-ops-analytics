@@ -1,13 +1,13 @@
 # Manufacturing Operations Analytics & Decision Support
 
-**V2 (in progress): quality-aware fab operations analytics with
-simulation-in-the-loop decision support.**
+**Quality-aware fab operations analytics with simulation-in-the-loop
+decision support.**
 
 Production data tells you what happened. This project turns it into **what to
 do**: which station is the real constraint (with proof), when a KPI is drifting
 out of control (with measured detection quality), and what a capacity, demand,
 or policy change would do to cycle time, throughput, and cost, before spending
-the money. The V2 iteration extends the same discipline to the questions a fab
+the money. The roadmap extends the same discipline to the questions a fab
 actually weighs those answers against: yield risk, equipment health, and
 dispatching policy.
 
@@ -39,19 +39,19 @@ How the pieces map onto the agentic-fab pattern shown at GTC 2026:
 
 | Agentic-fab component (Samsung, GTC 2026) | This project | Status |
 |---|---|---|
-| Fab digital twin synced to MES | Validated DES of a fab-style line (synthetic, no live link) | V1 |
-| Anomaly-watching agent (interlock manager) | EWMA / control-chart monitoring with measured detection quality | V1 |
-| Diagnostic agent | CRN-paired bottleneck proof; equipment-health module planned | V1 + M8 |
-| PM guide agent recommending maintenance strategy | Maintenance-timing trade-off | M8 |
-| Scheduling and dispatching decisions | Dispatching-policy comparison | M9 |
-| Orchestrator calling specialist analyses | Agent layer that calls the what-if simulator as a tool | M10 |
+| Fab digital twin synced to MES | Validated DES of a fab-style line (synthetic, no live link) | shipped |
+| Anomaly-watching agent (interlock manager) | EWMA / control-chart monitoring with measured detection quality | shipped |
+| Diagnostic agent | CRN-paired bottleneck proof; equipment-health module planned | shipped + M8 |
+| PM guide agent recommending maintenance strategy | Maintenance-timing trade-off | M8 (planned) |
+| Scheduling and dispatching decisions | Dispatching-policy comparison | M9 (planned) |
+| Orchestrator calling specialist analyses | Agent layer that calls the what-if simulator as a tool | M10 (planned) |
 | Robot logistics (AMR / humanoid) | Out of scope: physical equipment | not claimed |
 
 On the L2 to L5 autonomy ladder Synopsys presented in the same talk, the
 planned agent layer is deliberately task-level (L2 to L3): it runs and
 interprets simulations and drafts decision memos; it does not act autonomously.
 
-## Three findings that matter (V1 core)
+## Three findings that matter
 
 **1. Local bottleneck signals need system proof.**
 The slowest per-run station and raw local signals can point to the wrong
@@ -88,7 +88,7 @@ with about 95% still avoidable after the EWMA alert. This is a backtested
 synthetic scenario, not a real-world guarantee that every drift will be caught
 on the same day.
 
-## What's inside (V1, shipped)
+## What's inside (shipped)
 
 | Stage | What it does | Where |
 |---|---|---|
@@ -99,7 +99,7 @@ on the same day.
 | M5 Anomaly monitoring | Injected, labeled OEE-style anomalies (Availability / Performance losses); control chart + EWMA scored on delay, FAR, precision/recall | [notebook 05](notebooks/05_kpi_anomaly_monitoring.ipynb) |
 | M6 Decision support | Capacity / demand / degradation what-ifs with a transparent cost model; improvement ranking under ±50% sensitivity | [notebook 06](notebooks/06_capacity_demand_cost_whatif.ipynb) |
 
-## V2 roadmap (planned, in build order)
+## Roadmap (planned, in build order)
 
 Each module states the outcome it must deliver before it counts as done.
 Everything below is planned, not yet built; this table is the contract.
@@ -147,8 +147,8 @@ and challengeable by, the people who act on them.
 The same discipline applies to validation: methods are first proven on the
 synthetic line, where the answer is known by construction (engineered
 bottleneck, labeled anomaly windows, CRN-paired clean twins), and only then
-applied to real data with the unprovable parts stated as limits. Where V2
-introduces machine learning (M8), it is held to the same standard: scored
+applied to real data with the unprovable parts stated as limits. Where the
+roadmap introduces machine learning (M8), it is held to the same standard: scored
 against known ground truth, explained via SHAP, and never presented as
 predictive power it has not demonstrated.
 
