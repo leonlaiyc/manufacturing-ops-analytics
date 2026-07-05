@@ -71,6 +71,30 @@ table and calls no RNG at all.
   members' draws at that step go unused. Usage may differ between scenarios,
   but the table itself depends only on the seed and the distributional config,
   which is all CRN pairing requires.
+
+Tool-level bookkeeping and chamber offsets — M7 Stage A addition
+-----------------------------------------------------------------
+Later M7 stages (chamber matching, run-to-run comparison) need to know WHICH
+physical tool served each operation and need the two LITHO tools to run with
+slightly different means. Two additive, opt-in features support that:
+
+- ``tool_id`` (always on): every event-log row now carries the specific tool
+  that ran it, e.g. ``"LITHO-1"``. Assignment is deterministic bookkeeping
+  (lowest-index free tool, see ``_ToolPool``) with NO new RNG draws anywhere,
+  so it cannot perturb the draw table or the lazy-path RNG stream. The column
+  is appended at the END of the schema so existing positional consumers are
+  unaffected:
+  ``lot_id, product_type, step_seq, station, queue_entry_time,
+  process_start_time, process_complete_time, tool_id``.
+- ``StationConfig.tool_offsets`` (opt-in, default ``None``): a per-tool
+  multiplicative offset on mean processing time, applied by SCALING THE
+  ALREADY-DRAWN processing time (``draw * tool_offsets[tool_idx]``) after it
+  is read from the RNG or the CRN table. The draw itself is never altered, so
+  a CRN baseline-vs-treatment pair stays exactly paired regardless of whether
+  offsets are enabled. Default ``None`` multiplies by 1.0 everywhere, i.e.
+  identical behavior to before this feature existed. Batch stations apply the
+  offset of the tool that runs the batch to the first-loaded lot's draw (the
+  same draw the batch already uses as its run time).
 """
 
 from __future__ import annotations
@@ -85,12 +109,28 @@ import pandas as pd
 
 @dataclass
 class StationConfig:
-    """Configuration for one station (tool group)."""
+    """Configuration for one station (tool group).
+
+    ``tool_offsets`` (M7, opt-in): a per-tool multiplicative offset on mean
+    processing time, e.g. ``(1.03, 0.97)`` for a 2-tool station where tool 1
+    runs 3% slower and tool 2 runs 3% faster than the station's nominal draw.
+    When set, its length must equal ``n_tools``. Default ``None`` means every
+    tool multiplies by 1.0 — identical behavior to before this feature existed.
+
+    CRN safety: offsets are applied to the ALREADY-DRAWN processing time
+    (``draw * tool_offsets[tool_idx]``), never folded into the lognormal
+    parameters and never consuming an RNG call. The draw table from
+    ``draw_randoms()`` is therefore unaffected by this field, and tool
+    assignment (see ``simulate``'s ``_ToolPool``) is a deterministic
+    lowest-index-free rule with no RNG involved either. Enabling offsets
+    cannot desynchronize a CRN baseline-vs-treatment pair.
+    """
     name: str
     pt_mean: float          # mean processing time per run (hours)
     n_tools: int            # number of parallel tools (servers)
     pt_cv: float = 0.5      # coefficient of variation of processing time
     batch_size: int = 1     # lots processed together per run (1 = serial tool)
+    tool_offsets: tuple | None = None   # optional per-tool mean multiplier (M7)
 
 
 @dataclass
@@ -141,6 +181,38 @@ def _lognormal_params(mean: float, cv: float) -> tuple[float, float]:
     sigma2 = math.log(1.0 + cv ** 2)
     mu = math.log(mean) - sigma2 / 2.0
     return mu, math.sqrt(sigma2)
+
+
+class _ToolPool:
+    """Deterministic tool-index bookkeeping for one station (M7).
+
+    Tracks which of a station's ``n_tools`` parallel tools are free/busy and
+    hands out the LOWEST-INDEX free tool on each acquisition (stable, greedy
+    rule — ties are impossible since indices are unique). Indices are 0-based
+    internally and rendered as 1-based ``"{station}-{idx+1}"`` labels for the
+    event log (e.g. ``"LITHO-1"``, ``"LITHO-2"``).
+
+    This is pure bookkeeping: no random draws are made or consumed here, so
+    adding tool_id tracking cannot perturb the RNG stream on the lazy path or
+    the draw table on the CRN path. A run's tool is acquired at dispatch and
+    released at completion, mirroring the existing free/busy counters exactly
+    (this class only adds identity information on top of the same transitions).
+    """
+
+    def __init__(self, station: str, n_tools: int):
+        self.station = station
+        self._free_idx = list(range(n_tools))  # kept sorted -> lowest index first
+
+    def acquire(self) -> int:
+        idx = min(self._free_idx)
+        self._free_idx.remove(idx)
+        return idx
+
+    def release(self, idx: int) -> None:
+        self._free_idx.append(idx)
+
+    def label(self, idx: int) -> str:
+        return f"{self.station}-{idx + 1}"
 
 
 # --------------------------------------------------------------------------- #
@@ -373,7 +445,7 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
     log : pd.DataFrame
         One row per completed operation (batch members get one row each):
         [lot_id, product_type, step_seq, station,
-         queue_entry_time, process_start_time, process_complete_time]
+         queue_entry_time, process_start_time, process_complete_time, tool_id]
     lifecycle : pd.DataFrame
         One row per lot: [lot_id, arrival_time, completion_time].
     meta : dict
@@ -389,6 +461,7 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
 
     free = {s: st.n_tools for s, st in cfg.stations.items()}   # free tools per station
     pending = {s: [] for s in cfg.stations}                    # FIFO queues
+    tools = {s: _ToolPool(s, st.n_tools) for s, st in cfg.stations.items()}  # M7
     rows = []
     arrivals: dict[int, float] = {}
     completions: dict[int, float] = {}
@@ -420,13 +493,18 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
     def try_dispatch(s, now):
         """Start as many runs as free tools allow; each takes up to batch_size."""
         B = cfg.stations[s].batch_size
+        offsets = cfg.stations[s].tool_offsets
         while free[s] > 0 and pending[s]:
             k = min(B, len(pending[s]))
             members = [pending[s].pop(0) for _ in range(k)]
             free[s] -= 1
+            tool_idx = tools[s].acquire()
             lead = members[0]
             pt = pt_for(lead["lot"], lead["step"], s)
-            push(now + pt, "complete", {"members": members, "start": now})
+            if offsets is not None:
+                pt *= offsets[tool_idx]          # M7: post-draw scale only, no RNG
+            push(now + pt, "complete",
+                 {"members": members, "start": now, "tool_idx": tool_idx})
 
     def request(lot, step, now):
         """Lot requests the station for this route step (FIFO queue + dispatch)."""
@@ -461,6 +539,7 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
         # kind == "complete" — one run finishes; all members complete together.
         members = p["members"]
         s = cfg.route[members[0]["step"]]
+        tool_label = tools[s].label(p["tool_idx"])
         for m in members:
             rows.append({
                 "lot_id": m["lot"],
@@ -470,8 +549,10 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
                 "queue_entry_time": m["qentry"],
                 "process_start_time": p["start"],
                 "process_complete_time": now,
+                "tool_id": tool_label,
             })
         free[s] += 1
+        tools[s].release(p["tool_idx"])
 
         # A tool just freed: pull the next waiting run at this station (FIFO).
         try_dispatch(s, now)
@@ -539,6 +620,11 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
     base_tools = {s: st.n_tools for s, st in cfg.stations.items()}
     busy = {s: 0 for s in cfg.stations}                        # tools in service
     pending = {s: [] for s in cfg.stations}                    # FIFO queues
+    # M7: pool sized to the station's full (nominal) tool count. A breakdown only
+    # limits how many of these indices may be acquired concurrently (via
+    # effective_capacity below); it does not change which indices exist, so
+    # tool_id labeling and offsets stay well-defined even during a breakdown window.
+    tools = {s: _ToolPool(s, st.n_tools) for s, st in cfg.stations.items()}
     rows = []
     arrivals: dict[int, float] = {}
     completions: dict[int, float] = {}
@@ -578,13 +664,18 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
         # Start as many runs as the (possibly reduced) capacity allows, FIFO;
         # each run takes up to batch_size waiting lots.
         B = cfg.stations[s].batch_size
+        offsets = cfg.stations[s].tool_offsets
         while pending[s] and busy[s] < effective_capacity(s, now):
             k = min(B, len(pending[s]))
             members = [pending[s].pop(0) for _ in range(k)]
             busy[s] += 1
+            tool_idx = tools[s].acquire()
             lead = members[0]
             pt = base_pt(lead["lot"], lead["step"], s) * pt_multiplier(s, now)
-            push(now + pt, "complete", {"members": members, "start": now})
+            if offsets is not None:
+                pt *= offsets[tool_idx]          # M7: post-draw scale only, no RNG
+            push(now + pt, "complete",
+                 {"members": members, "start": now, "tool_idx": tool_idx})
 
     def request(lot, step, now):
         s = cfg.route[step]
@@ -635,6 +726,7 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
         # kind == "complete" — one run finishes; all members complete together.
         members = p["members"]
         s = cfg.route[members[0]["step"]]
+        tool_label = tools[s].label(p["tool_idx"])
         for m in members:
             rows.append({
                 "lot_id": m["lot"],
@@ -644,8 +736,10 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
                 "queue_entry_time": m["qentry"],
                 "process_start_time": p["start"],
                 "process_complete_time": now,
+                "tool_id": tool_label,
             })
         busy[s] -= 1
+        tools[s].release(p["tool_idx"])
         try_dispatch(s, now)                 # pull next waiting run (FIFO)
 
         for m in members:
