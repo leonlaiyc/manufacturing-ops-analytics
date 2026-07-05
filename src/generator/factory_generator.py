@@ -216,7 +216,7 @@ class _ToolPool:
 
 
 # --------------------------------------------------------------------------- #
-# Anomaly injection primitives (M5)
+# Anomaly injection primitives (M5, extended M8)
 # --------------------------------------------------------------------------- #
 # These are the injection primitives the simulator interprets, so they live with
 # the simulator (monitoring/ depends on generator, not the other way round). Each
@@ -236,6 +236,14 @@ class _ToolPool:
 # OEE reading (M5): a BreakdownAnomaly is an **Availability loss** (tools
 # offline); a DegradationAnomaly is a **Performance loss** (running slower than
 # the ideal rate). The two standard equipment-loss categories of OEE.
+#
+# M8 addition: ScheduledDowntimeAnomaly reuses BreakdownAnomaly's exact
+# capacity-reduction mechanics (same tools_delta contract) but is labeled
+# "scheduled_pm" instead of "breakdown", so the E10 tool-state layer can tell
+# planned maintenance apart from an unplanned failure. Injection metadata for
+# ALL anomalies (including this one) is returned in ``meta["anomalies"]`` by
+# ``_simulate_injected`` - see that function's docstring - so downstream
+# consumers never need to re-derive windows from the event log.
 
 @dataclass
 class BreakdownAnomaly:
@@ -266,6 +274,53 @@ class BreakdownAnomaly:
 
     def label(self) -> dict:
         return {"type": "breakdown", "station": self.station,
+                "t_start": self.t_start, "t_end": self.t_end,
+                "tools_removed": self.tools_removed}
+
+
+@dataclass
+class ScheduledDowntimeAnomaly:
+    """Capacity mask: reduce a station's effective n_tools during a window,
+    semantically labeled SCHEDULED (planned PM) rather than unscheduled (M8).
+
+    Mechanically this reuses the exact same capacity-reduction path as
+    ``BreakdownAnomaly`` (``tools_delta`` masks ``effective_capacity`` in
+    ``_simulate_injected``); the only difference is the ``label()`` type
+    string, which downstream consumers (the M8 E10 tool-state layer) read to
+    tell a planned maintenance window apart from an unplanned failure. Arrival
+    and processing draws are untouched, exactly like a breakdown.
+
+    Tool convention (M8): ``_simulate_injected`` reduces a station's capacity
+    COUNT, not a specific tool index (the dispatch loop only ever asks "how
+    many tools are free", never "which ones"), so no single physical tool is
+    mechanically "the one that is down". The E10 state-builder
+    (``src/equipment/e10_states.py``) therefore ADOPTS A CONVENTION: the
+    HIGHEST-index tool of the station is the one attributed as down for the
+    window (e.g. a 2-tool station's "-2" tool). This is a labeling choice for
+    the state layer, not a simulation mechanic; it is documented again at the
+    point of use.
+    """
+    station: str
+    t_start: float
+    t_end: float
+    tools_removed: int = 1
+
+    def tools_delta(self, station: str, t: float) -> int:
+        if station == self.station and self.t_start <= t < self.t_end:
+            return -self.tools_removed
+        return 0
+
+    def pt_multiplier(self, station: str, t: float) -> float:
+        return 1.0
+
+    def extra_arrivals(self, cfg) -> list:
+        return []
+
+    def boundaries(self) -> list:
+        return [self.t_start, self.t_end]
+
+    def label(self) -> dict:
+        return {"type": "scheduled_pm", "station": self.station,
                 "t_start": self.t_start, "t_end": self.t_end,
                 "tools_removed": self.tools_removed}
 
