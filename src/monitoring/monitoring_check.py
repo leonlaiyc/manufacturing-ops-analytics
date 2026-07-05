@@ -3,16 +3,16 @@ M5 injection regression + sanity check (run end to end).
 
 Confirms the anomaly-injection hook does not disturb M2-M4 and behaves correctly:
 
-  GATE 1 — empty-anomaly identity: simulate(cfg, draws, anomalies=[]) is the
+  GATE 1 - empty-anomaly identity: simulate(cfg, draws, anomalies=[]) is the
            un-injected path and equals simulate(cfg, draws) exactly.
-  GATE 2 — inactive-anomaly identity: an anomaly whose window is entirely after
+  GATE 2 - inactive-anomaly identity: an anomaly whose window is entirely after
            the horizon drives the INJECTED code path but, being always identity,
            reproduces the clean run physically (proves the injected dispatch
            reduces to the plain one when nothing is active).
-  GATE 3 — causality: for a real injected scenario, every event before the first
+  GATE 3 - causality: for a real injected scenario, every event before the first
            anomaly's t_start is identical to the CRN-paired clean twin (no effect
            precedes its injection).
-  GATE 4 — effect present & correctly signed: after onset, breakdown and
+  GATE 4 - effect present & correctly signed: after onset, breakdown and
            degradation raise the bottleneck's cycle time / waiting, and the demand
            surge adds lots.
 
@@ -56,7 +56,7 @@ def main() -> int:
     ok = True
 
     print("=" * 64)
-    print("GATE 1 — empty-anomaly identity")
+    print("GATE 1 - empty-anomaly identity")
     print("=" * 64)
     log_e, _, _ = simulate(cfg, draws, anomalies=[])
     g1 = log_e.equals(log_clean)
@@ -64,7 +64,7 @@ def main() -> int:
     ok &= g1
 
     print("=" * 64)
-    print("GATE 2 — inactive-anomaly injected path == clean (physical)")
+    print("GATE 2 - inactive-anomaly injected path == clean (physical)")
     print("=" * 64)
     inactive = BreakdownAnomaly("LITHO", T1 + 100, T1 + 200, tools_removed=2)
     log_i, _, _ = simulate(cfg, draws, anomalies=[inactive])
@@ -73,7 +73,7 @@ def main() -> int:
     ok &= g2
 
     print("=" * 64)
-    print("GATE 3 — causality (identical before first t_start)")
+    print("GATE 3 - causality (identical before first t_start)")
     print("=" * 64)
     ts = 30 * 24.0
     scenario = [
@@ -89,7 +89,7 @@ def main() -> int:
     ok &= g3
 
     print("=" * 64)
-    print("GATE 4 — effect present & correctly signed")
+    print("GATE 4 - effect present & correctly signed")
     print("=" * 64)
     ct_c = _cycle_time(life_clean, cfg.warmup_hours, T1)
     ct_a = _cycle_time(life_a, cfg.warmup_hours, T1)

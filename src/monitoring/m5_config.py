@@ -4,7 +4,7 @@ Dedicated M5 configuration (longer horizon).
 M5 needs room for a clean baseline period, several spaced anomalies, and clean
 recovery gaps between them (so the false-alarm rate is estimated on real clean
 data and slow drift has room to develop). The M2-M4 ``default_config`` is left
-untouched — its 60-day horizon and golden outputs must not change — so M5 builds
+untouched - its 60-day horizon and golden outputs must not change - so M5 builds
 its own longer-horizon config by reusing the locked station/route definition.
 """
 
@@ -21,7 +21,7 @@ def m5_config(horizon_days: int = 120, warmup_days: int = 6,
 
     Reuses ``default_config`` (same stations, route, arrival rate, cv) and only
     stretches the horizon and sets the warm-up, so the line dynamics are exactly
-    the validated M2 line — just observed for longer.
+    the validated M2 line - just observed for longer.
     """
     cfg = copy.deepcopy(default_config(seed=seed))
     cfg.horizon_hours = horizon_days * 24

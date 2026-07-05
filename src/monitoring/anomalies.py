@@ -4,8 +4,8 @@ Anomaly scenario construction and paired clean/anomalous runs (M5, Step 1).
 The three injection primitives live with the simulator
 (``factory_generator``: BreakdownAnomaly / DegradationAnomaly / DemandSurgeAnomaly)
 because ``simulate`` must interpret them. This module builds the standard M5
-*scenario* — three labeled anomalies at spaced windows on the longer M5 horizon,
-with a clean baseline period at the front and clean recovery gaps between — and
+*scenario* - three labeled anomalies at spaced windows on the longer M5 horizon,
+with a clean baseline period at the front and clean recovery gaps between - and
 runs each experiment as a CRN-paired pair (clean twin + anomalous run on the same
 draw table).
 
@@ -38,11 +38,11 @@ def default_scenario(cfg) -> list:
     (see EVAL_GRACE_DAYS).
 
     Types:
-      - breakdown  : LITHO loses one of two tools (capacity halved) for 2 days — a
+      - breakdown  : LITHO loses one of two tools (capacity halved) for 2 days - a
                      sudden shock the control chart should catch fast.
-      - demand_surge: arrival rate +0.4 lots/h for 4 days — a sudden load jump.
+      - demand_surge: arrival rate +0.4 lots/h for 4 days - a sudden load jump.
       - degradation: LITHO processing time ramps slowly and gently over 25 days
-                     (stays near rho<1) — a slow drift the EWMA should catch
+                     (stays near rho<1) - a slow drift the EWMA should catch
                      before the control chart does.
     """
     return [
@@ -55,7 +55,7 @@ def default_scenario(cfg) -> list:
     ]
 
 
-# Days after each injection window before a day counts as "clean" again — long
+# Days after each injection window before a day counts as "clean" again - long
 # enough to let the bottleneck backlog drain, so the false-alarm rate is measured
 # on genuinely-recovered days, not on an anomaly's aftermath.
 EVAL_GRACE_DAYS = 12

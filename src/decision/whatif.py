@@ -39,7 +39,7 @@ def with_demand(cfg, factor: float):
 
 
 # --------------------------------------------------------------------------- #
-# Step 1 — capacity what-if with cost
+# Step 1 - capacity what-if with cost
 # --------------------------------------------------------------------------- #
 def run_capacity_cost(base_cfg=None, stations=("LITHO", "DEPO", "FURNACE", "METRO"),
                       n_reps: int = 30, seed0: int = 1000,
@@ -77,12 +77,12 @@ def run_capacity_cost(base_cfg=None, stations=("LITHO", "DEPO", "FURNACE", "METR
 
 
 # --------------------------------------------------------------------------- #
-# Step 2 — demand what-if (descriptive)
+# Step 2 - demand what-if (descriptive)
 # --------------------------------------------------------------------------- #
 def utilization_vs_demand(base_cfg, factors) -> pd.DataFrame:
     """Analytic per-station utilization rho = arrival*factor*visits*pt/n_tools.
 
-    Exact (no simulation) — identifies which station reaches rho>=1 first.
+    Exact (no simulation) - identifies which station reaches rho>=1 first.
     Returns a DataFrame indexed by station, one column per demand factor.
     """
     base_cfg = base_cfg or default_config()
@@ -140,7 +140,7 @@ def run_demand_capacity(base_cfg=None, factors=(1.0, 1.10, 1.25, 1.50),
 
 
 # --------------------------------------------------------------------------- #
-# Step 3 — degradation impact (paired clean vs degrading)
+# Step 3 - degradation impact (paired clean vs degrading)
 # --------------------------------------------------------------------------- #
 def run_degradation_impact(cfg, deg: DegradationAnomaly, n_reps: int = 30,
                            seed0: int = 3000, rates: CostRates | None = None) -> pd.DataFrame:
@@ -163,7 +163,7 @@ def run_degradation_impact(cfg, deg: DegradationAnomaly, n_reps: int = 30,
 
 
 # --------------------------------------------------------------------------- #
-# Step 4 — improvement trade-off (fixed output, cost-only). RAW quantities so the
+# Step 4 - improvement trade-off (fixed output, cost-only). RAW quantities so the
 # +/-50% sensitivity re-costs the SAME simulated runs without re-simulating.
 # --------------------------------------------------------------------------- #
 def _raw_quantities(log, t0, t1, tools_added, repairs, throughput):

@@ -1,8 +1,8 @@
 """
-kpi_metrics.py — KPI computation helpers for M3 dashboard.
+kpi_metrics.py - KPI computation helpers for M3 dashboard.
 
 All functions operate on steady-state data only; callers pass t0/t1 window bounds
-read from metadata.json. No Plotly dependency here — pure pandas/numpy.
+read from metadata.json. No Plotly dependency here - pure pandas/numpy.
 """
 
 from __future__ import annotations
@@ -56,7 +56,7 @@ def station_utilization(
     proportionally. Slot utilization =
     total_busy_time / (n_tools * batch_size * window_length): for serial tools
     this is the classic busy-tool fraction; for batch tools (FURNACE) each
-    member row carries the run duration, so the ratio measures used lot-slots —
+    member row carries the run duration, so the ratio measures used lot-slots -
     the fab-standard capacity view.
 
     Parameters
@@ -104,7 +104,7 @@ def x_factor(
 ) -> tuple[pd.Series, float, float]:
     """Per-lot X-factor for lots completed within [t0, t1].
 
-    X-factor = cycle time / raw process time — the headline fab flow metric
+    X-factor = cycle time / raw process time - the headline fab flow metric
     (how many times longer a lot takes than pure processing; the excess is
     queueing). Raw process time per lot is the sum of its operations'
     (process_complete - process_start); for batch stations that is the lot's

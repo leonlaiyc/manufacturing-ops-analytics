@@ -5,7 +5,7 @@ A transparent, hand-written discrete-event simulation (DES) of an open
 multi-server queueing network shaped like a stylized wafer-fab flow. No external
 DES library is used so that every modeling step is explicit and defensible.
 
-The unit of flow is a **lot** — read it as a 25-wafer carrier (FOUP). The line is
+The unit of flow is a **lot** - read it as a 25-wafer carrier (FOUP). The line is
 a single stylized layer loop:
 
     CLEAN -> FURNACE -> DEPO -> LITHO -> ETCH -> LITHO -> IMPLANT -> METRO
@@ -23,7 +23,7 @@ Design choices (each is a deliberate, defendable trade-off):
   It is also what makes the designed bottleneck loaded.
 
 - One **batch tool**: FURNACE (diffusion/oxidation) processes up to
-  ``batch_size`` lots in a single run — the second defining fab feature. Policy
+  ``batch_size`` lots in a single run - the second defining fab feature. Policy
   is greedy load-and-go: when a tool frees, it takes up to ``batch_size``
   waiting lots as one run (no minimum-batch or timeout policy; documented
   simplification). Run time is one processing-time draw (the first-loaded
@@ -38,7 +38,7 @@ Design choices (each is a deliberate, defendable trade-off):
 - Poisson arrivals (exponential inter-arrival times): the standard memoryless
   arrival assumption for an open line.
 
-- A single station — LITHO — is engineered to have the least capacity headroom
+- A single station: LITHO is engineered to have the least capacity headroom
   (highest utilization, ~0.85), matching the real-fab pattern where litho
   scanners are the most expensive tools and are run closest to saturation. By
   Theory of Constraints it sets line performance, so it is the ground-truth
@@ -52,7 +52,7 @@ Design choices (each is a deliberate, defendable trade-off):
 
 The simulation is fully seeded for reproducibility.
 
-Common Random Numbers (CRN) — M4 addition
+Common Random Numbers (CRN) - M4 addition
 ------------------------------------------
 For the M4 counterfactual we need a *paired* comparison: baseline vs "+1 tool at
 station X" must face the SAME random inputs so the measured delta reflects only
@@ -65,14 +65,14 @@ table and calls no RNG at all.
   from an internal RNG seeded by ``cfg.seed``.
 - ``simulate(cfg, draws)`` with an explicit table is fully deterministic (no
   RNG), which is what makes baseline-vs-baseline on the same table produce an
-  exact zero delta — the sanity check that proves no hidden RNG source escapes
+  exact zero delta - the sanity check that proves no hidden RNG source escapes
   the table.
 - Batch stations consume the FIRST loaded lot's draw as the run time; the other
   members' draws at that step go unused. Usage may differ between scenarios,
   but the table itself depends only on the seed and the distributional config,
   which is all CRN pairing requires.
 
-Tool-level bookkeeping and chamber offsets — M7 Stage A addition
+Tool-level bookkeeping and chamber offsets - M7 Stage A addition
 -----------------------------------------------------------------
 Later M7 stages (chamber matching, run-to-run comparison) need to know WHICH
 physical tool served each operation and need the two LITHO tools to run with
@@ -115,7 +115,7 @@ class StationConfig:
     processing time, e.g. ``(1.03, 0.97)`` for a 2-tool station where tool 1
     runs 3% slower and tool 2 runs 3% faster than the station's nominal draw.
     When set, its length must equal ``n_tools``. Default ``None`` means every
-    tool multiplies by 1.0 — identical behavior to before this feature existed.
+    tool multiplies by 1.0 - identical behavior to before this feature existed.
 
     CRN safety: offsets are applied to the ALREADY-DRAWN processing time
     (``draw * tool_offsets[tool_idx]``), never folded into the lognormal
@@ -158,13 +158,13 @@ class RandomDraws:
         ``proc_times[lot_id][step]`` is the processing time (hours) that lot
         consumes at route position ``step``.
 
-        IMPORTANT — indexing is by ROUTE STEP (visit order), NOT by station.
+        IMPORTANT: indexing is by ROUTE STEP (visit order), NOT by station.
         The route is re-entrant:
         ``["CLEAN","FURNACE","DEPO","LITHO","ETCH","LITHO","IMPLANT","METRO"]``
         visits LITHO twice, at step 3 and step 5. Those are two INDEPENDENT
         draws, ``proc_times[lot][3]`` and ``proc_times[lot][5]``. Because the
         pairing is by step, baseline and any "+1 tool" treatment consume the
-        exact same two LITHO draws in the exact same order — a re-entrant
+        exact same two LITHO draws in the exact same order - a re-entrant
         station cannot get its paired draws mis-aligned. Every lot traverses
         the full route exactly once (no rework in this model), so
         ``len(proc_times[lot]) == len(route)`` and the table depends only on
@@ -188,7 +188,7 @@ class _ToolPool:
 
     Tracks which of a station's ``n_tools`` parallel tools are free/busy and
     hands out the LOWEST-INDEX free tool on each acquisition (stable, greedy
-    rule — ties are impossible since indices are unique). Indices are 0-based
+    rule - ties are impossible since indices are unique). Indices are 0-based
     internally and rendered as 1-based ``"{station}-{idx+1}"`` labels for the
     event log (e.g. ``"LITHO-1"``, ``"LITHO-2"``).
 
@@ -221,7 +221,7 @@ class _ToolPool:
 # These are the injection primitives the simulator interprets, so they live with
 # the simulator (monitoring/ depends on generator, not the other way round). Each
 # anomaly is a DETERMINISTIC function of time layered on top of the same base
-# draws — the draw table is never mutated, so CRN pairing with a clean twin holds.
+# draws - the draw table is never mutated, so CRN pairing with a clean twin holds.
 # Every anomaly carries an explicit [t_start, t_end] window = the ground truth.
 #
 # Contract used by simulate()'s injection path:
@@ -231,7 +231,7 @@ class _ToolPool:
 #   boundaries()              -> list[float] times to re-evaluate dispatch
 #   label()                   -> dict describing the injected window (for meta)
 # When no anomaly applies, tools_delta=0 / pt_multiplier=1.0 / extra_arrivals=[],
-# i.e. the identity — so simulate(..., anomalies=[]) equals the un-injected run.
+# i.e. the identity - so simulate(..., anomalies=[]) equals the un-injected run.
 #
 # OEE reading (M5): a BreakdownAnomaly is an **Availability loss** (tools
 # offline); a DegradationAnomaly is a **Performance loss** (running slower than
@@ -241,7 +241,7 @@ class _ToolPool:
 class BreakdownAnomaly:
     """Capacity mask: reduce a station's effective n_tools during a window.
 
-    Models an availability drop (tools offline) — an OEE **Availability loss**.
+    Models an availability drop (tools offline) - an OEE **Availability loss**.
     Arrival and processing draws are untouched; only the number of serving
     tools changes, restored at ``t_end``.
     """
@@ -274,10 +274,10 @@ class BreakdownAnomaly:
 class DegradationAnomaly:
     """Deterministic slow drift: processing time ramps up over a window.
 
-    Models a tool running slower than its ideal rate — an OEE **Performance
+    Models a tool running slower than its ideal rate - an OEE **Performance
     loss**. Effective processing time = base_draw * (1 + alpha * (t - t_onset))
     at the station for t in [t_onset, t_end]. The multiplier is a pure function
-    of time (no extra random draws — that would break CRN). After t_end, back
+    of time (no extra random draws - that would break CRN). After t_end, back
     to normal.
     """
     station: str
@@ -352,8 +352,8 @@ def theoretical_utilization(cfg: FactoryConfig) -> dict:
         rho_s = arrival_rate * visits_s * pt_mean_s / (n_tools_s * batch_size_s)
 
     For serial tools (batch_size 1) this is the classic queueing utilization.
-    For batch tools it is **slot utilization** — work arriving per hour divided
-    by lot-slots servable per hour — the standard fab measure of batch-tool
+    For batch tools it is **slot utilization** - work arriving per hour divided
+    by lot-slots servable per hour - the standard fab measure of batch-tool
     capacity. It assumes full batches, so a greedy loading policy will show a
     higher busy-time fraction than this number; that is exactly why busy-time
     alone misreads batch tools and slot utilization is the capacity view.
@@ -387,7 +387,7 @@ def draw_randoms(cfg: FactoryConfig, seed: int) -> RandomDraws:
     """
     rng = np.random.default_rng(seed)
 
-    # 1) Arrivals — identical generation rule to the lazy path.
+    # 1) Arrivals - identical generation rule to the lazy path.
     arrivals: list = []
     t = 0.0
     while True:
@@ -455,7 +455,7 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
         return _simulate_injected(cfg, draws, anomalies)
 
     # RNG exists ONLY on the lazy (draws=None) path. On the CRN path it stays
-    # None and must never be touched — if it were, baseline-vs-baseline on one
+    # None and must never be touched - if it were, baseline-vs-baseline on one
     # table would not be an exact zero and the CRN sanity check would catch it.
     rng = np.random.default_rng(cfg.seed) if draws is None else None
 
@@ -483,7 +483,7 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
         """Processing time for the run led by ``lot`` at route position ``step``.
 
         Lazy path (draws=None): draw at run start. CRN path: read the pre-drawn
-        value indexed by (lot, step) — by step, so re-entrant LITHO (steps 3
+        value indexed by (lot, step) - by step, so re-entrant LITHO (steps 3
         and 5) stays paired.
         """
         if draws is None:
@@ -536,7 +536,7 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
             request(p["lot"], 0, now)
             continue
 
-        # kind == "complete" — one run finishes; all members complete together.
+        # kind == "complete" - one run finishes; all members complete together.
         members = p["members"]
         s = cfg.route[members[0]["step"]]
         tool_label = tools[s].label(p["tool_idx"])
@@ -723,7 +723,7 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
                 try_dispatch(s, now)
             continue
 
-        # kind == "complete" — one run finishes; all members complete together.
+        # kind == "complete" - one run finishes; all members complete together.
         members = p["members"]
         s = cfg.route[members[0]["step"]]
         tool_label = tools[s].label(p["tool_idx"])
@@ -785,7 +785,7 @@ def default_config(seed: int = 42) -> FactoryConfig:
       - 7 stations, single product; a lot represents a 25-wafer carrier (FOUP)
       - re-entrant route visiting LITHO twice (two mask layers)
       - FURNACE is a batch tool (2 tools x 4-lot batches, recipe-like low cv);
-        slot utilization ~0.375 — deliberately NOT the constraint
+        slot utilization ~0.375 - deliberately NOT the constraint
       - LITHO engineered as the bottleneck (highest slot utilization, ~0.85),
         matching the real-fab pattern of scanners run closest to saturation
       - 60-day horizon (hours), 6-day warm-up

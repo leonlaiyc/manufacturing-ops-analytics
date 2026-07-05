@@ -4,31 +4,31 @@ Naive bottleneck baselines (M4, Step 2).
 Two tempting-but-wrong heuristics, implemented so we can show *why* the
 multi-evidence method (Step 1) is needed rather than assumed:
 
-  Naive-1  "highest-frequency station"  — the station that appears in the most
+  Naive-1  "highest-frequency station" - the station that appears in the most
            operations. Confuses traffic volume with constraint.
-  Naive-2  "longest-processing station" — the station with the highest mean
+  Naive-2  "longest-processing station" - the station with the highest mean
            per-operation processing time. Confuses slow-per-op with constraint;
            ignores how many tools a station has and how often it is visited.
 
 Honest narrative (the point of this step):
 
   - Synthetic log:
-      * Naive-1 lands on LITHO — but only by COINCIDENCE. LITHO is re-entrant
+      * Naive-1 lands on LITHO - but only by COINCIDENCE. LITHO is re-entrant
         (visited twice per lot), so it trivially has the most operations. It is
         right for the wrong reason: frequency, not constraint.
-      * Naive-2 lands on FURNACE (3h runs, by far the longest per operation) —
+      * Naive-2 lands on FURNACE (3h runs, by far the longest per operation) -
         WRONG, and wrong in the most fab-typical way: FURNACE is a batch tool.
-        Each run carries up to 4 lots, so its slot utilization is only ~0.375 —
+        Each run carries up to 4 lots, so its slot utilization is only ~0.375 -
         ample headroom. Per-op processing time cannot see batch capacity, tool
         counts, or visit frequency; the true constraint LITHO is one of the
         FASTEST stations per operation.
   - Real 4TU log:
-      * Naive-1 lands on Final Inspection Q.C. (the highest-traffic activity) —
+      * Naive-1 lands on Final Inspection Q.C. (the highest-traffic activity) -
         WRONG. High traffic, but the waiting accumulates elsewhere.
 
   Conclusion carried into the notebook: naive methods that happen to be right are
   right by coincidence, not by principle, and break the moment the data changes.
-  Recovering the constraint requires the queue/utilization evidence of Step 1 —
+  Recovering the constraint requires the queue/utilization evidence of Step 1 -
   and the M4 counterfactual makes the refutation empirical: +1 FURNACE tool adds
   four lot-slots (4x the raw capacity of +1 LITHO) yet buys several times less
   cycle-time benefit, all of it batching-delay relief rather than constraint
@@ -142,23 +142,23 @@ def plot_naive_baselines(
     fig, axes = plt.subplots(2, 2, figsize=(15, 9))
 
     _bar(axes[0, 0], syn_table["frequency"], syn_picks["highest_frequency"],
-         syn_truth, "Synthetic — Naive-1: operation frequency")
+         syn_truth, "Synthetic - Naive-1: operation frequency")
     _bar(axes[0, 1], syn_table["mean_proc_hours"], syn_picks["longest_processing"],
-         syn_truth, "Synthetic — Naive-2: mean processing time / op (h)")
+         syn_truth, "Synthetic - Naive-2: mean processing time / op (h)")
     _bar(axes[1, 0], real_table["frequency"], real_picks["highest_frequency"],
-         real_candidate, "Real 4TU — Naive-1: activity frequency (top 12)",
+         real_candidate, "Real 4TU - Naive-1: activity frequency (top 12)",
          horizontal=True, top_n=12)
     _bar(axes[1, 1], real_table["mean_proc_hours"], real_picks["longest_processing"],
-         real_candidate, "Real 4TU — Naive-2: mean processing time / op, h (top 12)",
+         real_candidate, "Real 4TU - Naive-2: mean processing time / op, h (top 12)",
          horizontal=True, top_n=12)
 
     fig.suptitle(
-        "Naive baselines mislead — red = naive pick (wrong), green = true/candidate "
+        "Naive baselines mislead - red = naive pick (wrong), green = true/candidate "
         "constraint, purple = right by coincidence\n"
         f"Synthetic: Naive-1 -> {syn_picks['highest_frequency']} "
         f"(coincidence: LITHO is re-entrant), "
         f"Naive-2 -> {syn_picks['longest_processing']} "
-        f"(wrong: a batch tool — slow per run, ample slot capacity).  "
+        f"(wrong: a batch tool - slow per run, ample slot capacity).  "
         f"Real: Naive-1 -> {real_picks['highest_frequency']} (wrong).",
         fontsize=11,
     )

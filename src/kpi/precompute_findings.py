@@ -5,7 +5,7 @@ dashboard (docs/dashboard.html).
 Reuses the project's own validated modules (src/bottleneck/counterfactual.py,
 src/decision/whatif.py, src/decision/cost_model.py, src/monitoring/*) with the
 exact parameters used in notebooks 04 and 06, so the recomputed numbers match
-the published ones under CRN + fixed seeds. Nothing here re-derives a method —
+the published ones under CRN + fixed seeds. Nothing here re-derives a method -
 it only calls the existing functions and caches their outputs.
 
 Writes data/synthetic/findings_cache.json (gitignored, like the rest of
@@ -73,7 +73,7 @@ def finding_01() -> dict:
     litho_delta = round(float(-ct.loc["LITHO+1", "mean"]), 2)
     assert litho_delta == 2.46, (
         f"Sanity gate failed: recomputed LITHO delta mean cycle time = {litho_delta} h, "
-        f"expected 2.46 h. Parameters have diverged from notebook 04 Step 3 — stop and fix "
+        f"expected 2.46 h. Parameters have diverged from notebook 04 Step 3 - stop and fix "
         f"before trusting the dashboard numbers."
     )
     print(f"        LITHO delta = {litho_delta} h (matches published 2.46 h)")

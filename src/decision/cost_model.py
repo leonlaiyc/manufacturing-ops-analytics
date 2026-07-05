@@ -3,7 +3,7 @@ Transparent cost model for decision support (M6).
 
 Three components, each with one illustrative rate that can be defended in review.
 The model exists to RANK improvement options relative to one another on a common
-scale — NOT to predict absolute dollars. All rates are illustrative assumptions
+scale - NOT to predict absolute dollars. All rates are illustrative assumptions
 (stated as such in the notebook) and every conclusion is re-checked under a
 +/-50% sensitivity sweep.
 
@@ -31,7 +31,7 @@ import pandas as pd
 
 @dataclass
 class CostRates:
-    """Illustrative cost rates (NOT real figures — used for relative ranking)."""
+    """Illustrative cost rates (NOT real figures - used for relative ranking)."""
     proc_rate: float = 100.0      # $ per tool-hour of processing
     hold_rate: float = 10.0       # $ per lot-hour of waiting in queue
     tool_cost: float = 20000.0    # $ per added tool, amortised over the horizon
