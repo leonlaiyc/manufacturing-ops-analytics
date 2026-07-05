@@ -19,7 +19,7 @@ disclaimer attached.
 What is measured
 ------------------
 For each of the two LITHO visits (route positions ``step_seq`` 3 and 5, i.e.
-the two re-entrant mask layers — see ``factory_generator.default_config``),
+the two re-entrant mask layers - see ``factory_generator.default_config``),
 the "post-litho queue time" for a lot is:
 
     gap = process_start_time(next step)  -  process_complete_time(LITHO visit)
@@ -47,7 +47,7 @@ the log from ``simulate(default_config())`` with no draws override (lazy RNG
 path, seed=42, the same default every other validated module uses). Re-running
 that exact call reproduces the same number bit-for-bit because the DES itself
 is fully seeded. ``DEFAULT_WINDOW_HOURS`` below is the FIXED, hand-copied
-result of that one-time calibration — it is a constant, not something
+result of that one-time calibration - it is a constant, not something
 recomputed on every call, so that violation flags stay comparable across runs,
 scenarios, and later M7 stages (deliberately mirrors how M5's control-chart
 baseline is fit once and reused, not re-fit per anomaly).
@@ -65,7 +65,7 @@ TARGET_VIOLATION_QUANTILE = 0.90
 #: default-seed baseline log (seed=42, no anomalies, no tool offsets) at
 #: TARGET_VIOLATION_QUANTILE = 0.90. Baseline violation rate at this window
 #: was 0.1001 (~10.0%), which is the target this constant is locked to.
-#: DO NOT recompute this per call — see "Window calibration" above.
+#: DO NOT recompute this per call - see "Window calibration" above.
 DEFAULT_WINDOW_HOURS = 0.410203188811795
 
 
@@ -73,7 +73,7 @@ def _litho_step_positions(route: list) -> list:
     """Route positions (0-indexed step_seq values) where ``route`` visits LITHO.
 
     For the locked route ``CLEAN, FURNACE, DEPO, LITHO, ETCH, LITHO, IMPLANT,
-    METRO`` this is ``[3, 5]`` — the two re-entrant mask-layer visits.
+    METRO`` this is ``[3, 5]`` - the two re-entrant mask-layer visits.
     """
     return [i for i, station in enumerate(route) if station == "LITHO"]
 
@@ -103,7 +103,7 @@ def post_litho_queue_times(log: pd.DataFrame, route: list) -> pd.DataFrame:
                                route step for the same lot
         gap        : next_start_time - litho_complete_time (hours); the
                      stylized "photoresist aging" dwell time (see module
-                     docstring — analogy only, not a physical model)
+                     docstring - analogy only, not a physical model)
 
     A lot is dropped from the output for a given visit only if the log has no
     row for the following step (e.g. an incomplete lot at the end of the
@@ -144,12 +144,12 @@ def calibrate_window(log: pd.DataFrame, route: list,
     ``W`` is the ``quantile``-th quantile of the POOLED gap distribution (both
     LITHO visits combined into one sample) computed by
     ``post_litho_queue_times``. ``baseline_violation_rate`` is the fraction of
-    pooled (lot, visit) rows with ``gap > W`` — by construction close to
+    pooled (lot, visit) rows with ``gap > W`` - by construction close to
     ``1 - quantile`` for a continuous distribution.
 
     This function is provided for reproducible re-calibration (e.g. if the
     generator or default config ever changes materially). It does NOT change
-    ``DEFAULT_WINDOW_HOURS`` automatically — that constant must be updated by
+    ``DEFAULT_WINDOW_HOURS`` automatically - that constant must be updated by
     hand, deliberately, with the new provenance documented, so that violation
     flags stay stable and comparable across the M7 stages that consume them.
     """

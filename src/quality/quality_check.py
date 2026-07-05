@@ -4,25 +4,25 @@ M7 Stage B regression + sanity check (run end to end).
 Confirms the lot-level yield ground-truth layer (``queue_time.py`` +
 ``yield_model.py``) behaves correctly and stays calibrated:
 
-  GATE 1 — reproducibility: two runs of ``build_lot_quality`` with the same
+  GATE 1 - reproducibility: two runs of ``build_lot_quality`` with the same
            seed produce identical DataFrames (the dedicated numpy Generator
            is deterministic given the config).
-  GATE 2 — null case: all additive effect coefficients set to 0 gives
+  GATE 2 - null case: all additive effect coefficients set to 0 gives
            p_latent == p_base for every lot exactly, and mean realized yield
            falls within 3 standard errors of the Binomial-implied
            ``1 - p_base``.
-  GATE 3 — monotonicity: violating lots (either LITHO visit) have a strictly
+  GATE 3 - monotonicity: violating lots (either LITHO visit) have a strictly
            higher mean p_latent than non-violating lots (exact, since the
            additive term is deterministic given the flags), and a higher
            mean realized defect rate (directional, on the seeded default
-           run — realized outcomes carry sampling noise, so this is a
+           run - realized outcomes carry sampling noise, so this is a
            sanity direction check, not an exact equality).
-  GATE 4 — calibration band: the post-litho queue-time window's baseline
+  GATE 4 - calibration band: the post-litho queue-time window's baseline
            violation rate on the default-seed log falls in [0.05, 0.20]
            (the fixed window was calibrated to ~0.10; this gate guards
            against silent drift if the generator or window constant ever
            changes without re-calibration).
-  GATE 5 — chamber effect: on a log generated WITH LITHO tool_offsets
+  GATE 5 - chamber effect: on a log generated WITH LITHO tool_offsets
            (1.05, 0.95), lots that took the slower (off-nominal) tool at
            either visit have a higher mean p_latent than lots that did not,
            when the chamber effect is enabled via ``off_nominal_tool_label``.
@@ -54,7 +54,7 @@ def main() -> int:
     ok = True
 
     print("=" * 64)
-    print("GATE 1 — reproducibility (same seed, identical output)")
+    print("GATE 1 - reproducibility (same seed, identical output)")
     print("=" * 64)
     qcfg = QualityConfig(seed=123)
     df_a = build_lot_quality(log, cfg.route, qcfg)
@@ -64,7 +64,7 @@ def main() -> int:
     ok &= g1
 
     print("=" * 64)
-    print("GATE 2 — null case (all effects zeroed)")
+    print("GATE 2 - null case (all effects zeroed)")
     print("=" * 64)
     p_base = 0.02
     null_cfg = QualityConfig(p_base=p_base, a_viol1=0.0, a_viol2=0.0,
@@ -87,7 +87,7 @@ def main() -> int:
     ok &= g2a and g2b
 
     print("=" * 64)
-    print("GATE 3 — monotonicity (violating lots riskier)")
+    print("GATE 3 - monotonicity (violating lots riskier)")
     print("=" * 64)
     default_cfg = QualityConfig()  # p_base=0.02, defaults per spec
     df_default = build_lot_quality(log, cfg.route, default_cfg)
@@ -104,7 +104,7 @@ def main() -> int:
     ok &= g3a and g3b
 
     print("=" * 64)
-    print("GATE 4 — calibration band (baseline violation rate in [0.05, 0.20])")
+    print("GATE 4 - calibration band (baseline violation rate in [0.05, 0.20])")
     print("=" * 64)
     W, viol_rate = calibrate_window(log, cfg.route, quantile=0.90)
     g4a = abs(W - DEFAULT_WINDOW_HOURS) < 1e-9
@@ -115,7 +115,7 @@ def main() -> int:
     ok &= g4a and g4b
 
     print("=" * 64)
-    print("GATE 5 — chamber effect (off-nominal LITHO tool raises risk)")
+    print("GATE 5 - chamber effect (off-nominal LITHO tool raises risk)")
     print("=" * 64)
     cfg_offset = copy.deepcopy(default_config())
     cfg_offset.stations["LITHO"].tool_offsets = (1.05, 0.95)  # tool 1 slower

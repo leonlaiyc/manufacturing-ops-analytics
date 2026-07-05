@@ -7,7 +7,7 @@ tool served it) into a per-lot LATENT defect probability, a REALIZED defect
 count, a resulting lot yield, and a noisy "metrology reading" that stands in
 for a virtual-metrology sensor (Stage C's prediction target).
 
-Everything here is synthetic and stylized — a hand-built additive risk score,
+Everything here is synthetic and stylized - a hand-built additive risk score,
 not a physical yield model and not a claim about real-fab yield behavior. See
 ``CLAUDE.md`` honest-scope rule.
 
@@ -27,7 +27,7 @@ under a logit link, each coefficient's effect on p is a MULTIPLICATIVE, curve-
 dependent statement about odds, so "a_viol1 = 0.06" cannot be read off as "a
 queue-time violation adds about 6 percentage points of risk" without also
 knowing where on the curve you are. Under the linear-additive form here, that
-IS the reading, exactly, everywhere in the interior of the clip range — which
+IS the reading, exactly, everywhere in the interior of the clip range - which
 is the point: every coefficient is a literal, constant, first-principles
 "probability points added by this condition," directly settable and
 auditable by the project owner. The clip to ``[0, 0.95]`` is the one place
@@ -39,7 +39,7 @@ Realized vs. latent
 ``p`` is the LATENT (unobservable in a real fab) per-wafer defect
 probability. The REALIZED outcome for a 25-wafer lot is one Binomial(25, p)
 draw (independent across lots) from a dedicated, seeded ``numpy.random.
-Generator`` — kept separate from the DES's own RNG/CRN draws so the yield
+Generator`` - kept separate from the DES's own RNG/CRN draws so the yield
 layer never perturbs Stage A/M2-M5 reproducibility. ``lot_yield = (25 -
 defects) / 25``.
 
@@ -90,7 +90,7 @@ class QualityConfig:
         (e.g. ``(1.05, 0.95)``); on a log with no offsets there is no
         "off-nominal" tool and this effect must be disabled. The caller
         supplies which tool label is off-nominal via
-        ``off_nominal_tool_label`` (below) — this module does not infer it
+        ``off_nominal_tool_label`` (below) - this module does not infer it
         from the offsets tuple, since a log carries only tool_id strings,
         not the offsets that produced them.
     a_pt_excess : float
@@ -144,7 +144,7 @@ def etch_pt_excess(log: pd.DataFrame, route: list,
     variation ``pt_cv`` has SD exactly ``pt_mean * pt_cv``; see
     ``factory_generator._lognormal_params``), so this standardizes against the
     station's OWN nominal variability rather than an arbitrary scale. Negative
-    (faster-than-nominal) excess is clipped to 0 — running fast is not treated
+    (faster-than-nominal) excess is clipped to 0 - running fast is not treated
     as a risk factor, only running slow is (an ETCH run that lingers is the
     stylized risk story here, e.g. over-etch).
 

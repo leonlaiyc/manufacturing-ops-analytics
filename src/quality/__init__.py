@@ -1,5 +1,5 @@
 """
-M7 Stage B/C — lot-level yield ground truth, virtual metrology, chamber matching.
+M7 Stage B/C - lot-level yield ground truth, virtual metrology, chamber matching.
 
 Turns the Stage-A event log into a measurable yield target and downstream
 quality analyses:
