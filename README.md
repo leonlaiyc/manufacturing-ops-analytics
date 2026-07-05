@@ -98,6 +98,7 @@ on the same day.
 | M4 Bottleneck proof | Multi-evidence convergence + naive-baseline refutation + **CRN paired counterfactual**; then applied to the real log with stated limits | [notebook 04](notebooks/04_bottleneck_identification.ipynb) |
 | M5 Anomaly monitoring | Injected, labeled OEE-style anomalies (Availability / Performance losses); control chart + EWMA scored on delay, FAR, precision/recall | [notebook 05](notebooks/05_kpi_anomaly_monitoring.ipynb) |
 | M6 Decision support | Capacity / demand / degradation what-ifs with a transparent cost model; improvement ranking under ±50% sensitivity | [notebook 06](notebooks/06_capacity_demand_cost_whatif.ipynb) |
+| M7 Quality / yield layer | Post-litho queue-time windows, transparent lot-level yield model with known ground truth, virtual metrology (hand-built OLS), chamber matching, yield-aware CRN what-ifs | [notebook 07](notebooks/07_quality_yield_virtual_metrology.ipynb), `src/quality` |
 
 ## Roadmap (planned, in build order)
 
@@ -106,7 +107,6 @@ Everything below is planned, not yet built; this table is the contract.
 
 | Module | What it adds | Expected outcome | Status |
 |---|---|---|---|
-| M7 Quality / yield layer | Lot-level yield risk, queue-time window violations driving rework/scrap, tabular virtual metrology, run-to-run chamber matching | What-ifs report cycle time and yield risk together, so "faster but riskier" trade-offs become visible and testable | Planned |
 | M8 Equipment health | SEMI E10 tool-state log (Production / Standby / Scheduled Down / Unscheduled Down / Engineering), MTBF / MTTR / availability, maintenance-timing trade-off; detection quality of gradient boosting + SHAP measured against known synthetic ground truth | Alerts ranked by maintenance-decision impact (cost of acting early vs late), not just detection delay | Planned |
 | M9 Dispatching policies | FIFO vs EDD vs critical ratio vs queue-time-aware vs bottleneck-WIP control, compared with CRN-paired runs on identical arrivals | A decision table stating which policy wins under which demand and yield-risk conditions, with confidence intervals | Planned |
 | M10 Agentic decision support | An LLM agent that calls the what-if simulator as a tool and drafts decision memos | Ask an operational question in natural language; get a memo where every number traces to a logged simulation run | Planned |
@@ -186,6 +186,8 @@ All synthetic data is generated from fixed seeds. Regenerate and re-validate:
 python src/generator/validate_m2.py      # Little's Law + bottleneck recovery
 python src/generator/crn_check.py        # CRN determinism gates (exact zero delta)
 python src/monitoring/monitoring_check.py # anomaly-injection regression gates
+python src/quality/quality_check.py      # yield-layer ground-truth gates
+python src/quality/vm_check.py           # virtual metrology + pairing gates
 python src/kpi/export_html_dashboard.py  # rebuild the interactive dashboard
 ```
 

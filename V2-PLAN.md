@@ -27,7 +27,7 @@ rules. Owner decides scope and methods; agents execute.
 
 ## Modules (build order; README roadmap table is the public contract)
 
-### M7 Quality / yield layer
+### M7 Quality / yield layer (SHIPPED 2026-07-05, commits 2346a5f..d78ce6e)
 - Add lot-level yield risk to the DES output: LITHO/ETCH/METRO steps produce a
   quality risk score; a queue-time window before selected steps (photoresist
   analogy) raises rework/scrap probability when violated.
@@ -105,3 +105,14 @@ Use `py`, not `python`, on this machine:
 - 2026-07-04: v1.0 tagged; `v2` branch opened; CLAUDE.md/AGENTS.md style rule
   and M8 exception added; README repositioned with roadmap contract;
   index.html hero and V2 teaser updated (EN/ZH). Next: M7.
+- 2026-07-05: index.html rebuilt as one integrated pitch (no version labels,
+  methodology section with verified references). PR #4 opened (v2 to main).
+- 2026-07-05: M7 shipped. Stage A tool_id + opt-in chamber offsets
+  (bit-identical defaults, CRN-safe post-draw scaling); Stage B src/quality
+  yield layer (W = 0.4102 h at ~10% baseline violations, linear-additive
+  ground truth, 5 gates); Stage C virtual metrology (test R^2 0.93, AUC 0.73,
+  coefficients recovered), chamber matching (detects (1.05, 0.95), silent on
+  clean logs), yield-aware CRN what-if with exact-zero pairing gate; Stage D
+  notebook 07 (30 cells, clean execute) + five m7 figures. Headline: adding a
+  LITHO tool cuts cycle time 2.87 h but raises post-litho violation rate by
+  0.038, so capacity decisions need the yield axis. Next: M8 equipment health.

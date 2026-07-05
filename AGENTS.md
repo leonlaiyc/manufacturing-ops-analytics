@@ -64,7 +64,8 @@ from V2 onward, M7 means the quality/yield module (see the README V2 roadmap
 and `V2-PLAN.md`).
 Regenerate/validate (use `py`, not `python`; bare `python` is a broken Windows
 Store stub on this machine): `py src/generator/validate_m2.py`,
-`py src/generator/crn_check.py`, `py src/monitoring/monitoring_check.py`.
+`py src/generator/crn_check.py`, `py src/monitoring/monitoring_check.py`,
+`py src/quality/quality_check.py`, `py src/quality/vm_check.py`.
 
 ## Working agreement
 
