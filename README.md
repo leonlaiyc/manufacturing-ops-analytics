@@ -41,8 +41,8 @@ How the pieces map onto the agentic-fab pattern shown at GTC 2026:
 |---|---|---|
 | Fab digital twin synced to MES | Validated DES of a fab-style line (synthetic, no live link) | shipped |
 | Anomaly-watching agent (interlock manager) | EWMA / control-chart monitoring with measured detection quality | shipped |
-| Diagnostic agent | CRN-paired bottleneck proof; equipment-health module planned | shipped + M8 |
-| PM guide agent recommending maintenance strategy | Maintenance-timing trade-off | M8 (planned) |
+| Diagnostic agent | CRN-paired bottleneck proof + SEMI E10 equipment health | shipped |
+| PM guide agent recommending maintenance strategy | CRN-paired maintenance-timing trade-off with alert priority | shipped |
 | Scheduling and dispatching decisions | Dispatching-policy comparison | M9 (planned) |
 | Orchestrator calling specialist analyses | Agent layer that calls the what-if simulator as a tool | M10 (planned) |
 | Robot logistics (AMR / humanoid) | Out of scope: physical equipment | not claimed |
@@ -99,6 +99,7 @@ on the same day.
 | M5 Anomaly monitoring | Injected, labeled OEE-style anomalies (Availability / Performance losses); control chart + EWMA scored on delay, FAR, precision/recall | [notebook 05](notebooks/05_kpi_anomaly_monitoring.ipynb) |
 | M6 Decision support | Capacity / demand / degradation what-ifs with a transparent cost model; improvement ranking under ±50% sensitivity | [notebook 06](notebooks/06_capacity_demand_cost_whatif.ipynb) |
 | M7 Quality / yield layer | Post-litho queue-time windows, transparent lot-level yield model with known ground truth, virtual metrology (hand-built OLS), chamber matching, yield-aware CRN what-ifs | [notebook 07](notebooks/07_quality_yield_virtual_metrology.ipynb), `src/quality` |
+| M8 Equipment health | SEMI E10-style tool states, MTBF / MTTR / availability, CRN-paired PM-timing trade-off, alert priority validated against simulated cost, GB+SHAP health model scored against known ground truth vs an EWMA baseline | [notebook 08](notebooks/08_equipment_health_e10_monitoring.ipynb), `src/equipment` |
 
 ## Roadmap (planned, in build order)
 
@@ -107,7 +108,6 @@ Everything below is planned, not yet built; this table is the contract.
 
 | Module | What it adds | Expected outcome | Status |
 |---|---|---|---|
-| M8 Equipment health | SEMI E10 tool-state log (Production / Standby / Scheduled Down / Unscheduled Down / Engineering), MTBF / MTTR / availability, maintenance-timing trade-off; detection quality of gradient boosting + SHAP measured against known synthetic ground truth | Alerts ranked by maintenance-decision impact (cost of acting early vs late), not just detection delay | Planned |
 | M9 Dispatching policies | FIFO vs EDD vs critical ratio vs queue-time-aware vs bottleneck-WIP control, compared with CRN-paired runs on identical arrivals | A decision table stating which policy wins under which demand and yield-risk conditions, with confidence intervals | Planned |
 | M10 Agentic decision support | An LLM agent that calls the what-if simulator as a tool and drafts decision memos | Ask an operational question in natural language; get a memo where every number traces to a logged simulation run | Planned |
 | M11 Data quality & model reliability | Event schema contract, leakage-safe joins, drift monitoring, conformal uncertainty | Every model ships with its stated trust boundary: when to believe it and when not to | Planned |
@@ -188,6 +188,9 @@ python src/generator/crn_check.py        # CRN determinism gates (exact zero del
 python src/monitoring/monitoring_check.py # anomaly-injection regression gates
 python src/quality/quality_check.py      # yield-layer ground-truth gates
 python src/quality/vm_check.py           # virtual metrology + pairing gates
+python src/equipment/equipment_check.py  # E10 state-partition + RAM gates
+python src/equipment/maintenance_check.py # PM-timing pairing + priority gates
+python src/equipment/pdm_check.py        # sensor/GB+SHAP detection-quality gates
 python src/kpi/export_html_dashboard.py  # rebuild the interactive dashboard
 ```
 
