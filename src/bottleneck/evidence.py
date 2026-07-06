@@ -2,7 +2,7 @@
 Multi-evidence bottleneck identification (M4, Step 1).
 
 The claim under test: the bottleneck is the station whose *finite capacity most
-constrains* line throughput and cycle time — not simply the busiest, the
+constrains* line throughput and cycle time - not simply the busiest, the
 highest-traffic, or the longest-processing station. We test it by computing
 several INDEPENDENT descriptive signals per station over the steady-state window
 and checking whether they CONVERGE on the same station.
@@ -26,12 +26,12 @@ Signals (each interpretable from first principles; NO weighted composite score):
                         of the window the station has ALL tools idle. Stations
                         downstream of the constraint sit idle waiting to be fed.
                         CAVEAT: a greedy batch tool (FURNACE) is almost never
-                        fully idle — it fires part-full runs whenever anything
-                        waits — so raw busy-ness is NOT constraint status for
+                        fully idle - it fires part-full runs whenever anything
+                        waits - so raw busy-ness is NOT constraint status for
                         batch tools. Exactly why this signal is secondary; the
-                        convergence conclusion rests on signals 1–4.
+                        convergence conclusion rests on signals 1-4.
 
-Deliberately NOT combined into a single ranked score — the owner's method is to
+Deliberately NOT combined into a single ranked score - the owner's method is to
 show the signals independently agree, which is more defensible than a weighted
 index whose weights would need their own justification.
 
@@ -53,7 +53,7 @@ import pandas as pd
 
 
 # --------------------------------------------------------------------------- #
-# Synthetic event log — full evidence set (utilization + queue signals)
+# Synthetic event log - full evidence set (utilization + queue signals)
 # --------------------------------------------------------------------------- #
 def _idle_fraction(ops: pd.DataFrame, n_tools: int, t0: float, t1: float) -> float:
     """Fraction of [t0, t1] during which the station has ALL tools idle.
@@ -97,7 +97,7 @@ def station_evidence_synthetic(
     ----------
     log : event log with columns lot_id, station, queue_entry_time,
           process_start_time, process_complete_time.
-    cfg : FactoryConfig — provides per-station n_tools and the route order.
+    cfg : FactoryConfig - provides per-station n_tools and the route order.
 
     Returns
     -------
@@ -133,7 +133,7 @@ def station_evidence_synthetic(
         ops = ev[ev["station"] == s]
         busy = ops["busy_clipped"].sum()
         # Slot utilization: batch members each carry the run duration, so
-        # busy / (n_tools * batch_size * window) measures used lot-slots —
+        # busy / (n_tools * batch_size * window) measures used lot-slots -
         # the fab-standard capacity view of batch tools (batch_size=1 reduces
         # to the classic busy-tool fraction).
         util = busy / (st.n_tools * st.batch_size * window)
@@ -168,7 +168,7 @@ def converged_station(evidence: pd.DataFrame, signals: list[str] | None = None) 
 
 
 # --------------------------------------------------------------------------- #
-# Real 4TU log — queue-based evidence only (NO utilization possible)
+# Real 4TU log - queue-based evidence only (NO utilization possible)
 # --------------------------------------------------------------------------- #
 def activity_evidence_real(df_D: pd.DataFrame) -> pd.DataFrame:
     """Queue-based evidence per activity from the real log's D-type events.
@@ -217,14 +217,14 @@ def activity_evidence_real(df_D: pd.DataFrame) -> pd.DataFrame:
 
 
 # --------------------------------------------------------------------------- #
-# Plots (matplotlib static images for GitHub visibility)
+# Plots - matplotlib static images for GitHub visibility
 # --------------------------------------------------------------------------- #
 def plot_evidence_synthetic(
     evidence: pd.DataFrame,
     ground_truth: str,
     save_path: str | None = None,
 ):
-    """Small-multiple bar panels — one per signal — with the constraint highlighted.
+    """Small-multiple bar panels - one per signal - with the constraint highlighted.
 
     Every "larger = more constrained" signal should peak at the same station; the
     optional idle_fraction panel is the complement (downstream stations sit idle).
@@ -258,9 +258,9 @@ def plot_evidence_synthetic(
         ax.grid(axis="y", alpha=0.25)
 
     fig.suptitle(
-        f"Multi-evidence bottleneck signals (synthetic) — red = signal peak, "
+        f"Multi-evidence bottleneck signals (synthetic) - red = signal peak, "
         f"navy outline = ground truth {ground_truth}\n"
-        f"No weighted score: signals 1–4 independently converge on the constraint.",
+        f"No weighted score: signals 1-4 independently converge on the constraint.",
         fontsize=11,
     )
     fig.tight_layout(rect=(0, 0, 1, 0.90))
@@ -294,7 +294,7 @@ def plot_evidence_real(
         ax.grid(axis="x", alpha=0.25)
 
     fig.suptitle(
-        "Real 4TU log — queue-based bottleneck evidence "
+        "Real 4TU log - queue-based bottleneck evidence "
         "(utilization NOT computable: no tool counts / arrival model; "
         "no counterfactual possible). Candidate = convergence of these signals.",
         fontsize=11,

@@ -1,16 +1,16 @@
 """
-Detection-quality evaluation (M5, Step 4) — the core of M5.
+Detection-quality evaluation (M5, Step 4) - the core of M5.
 
 Because the synthetic anomalies are injected with known timestamps, we can score
 the detectors objectively:
 
-  - detection delay = first in-window alarm − the anomaly's INJECTION time
+  - detection delay = first in-window alarm - the anomaly's INJECTION time
     (ground truth). Cleanest possible reference.
   - lead time = the actual KPI first crossing an INDEPENDENT PHYSICAL threshold
-    − the first alarm. The physical threshold is the normal operating level
+    - the first alarm. The physical threshold is the normal operating level
     scaled by a fixed factor (default: clean-baseline median × 1.5). It is defined
     from actual KPI values vs the normal level and NEVER from the detector's own
-    statistics / sigma — otherwise lead time would be the detector compared to
+    statistics / sigma - otherwise lead time would be the detector compared to
     itself (circular). Positive lead = the detector fired before the KPI became
     physically obvious.
   - false-alarm rate = alarms on clean days / clean days.

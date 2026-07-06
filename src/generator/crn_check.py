@@ -1,15 +1,15 @@
 """
-CRN refactor verification (M4, Phase A) — run end to end.
+CRN refactor verification (M4, Phase A) - run end to end.
 
 Two hard gates required before the counterfactual can be trusted:
 
-  GATE 1 — Lazy-path reproducibility regression.
+  GATE 1 - Lazy-path reproducibility regression.
       The ``draws=None`` path must be byte-for-byte reproducible: regenerating
       the default-config log/lifecycle must match the golden files written by
       ``validate_m2.py`` in ``data/synthetic/`` exactly. (Little's-Law gap < 1%
       and LITHO recovery are re-checked by ``validate_m2.py`` on the same path.)
 
-  GATE 2 — CRN determinism sanity (the key check).
+  GATE 2 - CRN determinism sanity (the key check).
       Using ONE pre-drawn ``RandomDraws`` table, run baseline twice: the two runs
       must be identical, so Δthroughput and Δcycle-time are EXACTLY 0.0. A nonzero
       delta would mean some RNG source is still escaping the table and CRN pairing
@@ -76,11 +76,11 @@ def _csv_bytes(df: pd.DataFrame) -> bytes:
 
 
 # --------------------------------------------------------------------------- #
-# GATE 1 — legacy byte-identical regression
+# GATE 1 - legacy byte-identical regression
 # --------------------------------------------------------------------------- #
 def gate1_legacy_byte_identical() -> bool:
     print("=" * 64)
-    print("GATE 1 — Lazy (draws=None) byte-identical reproducibility")
+    print("GATE 1 - Lazy (draws=None) byte-identical reproducibility")
     print("=" * 64)
 
     cfg = default_config()
@@ -106,11 +106,11 @@ def gate1_legacy_byte_identical() -> bool:
 
 
 # --------------------------------------------------------------------------- #
-# GATE 2 — CRN determinism sanity
+# GATE 2 - CRN determinism sanity
 # --------------------------------------------------------------------------- #
 def gate2_crn_sanity() -> bool:
     print("=" * 64)
-    print("GATE 2 — CRN determinism sanity (Δ must be exactly 0)")
+    print("GATE 2 - CRN determinism sanity (Δ must be exactly 0)")
     print("=" * 64)
 
     base = default_config()
@@ -148,7 +148,7 @@ def gate2_crn_sanity() -> bool:
     th_t, ct_t = run_kpis(life_t, t0, t1)
     d_th_treat = th_t - th_b1
     d_ct_treat = ct_t - ct_b1
-    print("  Positive control — LITHO +1 tool on the SAME table:")
+    print("  Positive control - LITHO +1 tool on the SAME table:")
     print(f"    Δthroughput            : {d_th_treat:+.5f}   (expect > 0)")
     print(f"    Δcycle_time (h)        : {d_ct_treat:+.5f}   (expect < 0)")
     control_moves = (d_th_treat != 0.0) or (d_ct_treat != 0.0)

@@ -1,13 +1,13 @@
 """
 Statistical anomaly detectors (M5, Step 3).
 
-Two simple, explainable detectors — no black-box models:
+Two simple, explainable detectors - no black-box models:
 
   - Control chart (Shewhart): flag any day where the KPI leaves
     ``center ± k·sigma``. Sensitive to sudden shifts (breakdown, demand surge).
   - EWMA: exponentially-weighted moving average ``z_t = λ·x_t + (1−λ)·z_{t−1}``
     with the standard time-varying control limits. Sensitive to small, persistent
-    offsets — the slow drift (gradual degradation) a Shewhart chart is slow to catch.
+    offsets - the slow drift (gradual degradation) a Shewhart chart is slow to catch.
 
 They are complementary and both fully interpretable from first principles.
 
