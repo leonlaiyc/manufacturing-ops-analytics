@@ -42,7 +42,7 @@ rules. Owner decides scope and methods; agents execute.
 - Done when: notebook 07 runs end to end; what-if output shows the
   cycle-time/yield trade-off with CRN pairing; validation commands pass.
 
-### M8 Equipment health (SEMI E10)
+### M8 Equipment health (SEMI E10) (SHIPPED 2026-07-06, commits 032efe0..d19a018)
 - Tool-state event log (tool_id, station, start, end, e10_state, reason,
   lot_id) derived from or alongside the DES; states: Production, Standby,
   Scheduled Down, Unscheduled Down, Engineering.
@@ -116,3 +116,16 @@ Use `py`, not `python`, on this machine:
   notebook 07 (30 cells, clean execute) + five m7 figures. Headline: adding a
   LITHO tool cuts cycle time 2.87 h but raises post-litho violation rate by
   0.038, so capacity decisions need the yield axis. Next: M8 equipment health.
+- 2026-07-06: PR #4 merged to main (2c73a5c); new index + M7 + M8 A/B live on
+  GitHub Pages.
+- 2026-07-06: M8 shipped. Stage A E10 state layer (exact per-tool timeline
+  partition, MTBF/MTTR/availability, scheduled-PM injection reusing the
+  breakdown capacity path); Stage B maintenance-timing what-if (immediate
+  1.75M vs late 4.59M total cost, exact-zero pairing) and alert priority
+  (score ordering validated against simulated cost impact); Stage C sensor
+  simulation + GradientBoosting health model (held-out AUC 0.79; honest
+  comparison: EWMA detects slightly faster, GB cuts false alarms 3.7x; SHAP
+  recovers the two wired channels); Stage D notebook 08 + five m8 figures.
+  Checks now number eight. Notebooks execute on the py310 kernel (Anaconda
+  python3 kernel is broken and out of scope; owner defers repair).
+  Next: M9 dispatching policies.

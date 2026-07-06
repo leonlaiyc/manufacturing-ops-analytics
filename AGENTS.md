@@ -65,7 +65,15 @@ and `V2-PLAN.md`).
 Regenerate/validate (use `py`, not `python`; bare `python` is a broken Windows
 Store stub on this machine): `py src/generator/validate_m2.py`,
 `py src/generator/crn_check.py`, `py src/monitoring/monitoring_check.py`,
-`py src/quality/quality_check.py`, `py src/quality/vm_check.py`.
+`py src/quality/quality_check.py`, `py src/quality/vm_check.py`,
+`py src/equipment/equipment_check.py`, `py src/equipment/maintenance_check.py`,
+`py src/equipment/pdm_check.py`.
+
+M8 stack exception (owner-approved 2026-07-04): scikit-learn (gradient
+boosting) + shap are allowed in `src/equipment/` only, always framed as
+detection-quality measurement on known synthetic ground truth. Notebooks
+execute on the registered `py310` Jupyter kernel; never use the
+Anaconda-backed `python3` kernel and never install into anaconda3.
 
 ## Working agreement
 
