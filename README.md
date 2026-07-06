@@ -41,8 +41,8 @@ How the pieces map onto the agentic-fab pattern shown at GTC 2026:
 |---|---|---|
 | Fab digital twin synced to MES | Validated DES of a fab-style line (synthetic, no live link) | shipped |
 | Anomaly-watching agent (interlock manager) | EWMA / control-chart monitoring with measured detection quality | shipped |
-| Diagnostic agent | CRN-paired bottleneck proof; equipment-health module planned | shipped + M8 |
-| PM guide agent recommending maintenance strategy | Maintenance-timing trade-off | M8 (planned) |
+| Diagnostic agent | CRN-paired bottleneck proof + SEMI E10 equipment health | shipped |
+| PM guide agent recommending maintenance strategy | CRN-paired maintenance-timing trade-off with alert priority | shipped |
 | Scheduling and dispatching decisions | Dispatching-policy comparison | M9 (planned) |
 | Orchestrator calling specialist analyses | Agent layer that calls the what-if simulator as a tool | M10 (planned) |
 | Robot logistics (AMR / humanoid) | Out of scope: physical equipment | not claimed |
