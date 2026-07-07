@@ -56,7 +56,46 @@ rules. Owner decides scope and methods; agents execute.
 - Done when: notebook 08 reproduces E10 decomposition and the maintenance
   decision comparison; detection quality scored on labeled ground truth.
 
-### M9 Dispatching policies
+### M9 Dispatching policies (IN FLIGHT: Stage A shipped 56fe2c5; Stage B handover below)
+
+**HANDOVER NOTE (2026-07-07, written when the Claude usage limit hit mid-Stage-B).**
+State: `src/decision/dispatch_whatif.py` (341 lines) exists as a `wip:` commit
+and is UNVERIFIED (its author agent died before writing the check script or
+running any gate). Do not trust it until the gates below pass; review it
+against this spec first, fix or rewrite as needed.
+
+Remaining work for Stage B (spec the module was written against):
+1. `src/decision/dispatch_whatif.py`: compare_policies(...) = CRN-paired
+   comparison of EDD, critical_ratio, queue_time_aware, and FIFO+release_control
+   against the FIFO baseline; same seed set per rep across configurations;
+   metrics per rep: mean lot cycle time, output, on-time delivery rate,
+   post-litho violation rate, mean lot yield, congestion + scrap cost; paired
+   deltas vs FIFO with mean and t-based 95% CI; two demand regimes (baseline
+   and arrival rate x1.15); tidy long-format output. decision_table(...):
+   per regime x objective (cycle time / on-time / yield risk / total cost),
+   best policy plus a caveat column populated from measured deltas, never
+   hand-written. Reuse the pairing pattern from src/decision/yield_whatif.py
+   and src/equipment/maintenance_whatif.py.
+2. `src/decision/dispatch_whatif_check.py`, exit 0, house style:
+   GATE 1 reproducibility; GATE 2 FIFO-vs-FIFO paired deltas exactly zero on
+   every metric; GATE 3 directional sanity (EDD improves on-time rate,
+   queue_time_aware reduces violation rate, baseline regime, seeded); GATE 4
+   decision-table integrity (every cell populated; winner CI excludes zero or
+   the cell is marked not significant). If a directional gate fails because
+   the simulated system genuinely disagrees, report the measured direction
+   with evidence instead of forcing the gate; that is an acceptable outcome
+   requiring an owner decision.
+3. Run ALL nine prior checks (validate_m2, crn_check, monitoring_check,
+   quality_check, vm_check, equipment_check, maintenance_check, pdm_check,
+   dispatch_check) plus the new one; use `py`, never bare `python`.
+4. Commit as `feat: CRN-paired dispatching policy comparison and decision
+   table (M9)`; push to origin/v2 (PR #6 tracks this branch).
+
+Then Stage C: notebook 09 mirroring the notebook 07/08 pattern (build with
+nbformat, execute with `--ExecutePreprocessor.kernel_name=py310`, figures
+prefixed m9_ in reports/figures/, zero em dash, honest-scope framing), then
+docs closure (README shipped row + roadmap removal + check command lists in
+README/CLAUDE.md/AGENTS.md), fresh-eyes review, merge PR #6.
 - Policies: FIFO (baseline), EDD, critical ratio, queue-time-aware,
   bottleneck-WIP control. CRN-paired runs on identical arrival streams.
 - Output: decision table stating which policy wins under which demand and
