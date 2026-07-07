@@ -1,5 +1,6 @@
 """
-Synthetic fab-style production-line generator (Milestone M2, fab-ized in M7).
+Synthetic fab-style production-line generator (Milestone M2, fab-ized in M7,
+configurable dispatch policies added in M9 Stage A).
 
 A transparent, hand-written discrete-event simulation (DES) of an open
 multi-server queueing network shaped like a stylized wafer-fab flow. No external
@@ -95,16 +96,75 @@ slightly different means. Two additive, opt-in features support that:
   identical behavior to before this feature existed. Batch stations apply the
   offset of the tool that runs the batch to the first-loaded lot's draw (the
   same draw the batch already uses as its run time).
+
+Configurable dispatch policies - M9 Stage A addition
+-----------------------------------------------------
+M9 compares dispatch policies (FIFO / EDD / critical ratio / queue-time-aware)
+and a bottleneck-WIP release control against the locked FIFO baseline. Three
+opt-in, additive mechanisms support that, all defaulting to the exact pre-M9
+behavior:
+
+- ``FactoryConfig.queue_discipline`` (default ``"fifo"``): the priority rule
+  used when a tool frees and selects the next waiting lot(s). See
+  ``_dispatch_order`` for the four disciplines and their tie-breaking rules.
+  The "fifo" branch returns the station's pending list UNCHANGED - it is the
+  same list object the pre-M9 code always consumed with ``pop(0)``, not just
+  "priority math that happens to agree with FIFO" - so the default run is
+  provably the original code path.
+- ``FactoryConfig.flow_factor`` (default ``1.8``, see ``compute_due_date`` for
+  the calibration): every lot gets a ``due_date`` at arrival, a deterministic
+  function of arrival time and config (NO new RNG draws), appended to the
+  ``lifecycle`` output the same way ``tool_id`` was appended to the event log.
+- ``FactoryConfig.release_control`` (opt-in, default ``None``): a
+  CONWIP-flavored pre-release pool that holds newly arrived lots out of CLEAN
+  while LITHO WIP is at or above a threshold. See ``ReleaseControlConfig``.
+
+Why dispatch-policy changes cannot desynchronize CRN pairing (draw indexing)
+------------------------------------------------------------------------------
+``RandomDraws.proc_times`` is indexed ``[lot_id][route_step]`` - i.e. by WHICH
+LOT and WHICH POSITION IN ITS OWN ROUTE, never by queue position, dispatch
+order, or wall-clock time. A dispatch policy only changes the ORDER in which
+already-arrived, already-indexed lots are pulled off a station's pending list;
+it never changes a lot's ``lot_id`` or which route step it is currently
+requesting. Concretely, ``pt_for(lot, step, s)`` (plain path) / ``base_pt(lot,
+step, s)`` (injected path) always read ``draws.proc_times[lot][step]`` - the
+dispatch-order helper ``_dispatch_order`` is called BEFORE this lookup and
+only decides WHICH pending entries become ``members`` for the next run; the
+``(lot, step)`` key handed to the draw table afterward is whatever that
+member's own dict says, untouched by the reordering.
+
+Consequence for Stage B's paired policy comparison: running the SAME
+``RandomDraws`` table (same seed) under two different ``queue_discipline``
+values reads the exact same ``proc_times[lot][step]`` value for every lot at
+every (station, visit) - the two runs merely consume those values in a
+different ORDER as service starts happen at different simulated times. Two
+runs can therefore differ in cycle time, WIP, and due-date performance (the
+quantity M9 wants to compare) while remaining paired on the input randomness
+(the quantity CRN requires to stay fixed for a valid comparison). This is
+exactly the property ``dispatch_check.py`` GATE 4 asserts directly against the
+event log.
 """
 
 from __future__ import annotations
 
 import heapq
 import math
+import sys
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+# M9 Stage A: the "queue_time_aware" dispatch policy needs the fixed post-LITHO
+# window W (see queue_time.py docstring for its calibration). queue_time.py has
+# no dependency back on this module, so importing it here is not circular. The
+# path insert mirrors the pattern every *_check.py script already uses (see
+# e.g. quality_check.py) since this repo has no package __init__.py wiring.
+_SRC = Path(__file__).resolve().parents[1]
+if str(_SRC / "quality") not in sys.path:
+    sys.path.insert(0, str(_SRC / "quality"))
+from queue_time import DEFAULT_WINDOW_HOURS as _POST_LITHO_WINDOW_HOURS  # noqa: E402
 
 
 @dataclass
@@ -134,8 +194,63 @@ class StationConfig:
 
 
 @dataclass
+class ReleaseControlConfig:
+    """Bottleneck-WIP release control (M9 Stage A, opt-in, CONWIP-flavored).
+
+    Stylized analogy to CONWIP (constant-WIP release): newly arrived lots do
+    NOT enter CLEAN immediately. They sit in a pre-release pool and are
+    released (one at a time, oldest first) only while a MEASURE of LITHO WIP
+    is below ``litho_wip_threshold``.
+
+    Two related quantities matter here, and it is important not to conflate
+    them:
+
+    - **Instantaneous LITHO WIP** (queued + in-process AT LITHO right now,
+      both re-entrant visits) - this is what ``dispatch_check.py`` GATE 5
+      measures and bounds, and what the module docstring / spec call
+      "LITHO WIP".
+    - **Committed WIP** (lots already released into the line but not yet past
+      their SECOND LITHO visit) - this is what the release GATE ITSELF checks
+      against the threshold, tracked internally as ``released_pending_litho``
+      in ``simulate`` / ``_simulate_injected``.
+
+    The gate must use committed WIP, not instantaneous WIP: a lot released
+    into CLEAN takes several hours (CLEAN, FURNACE, DEPO) before it physically
+    reaches LITHO, so checking instantaneous LITHO WIP alone would see "0
+    lots at LITHO" for that whole transit window and release the ENTIRE
+    pre-release pool in one burst every time LITHO happens to empty out - a
+    release-timing bug, not a capacity control. Gating on committed WIP (lots
+    already in flight toward/at LITHO) is the standard CONWIP fix: it caps how
+    much work is loose in the CLEAN-to-LITHO span, which is what keeps
+    instantaneous LITHO WIP from spiking well past the threshold later.
+
+    This is deliberately simple (a single threshold on one station's WIP), not
+    a full CONWIP card-count implementation with a global WIP cap; the name
+    "CONWIP-flavored" in the docs reflects that simplification.
+    """
+    litho_wip_threshold: int   # release gate: hold lots while committed LITHO WIP >= this
+
+
+@dataclass
 class FactoryConfig:
-    """Full factory / experiment configuration."""
+    """Full factory / experiment configuration.
+
+    M9 Stage A additions (both opt-in, both default to exact V1/M7/M8
+    behavior):
+
+    - ``queue_discipline``: priority rule used when a tool frees and picks the
+      next lot from a station's waiting queue. ``"fifo"`` (default) is the
+      ORIGINAL code path (earliest ``queue_entry_time`` first) - see
+      ``_dispatch_order`` for the other disciplines and the byte-identity
+      argument.
+    - ``flow_factor``: multiplier used ONLY to compute each lot's due date at
+      arrival (see ``compute_due_date``). Unused when no policy or gate reads
+      due dates, but always computed since it is a deterministic function of
+      already-known quantities (no new RNG draws).
+    - ``release_control``: optional ``ReleaseControlConfig``; ``None``
+      (default) disables it entirely and arrivals enter CLEAN immediately,
+      exactly as before this feature existed.
+    """
     stations: dict          # name -> StationConfig
     route: list             # ordered station names; repeats = re-entrant flow
     arrival_rate: float     # lots per hour (Poisson process)
@@ -143,6 +258,9 @@ class FactoryConfig:
     warmup_hours: float     # initial period excluded from steady-state stats
     seed: int = 42
     product_type: str = "P1"
+    queue_discipline: str = "fifo"           # M9: "fifo" | "edd" | "critical_ratio" | "queue_time_aware"
+    flow_factor: float = 1.8                 # M9: due_date = arrival + flow_factor * raw_process_time_of_route
+    release_control: ReleaseControlConfig | None = None  # M9: opt-in bottleneck-WIP release gate
 
 
 @dataclass
@@ -423,6 +541,132 @@ def theoretical_utilization(cfg: FactoryConfig) -> dict:
     return rho
 
 
+# --------------------------------------------------------------------------- #
+# Due dates and dispatch-priority policies (M9 Stage A)
+# --------------------------------------------------------------------------- #
+def raw_process_time_of_route(cfg: FactoryConfig) -> float:
+    """Sum of each route step's MEAN processing time (hours), config-only.
+
+    This is a fixed property of ``cfg.route`` / ``cfg.stations`` (no draws, no
+    simulation state), so it can be computed once and reused as the basis for
+    every lot's due date. For the locked default route (CLEAN, FURNACE, DEPO,
+    LITHO, ETCH, LITHO, IMPLANT, METRO with the default station means) this is
+    10.0 hours.
+    """
+    return float(sum(cfg.stations[s].pt_mean for s in cfg.route))
+
+
+def compute_due_date(arrival_time: float, cfg: FactoryConfig,
+                      raw_route_time: float | None = None) -> float:
+    """Due date assigned at arrival: due = arrival_time + flow_factor * raw_route_time.
+
+    Deterministic from the arrival time and config only - NO new RNG draws, so
+    computing due dates cannot perturb the draw table (CRN path) or the lazy
+    RNG stream. ``raw_route_time`` may be passed in to avoid recomputing the
+    route sum per lot; if omitted it is derived from ``cfg``.
+
+    Calibration of ``cfg.flow_factor`` (default 1.8)
+    -------------------------------------------------
+    Computed ONCE against the default-seed baseline (``default_config()`` +
+    ``simulate(cfg)``, seed 42, FIFO, no anomalies, no release control),
+    restricted to the steady-state window ``[warmup_hours, horizon_hours]``
+    (1280 lots). Sweeping flow_factor over the realized cycle-time
+    distribution (mean 14.14 h, p50 13.53 h, p90 19.30 h) gives:
+
+        flow_factor=1.6  on_time_rate=0.731
+        flow_factor=1.8  on_time_rate=0.858   <- chosen default
+        flow_factor=2.0  on_time_rate=0.926
+        flow_factor=2.2  on_time_rate=0.966
+
+    1.8 was picked because it lands mid-band in the 70-95% "discriminating"
+    range requested for M9 (on-time rate that can visibly move between
+    dispatch policies, rather than saturating near 0% or 100%). This is a
+    fixed config constant, like ``queue_time.DEFAULT_WINDOW_HOURS`` - it is
+    not recalibrated automatically if the generator changes; a deliberate
+    re-calibration would need to be documented again at this docstring.
+    """
+    if raw_route_time is None:
+        raw_route_time = raw_process_time_of_route(cfg)
+    return arrival_time + cfg.flow_factor * raw_route_time
+
+
+#: Stations immediately following a LITHO visit in the locked route (ETCH
+#: follows the first LITHO visit at step 3; IMPLANT follows the second at step
+#: 5). Used by the "queue_time_aware" policy below.
+_POST_LITHO_STATIONS = ("ETCH", "IMPLANT")
+
+
+def _remaining_work(step: int, route: list, stations: dict) -> float:
+    """Sum of MEAN processing times for route steps NOT YET STARTED, inclusive
+    of the current pending step. Used by the "critical_ratio" policy as the
+    denominator. Config-only (no draws), matching ``raw_process_time_of_route``.
+    """
+    return float(sum(stations[route[i]].pt_mean for i in range(step, len(route))))
+
+
+def _dispatch_order(pending: list, s: str, now: float, cfg: FactoryConfig,
+                     raw_route_time: float) -> list:
+    """Return ``pending`` (a station's waiting-lot dict list) reordered by
+    ``cfg.queue_discipline`` for the NEXT run's member selection. Does not
+    mutate the input list.
+
+    Each pending entry is a dict with keys ``lot``, ``step``, ``qentry``,
+    ``due`` (due date, always present - see ``compute_due_date``).
+
+    - "fifo" (default): returns ``pending`` UNCHANGED - this is the identical
+      list/order the pre-M9 code always used (``pending[s].pop(0)`` after
+      ``append``), so the FIFO path is not merely "equivalent priority math",
+      it is literally a no-op over the original list. This is the byte-identity
+      guarantee gate 1 in dispatch_check.py exercises.
+    - "edd": earliest due date first; ties broken by queue_entry_time (stable
+      sort keeps original FIFO order among equal due dates, which are equal-
+      arrival-basis lots since due dates are a fixed offset of arrival time).
+    - "critical_ratio": ascending (due - now) / remaining_work, ties broken by
+      queue_entry_time. A smaller ratio means less slack per unit of work
+      left, i.e. more urgent. ``remaining_work`` is the MEAN processing time
+      of steps from the current pending step through the end of route (see
+      ``_remaining_work``) - a deterministic, config-only quantity, not a
+      random draw, so this policy needs no RNG either.
+    - "queue_time_aware": ONLY at ETCH and IMPLANT (the two stations that
+      immediately follow a LITHO visit, see ``_POST_LITHO_STATIONS``), lots
+      are prioritized by LEAST remaining post-litho window slack:
+      ``slack = W - (now - queue_entry_time)`` (queue_entry_time here IS the
+      LITHO completion time, since the lot enters this station's queue the
+      instant it leaves LITHO), ascending (least slack = closest to violating
+      the window W = 0.4102 h from queue_time.DEFAULT_WINDOW_HOURS is served
+      first); ties broken by queue_entry_time. At every OTHER station this
+      policy falls back to plain FIFO (unchanged pending order).
+
+    Batch stations: this function only decides WHICH waiting lots load next;
+    run time is still the first-loaded (post-reorder) lot's draw, unchanged
+    batch semantics (see module docstring / try_dispatch).
+    """
+    discipline = cfg.queue_discipline
+    if discipline == "fifo":
+        return pending
+
+    if discipline == "edd":
+        return sorted(pending, key=lambda p: (p["due"], p["qentry"]))
+
+    if discipline == "critical_ratio":
+        def cr_key(p):
+            remaining = _remaining_work(p["step"], cfg.route, cfg.stations)
+            ratio = (p["due"] - now) / remaining if remaining > 0 else float("-inf")
+            return (ratio, p["qentry"])
+        return sorted(pending, key=cr_key)
+
+    if discipline == "queue_time_aware":
+        if s not in _POST_LITHO_STATIONS:
+            return pending
+
+        def slack_key(p):
+            slack = _POST_LITHO_WINDOW_HOURS - (now - p["qentry"])
+            return (slack, p["qentry"])
+        return sorted(pending, key=slack_key)
+
+    raise ValueError(f"Unknown queue_discipline: {discipline!r}")
+
+
 def draw_randoms(cfg: FactoryConfig, seed: int) -> RandomDraws:
     """Pre-draw all randomness for one replication into a reusable table (CRN).
 
@@ -491,9 +735,23 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
         of the same draws.
 
     Batch semantics (both paths): a station with ``batch_size`` B loads up to B
-    waiting lots as ONE run on one tool (greedy load-and-go, FIFO order). The
-    run's processing time is the first-loaded lot's draw; all members share the
-    same process_start / process_complete and then advance individually.
+    waiting lots as ONE run on one tool (greedy load-and-go). Queue discipline
+    (M9) decides WHICH waiting lots load first; the run's processing time is
+    still the first-loaded (post-reorder) lot's draw, and all members share
+    the same process_start / process_complete and then advance individually.
+
+    M9 Stage A additions (all opt-in, all default to the exact pre-M9 code
+    path - see each dataclass/helper's own docstring for the byte-identity
+    argument):
+
+    - ``cfg.queue_discipline`` ("fifo" default): reorders each station's
+      waiting-lot list at dispatch time via ``_dispatch_order``.
+    - ``cfg.flow_factor``: every lot gets a ``due_date`` at arrival (see
+      ``compute_due_date``), appended to the returned ``lifecycle`` frame.
+      This is a pure function of arrival time and config, so it is always
+      computed (no RNG, cannot affect determinism or CRN pairing).
+    - ``cfg.release_control`` (``None`` default): optional pre-release pool
+      gating arrivals into CLEAN by LITHO WIP (see ``ReleaseControlConfig``).
 
     Returns
     -------
@@ -502,7 +760,7 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
         [lot_id, product_type, step_seq, station,
          queue_entry_time, process_start_time, process_complete_time, tool_id]
     lifecycle : pd.DataFrame
-        One row per lot: [lot_id, arrival_time, completion_time].
+        One row per lot: [lot_id, arrival_time, completion_time, due_date].
     meta : dict
         Configuration echo + ground-truth bottleneck + per-station capacity.
     """
@@ -515,11 +773,38 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
     rng = np.random.default_rng(cfg.seed) if draws is None else None
 
     free = {s: st.n_tools for s, st in cfg.stations.items()}   # free tools per station
-    pending = {s: [] for s in cfg.stations}                    # FIFO queues
+    pending = {s: [] for s in cfg.stations}                    # per-station queues
     tools = {s: _ToolPool(s, st.n_tools) for s, st in cfg.stations.items()}  # M7
     rows = []
     arrivals: dict[int, float] = {}
     completions: dict[int, float] = {}
+    due_dates: dict[int, float] = {}
+
+    raw_route_time = raw_process_time_of_route(cfg)     # M9: fixed, config-only
+    litho_steps = {i for i, st in enumerate(cfg.route) if st == "LITHO"}  # M9 release control
+    last_litho_step = max(litho_steps) if litho_steps else None
+
+    # M9 release control: pre-release pool. Disabled (release_control is None)
+    # means every arriving lot is requested into CLEAN immediately, exactly
+    # the pre-M9 behavior.
+    release_pool: list = []                              # [lot_id] oldest-first
+    # Committed WIP: lots already released but not yet past their SECOND
+    # LITHO visit. This, not instantaneous LITHO WIP, is what gates release -
+    # see ReleaseControlConfig's docstring for why (transit-time burst bug).
+    released_pending_litho = 0
+
+    def litho_wip(now) -> int:
+        """Lots queued OR in-process at LITHO, both re-entrant visits (M9).
+
+        This is the INSTANTANEOUS measure reported/bounded by
+        dispatch_check.py GATE 5. It is NOT what gates release (see
+        ``released_pending_litho`` above / ``ReleaseControlConfig`` docstring).
+        """
+        queued = sum(1 for e in pending.get("LITHO", []) if e["step"] in litho_steps)
+        in_proc = sum(1 for _, _, kind, payload in heap
+                      if kind == "complete"
+                      and cfg.route[payload["members"][0]["step"]] == "LITHO")
+        return queued + in_proc
 
     heap: list = []
     seq = 0
@@ -539,7 +824,9 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
 
         Lazy path (draws=None): draw at run start. CRN path: read the pre-drawn
         value indexed by (lot, step) - by step, so re-entrant LITHO (steps 3
-        and 5) stays paired.
+        and 5) stays paired. Queue discipline only reorders WHICH lot leads a
+        run; it never changes which (lot, step) index is read, so draws stay
+        paired across policies too (see module docstring, "Draw indexing").
         """
         if draws is None:
             return sample_pt(s)
@@ -550,8 +837,12 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
         B = cfg.stations[s].batch_size
         offsets = cfg.stations[s].tool_offsets
         while free[s] > 0 and pending[s]:
-            k = min(B, len(pending[s]))
-            members = [pending[s].pop(0) for _ in range(k)]
+            ordered = _dispatch_order(pending[s], s, now, cfg, raw_route_time)
+            k = min(B, len(ordered))
+            chosen = ordered[:k]
+            for c in chosen:
+                pending[s].remove(c)
+            members = chosen
             free[s] -= 1
             tool_idx = tools[s].acquire()
             lead = members[0]
@@ -562,10 +853,36 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
                  {"members": members, "start": now, "tool_idx": tool_idx})
 
     def request(lot, step, now):
-        """Lot requests the station for this route step (FIFO queue + dispatch)."""
+        """Lot requests the station for this route step (queue + dispatch)."""
         s = cfg.route[step]
-        pending[s].append({"lot": lot, "step": step, "qentry": now})
+        pending[s].append({"lot": lot, "step": step, "qentry": now,
+                            "due": due_dates[lot]})
         try_dispatch(s, now)
+
+    def try_release(now):
+        """M9: release oldest pooled lots into CLEAN while COMMITTED WIP
+        (``released_pending_litho``, not instantaneous LITHO WIP - see
+        ``ReleaseControlConfig`` docstring) is below the configured
+        threshold. No-op (pool always empty) when release_control is None, so
+        this cannot change behavior when the feature is off.
+        """
+        nonlocal released_pending_litho
+        if cfg.release_control is None:
+            return
+        threshold = cfg.release_control.litho_wip_threshold
+        while release_pool and released_pending_litho < threshold:
+            lot = release_pool.pop(0)
+            released_pending_litho += 1
+            request(lot, 0, now)
+
+    def arrive(lot_id, at):
+        arrivals[lot_id] = at
+        due_dates[lot_id] = compute_due_date(at, cfg, raw_route_time)
+        if cfg.release_control is None:
+            request(lot_id, 0, at)
+        else:
+            release_pool.append(lot_id)
+            try_release(at)
 
     # Schedule arrivals up front.
     if draws is None:
@@ -587,8 +904,7 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
         now, _, kind, p = heapq.heappop(heap)
 
         if kind == "arrive":
-            arrivals[p["lot"]] = now
-            request(p["lot"], 0, now)
+            arrive(p["lot"], now)
             continue
 
         # kind == "complete" - one run finishes; all members complete together.
@@ -609,7 +925,7 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
         free[s] += 1
         tools[s].release(p["tool_idx"])
 
-        # A tool just freed: pull the next waiting run at this station (FIFO).
+        # A tool just freed: pull the next waiting run at this station.
         try_dispatch(s, now)
 
         # Advance each completed lot to its next route step (or finish).
@@ -619,6 +935,12 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
                 request(m["lot"], nstep, now)
             else:
                 completions[m["lot"]] = now
+            # M9: a lot passing its SECOND (last) LITHO visit frees committed
+            # release-pool headroom - see ReleaseControlConfig docstring for
+            # why this, not instantaneous LITHO WIP, is the release gate.
+            if cfg.release_control is not None and m["step"] == last_litho_step:
+                released_pending_litho -= 1
+                try_release(now)
 
     log = (pd.DataFrame(rows)
            .sort_values(["lot_id", "step_seq"])
@@ -629,6 +951,7 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
         "arrival_time": list(arrivals.values()),
     })
     lifecycle["completion_time"] = lifecycle["lot_id"].map(completions)
+    lifecycle["due_date"] = lifecycle["lot_id"].map(due_dates)   # M9, append-only
 
     rho = theoretical_utilization(cfg)
     bottleneck = max(rho, key=rho.get)
@@ -645,6 +968,8 @@ def simulate(cfg: FactoryConfig, draws: RandomDraws | None = None,
         },
         "theoretical_utilization": rho,
         "ground_truth_bottleneck": bottleneck,
+        "queue_discipline": cfg.queue_discipline,
+        "flow_factor": cfg.flow_factor,
     }
     return log, lifecycle, meta
 
@@ -669,12 +994,19 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
     Boundary events are scheduled at every anomaly window edge so that when a
     breakdown ends (capacity restored) any waiting lots are re-dispatched even if
     no completion happens to fire at that instant.
+
+    M9 Stage A additions: identical mechanism to the plain path (see
+    ``simulate``'s docstring) - ``cfg.queue_discipline`` reorders each
+    station's waiting-lot list via the same ``_dispatch_order`` helper,
+    ``due_date`` is computed for every lot (base and surge) and appended to
+    ``lifecycle``, and ``cfg.release_control`` gates arrivals the same way.
+    All default to the pre-M9 identity behavior.
     """
     rng = np.random.default_rng(cfg.seed) if draws is None else None
 
     base_tools = {s: st.n_tools for s, st in cfg.stations.items()}
     busy = {s: 0 for s in cfg.stations}                        # tools in service
-    pending = {s: [] for s in cfg.stations}                    # FIFO queues
+    pending = {s: [] for s in cfg.stations}                    # per-station queues
     # M7: pool sized to the station's full (nominal) tool count. A breakdown only
     # limits how many of these indices may be acquired concurrently (via
     # effective_capacity below); it does not change which indices exist, so
@@ -684,6 +1016,24 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
     arrivals: dict[int, float] = {}
     completions: dict[int, float] = {}
     extra_pts: dict[int, list] = {}                            # surge lot -> proc times
+    due_dates: dict[int, float] = {}
+
+    raw_route_time = raw_process_time_of_route(cfg)     # M9: fixed, config-only
+    litho_steps = {i for i, st in enumerate(cfg.route) if st == "LITHO"}  # M9 release control
+    last_litho_step = max(litho_steps) if litho_steps else None
+    release_pool: list = []                              # M9: [lot_id] oldest-first
+    # Committed WIP gate - see ReleaseControlConfig docstring (transit-time
+    # burst bug this avoids) and simulate()'s identical mechanism.
+    released_pending_litho = 0
+
+    def litho_wip(now) -> int:
+        """Lots queued OR in-process at LITHO, both re-entrant visits (M9).
+        Instantaneous measure only - see ``released_pending_litho`` above."""
+        queued = sum(1 for e in pending.get("LITHO", []) if e["step"] in litho_steps)
+        in_proc = sum(1 for _, _, kind, payload in heap
+                      if kind == "complete"
+                      and cfg.route[payload["members"][0]["step"]] == "LITHO")
+        return queued + in_proc
 
     heap: list = []
     seq = 0
@@ -716,13 +1066,16 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
         return m
 
     def try_dispatch(s, now):
-        # Start as many runs as the (possibly reduced) capacity allows, FIFO;
-        # each run takes up to batch_size waiting lots.
+        # Start as many runs as the (possibly reduced) capacity allows;
+        # each run takes up to batch_size waiting lots, ordered by queue_discipline.
         B = cfg.stations[s].batch_size
         offsets = cfg.stations[s].tool_offsets
         while pending[s] and busy[s] < effective_capacity(s, now):
-            k = min(B, len(pending[s]))
-            members = [pending[s].pop(0) for _ in range(k)]
+            ordered = _dispatch_order(pending[s], s, now, cfg, raw_route_time)
+            k = min(B, len(ordered))
+            members = ordered[:k]
+            for c in members:
+                pending[s].remove(c)
             busy[s] += 1
             tool_idx = tools[s].acquire()
             lead = members[0]
@@ -734,8 +1087,31 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
 
     def request(lot, step, now):
         s = cfg.route[step]
-        pending[s].append({"lot": lot, "step": step, "qentry": now})
+        pending[s].append({"lot": lot, "step": step, "qentry": now,
+                            "due": due_dates[lot]})
         try_dispatch(s, now)
+
+    def try_release(now):
+        """M9: same release-pool mechanism as the plain path (see simulate()) -
+        gates on committed WIP (``released_pending_litho``), not instantaneous
+        LITHO WIP."""
+        nonlocal released_pending_litho
+        if cfg.release_control is None:
+            return
+        threshold = cfg.release_control.litho_wip_threshold
+        while release_pool and released_pending_litho < threshold:
+            lot = release_pool.pop(0)
+            released_pending_litho += 1
+            request(lot, 0, now)
+
+    def arrive(lot_id, at):
+        arrivals[lot_id] = at
+        due_dates[lot_id] = compute_due_date(at, cfg, raw_route_time)
+        if cfg.release_control is None:
+            request(lot_id, 0, at)
+        else:
+            release_pool.append(lot_id)
+            try_release(at)
 
     # Base arrivals (identical source to the plain path).
     if draws is None:
@@ -769,8 +1145,7 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
         now, _, kind, p = heapq.heappop(heap)
 
         if kind == "arrive":
-            arrivals[p["lot"]] = now
-            request(p["lot"], 0, now)
+            arrive(p["lot"], now)
             continue
 
         if kind == "boundary":
@@ -795,7 +1170,7 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
             })
         busy[s] -= 1
         tools[s].release(p["tool_idx"])
-        try_dispatch(s, now)                 # pull next waiting run (FIFO)
+        try_dispatch(s, now)                 # pull next waiting run
 
         for m in members:
             nstep = m["step"] + 1
@@ -803,6 +1178,11 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
                 request(m["lot"], nstep, now)
             else:
                 completions[m["lot"]] = now
+            # M9: a lot passing its SECOND (last) LITHO visit frees committed
+            # release-pool headroom (see ReleaseControlConfig docstring).
+            if cfg.release_control is not None and m["step"] == last_litho_step:
+                released_pending_litho -= 1
+                try_release(now)
 
     log = (pd.DataFrame(rows)
            .sort_values(["lot_id", "step_seq"])
@@ -813,6 +1193,7 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
         "arrival_time": list(arrivals.values()),
     })
     lifecycle["completion_time"] = lifecycle["lot_id"].map(completions)
+    lifecycle["due_date"] = lifecycle["lot_id"].map(due_dates)   # M9, append-only
 
     rho = theoretical_utilization(cfg)
     bottleneck = max(rho, key=rho.get)
@@ -830,6 +1211,8 @@ def _simulate_injected(cfg: FactoryConfig, draws: RandomDraws | None, anomalies:
         "theoretical_utilization": rho,
         "ground_truth_bottleneck": bottleneck,
         "anomalies": [a.label() for a in anomalies],
+        "queue_discipline": cfg.queue_discipline,
+        "flow_factor": cfg.flow_factor,
     }
     return log, lifecycle, meta
 

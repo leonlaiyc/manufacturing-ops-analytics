@@ -43,7 +43,7 @@ How the pieces map onto the agentic-fab pattern shown at GTC 2026:
 | Anomaly-watching agent (interlock manager) | EWMA / control-chart monitoring with measured detection quality | shipped |
 | Diagnostic agent | CRN-paired bottleneck proof + SEMI E10 equipment health | shipped |
 | PM guide agent recommending maintenance strategy | CRN-paired maintenance-timing trade-off with alert priority | shipped |
-| Scheduling and dispatching decisions | Dispatching-policy comparison | M9 (planned) |
+| Scheduling and dispatching decisions | CRN-paired dispatching-policy comparison with decision table | shipped |
 | Orchestrator calling specialist analyses | Agent layer that calls the what-if simulator as a tool | M10 (planned) |
 | Robot logistics (AMR / humanoid) | Out of scope: physical equipment | not claimed |
 
@@ -100,6 +100,7 @@ on the same day.
 | M6 Decision support | Capacity / demand / degradation what-ifs with a transparent cost model; improvement ranking under ±50% sensitivity | [notebook 06](notebooks/06_capacity_demand_cost_whatif.ipynb) |
 | M7 Quality / yield layer | Post-litho queue-time windows, transparent lot-level yield model with known ground truth, virtual metrology (hand-built OLS), chamber matching, yield-aware CRN what-ifs | [notebook 07](notebooks/07_quality_yield_virtual_metrology.ipynb), `src/quality` |
 | M8 Equipment health | SEMI E10-style tool states, MTBF / MTTR / availability, CRN-paired PM-timing trade-off, alert priority validated against simulated cost, GB+SHAP health model scored against known ground truth vs an EWMA baseline | [notebook 08](notebooks/08_equipment_health_e10_monitoring.ipynb), `src/equipment` |
+| M9 Dispatching policies | FIFO / EDD / critical ratio / queue-time-aware / bottleneck-WIP release control, CRN-paired with 95% CIs; a decision table where the winner depends on objective and demand; and a proven null result (the queue-time-aware rule reduces to FIFO on this line, shown structurally) | [notebook 09](notebooks/09_dispatching_policy_comparison.ipynb), `src/decision` |
 
 ## Roadmap (planned, in build order)
 
@@ -108,7 +109,6 @@ Everything below is planned, not yet built; this table is the contract.
 
 | Module | What it adds | Expected outcome | Status |
 |---|---|---|---|
-| M9 Dispatching policies | FIFO vs EDD vs critical ratio vs queue-time-aware vs bottleneck-WIP control, compared with CRN-paired runs on identical arrivals | A decision table stating which policy wins under which demand and yield-risk conditions, with confidence intervals | Planned |
 | M10 Agentic decision support | An LLM agent that calls the what-if simulator as a tool and drafts decision memos | Ask an operational question in natural language; get a memo where every number traces to a logged simulation run | Planned |
 | M11 Data quality & model reliability | Event schema contract, leakage-safe joins, drift monitoring, conformal uncertainty | Every model ships with its stated trust boundary: when to believe it and when not to | Planned |
 
@@ -191,6 +191,8 @@ python src/quality/vm_check.py           # virtual metrology + pairing gates
 python src/equipment/equipment_check.py  # E10 state-partition + RAM gates
 python src/equipment/maintenance_check.py # PM-timing pairing + priority gates
 python src/equipment/pdm_check.py        # sensor/GB+SHAP detection-quality gates
+python src/generator/dispatch_check.py   # dispatch policies + FIFO byte-identity gates
+python src/decision/dispatch_whatif_check.py # policy-comparison pairing gates
 python src/kpi/export_html_dashboard.py  # rebuild the interactive dashboard
 ```
 

@@ -56,7 +56,11 @@ rules. Owner decides scope and methods; agents execute.
 - Done when: notebook 08 reproduces E10 decomposition and the maintenance
   decision comparison; detection quality scored on labeled ground truth.
 
-### M9 Dispatching policies
+### M9 Dispatching policies (SHIPPED 2026-07-07, commits 56fe2c5..c94f296)
+
+(A mid-stage handover note lived here on 2026-07-07 while a usage-limit
+interruption was open; resolved the same day by commit 2544688. History in
+git if ever needed.)
 - Policies: FIFO (baseline), EDD, critical ratio, queue-time-aware,
   bottleneck-WIP control. CRN-paired runs on identical arrival streams.
 - Output: decision table stating which policy wins under which demand and
@@ -129,3 +133,14 @@ Use `py`, not `python`, on this machine:
   Checks now number eight. Notebooks execute on the py310 kernel (Anaconda
   python3 kernel is broken and out of scope; owner defers repair).
   Next: M9 dispatching policies.
+- 2026-07-07: M9 shipped. Stage A dispatch policies (fifo/edd/critical_ratio/
+  queue_time_aware + CONWIP-style release control; FIFO byte-identity gate;
+  bit-exact CRN-pairing proof across policies). Stage B paired comparison and
+  decision table (n_reps=30, both regimes; winners: EDD for cycle time and
+  on-time, release control for yield risk and total cost; all CIs exclude
+  zero). Stage C notebook 09 + three m9 figures, centerpiece finding: the
+  queue-time-aware rule is STRUCTURALLY identical to FIFO on this line (same
+  window W per station, zero transport time, so least-slack order equals
+  arrival order at any queue depth; proven under rho 0.90 stress, 0 of 1464
+  dispatch rows differ). Checks now number ten. Next: M10 agentic decision
+  support.
