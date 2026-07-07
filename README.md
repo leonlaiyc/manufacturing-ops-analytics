@@ -43,7 +43,7 @@ How the pieces map onto the agentic-fab pattern shown at GTC 2026:
 | Anomaly-watching agent (interlock manager) | EWMA / control-chart monitoring with measured detection quality | shipped |
 | Diagnostic agent | CRN-paired bottleneck proof + SEMI E10 equipment health | shipped |
 | PM guide agent recommending maintenance strategy | CRN-paired maintenance-timing trade-off with alert priority | shipped |
-| Scheduling and dispatching decisions | Dispatching-policy comparison | M9 (planned) |
+| Scheduling and dispatching decisions | CRN-paired dispatching-policy comparison with decision table | shipped |
 | Orchestrator calling specialist analyses | Agent layer that calls the what-if simulator as a tool | M10 (planned) |
 | Robot logistics (AMR / humanoid) | Out of scope: physical equipment | not claimed |
 
