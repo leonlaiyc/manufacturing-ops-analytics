@@ -59,6 +59,8 @@ Interactive dashboard is a standalone Plotly HTML published via GitHub Pages
 ## Status
 
 Status is tracked in the README roadmap table and `git log`, not in this file.
+Current assigned handover for Codex: see `V2-PLAN.md`, section "HANDOVER:
+dashboard narrative refresh". Read that section in full before starting.
 Numbering note: the V1 "fab-ization" iteration was historically labeled M7;
 from V2 onward, M7 means the quality/yield module (see the README V2 roadmap
 and `V2-PLAN.md`).
