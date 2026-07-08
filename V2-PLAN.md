@@ -253,11 +253,13 @@ transcripts as public evidence") is backed by an actual artifact. Everything
 else about M10 is already shipped and gated offline with MockLLM.
 
 SPEC:
-- Precondition: the owner sets `ANTHROPIC_API_KEY` in the environment for the
+- Precondition: the owner sets `OPENAI_API_KEY` in the environment for the
   session. Never echo, log, or commit the key; abort if it is absent (the
-  runner exits 1 with a clear message).
-- Run exactly: `py scripts/run_live_agent_session.py` (default question,
-  one session per invocation). Cost is a single short session.
+  runner exits 1 with a clear message). The runner defaults to OpenAI and
+  supports `OPENAI_MODEL` if a different model is needed.
+- Run exactly: `py scripts/run_live_agent_session.py` (default provider,
+  default question, one session per invocation). Cost is a single short
+  session.
 - Exit 0 (VERIFIED): commit the produced
   `reports/agent_sessions/session_<UTC stamp>/` (transcript.json + memo.md).
   First confirm `.gitignore` does not swallow the path (only `data/**` and
@@ -277,7 +279,8 @@ ACCEPTANCE (all must hold):
   true, and an empty `uncited_numbers` list.
 - `py src/agent/agent_check.py` and `py src/agent/loop_check.py` still exit 0.
 - No credential material anywhere in the committed diff (search the staged
-  diff for `sk-` and `ANTHROPIC` before committing).
+  diff for raw provider-token prefixes before committing; environment
+  variable names are allowed).
 - Committed as `feat: record first verified live agent session (M10)` and
   pushed to `v2`; V2-PLAN.md Log gains one entry marking open item (1)
   resolved.
@@ -401,7 +404,7 @@ Use `py`, not `python`, on this machine:
   Checks now number twelve. Live session runner
   (scripts/run_live_agent_session.py) is key-gated; recorded transcript will
   be committed under reports/agent_sessions/ when the owner provides
-  ANTHROPIC_API_KEY. Next: M11 data quality and model reliability.
+  OPENAI_API_KEY. Next: M11 data quality and model reliability.
 - 2026-07-08: M11 shipped; THE ROADMAP MODULE SERIES (M7 to M11) IS COMPLETE.
   Stage A schema contract (C1-C6 clauses, seven corruption injectors mapped
   exactly to clauses, leakage-safe as-of join with audit). Stage B drift
@@ -410,7 +413,7 @@ Use `py`, not `python`, on this machine:
   at nominal 0.90; noise doubling doubles interval width), model cards with
   trust boundaries. Stage C notebook 11 + three m11 figures. Checks now number
   fourteen. Open items requiring owner decisions: (1) live agent transcript
-  (needs ANTHROPIC_API_KEY), (2) dashboard narrative refresh (owner copy
+  (needs OPENAI_API_KEY), (2) dashboard narrative refresh (owner copy
   review), (3) advanced-packaging back-end scenario (locked-design unlock).
 - 2026-07-08: scenario runner demo shipped (`docs/scenario-runner.html`,
   commits 663c0ff and c005ece on `v2`). Bounded interactive view over the
@@ -432,7 +435,7 @@ Use `py`, not `python`, on this machine:
   landing path) and the stale dashboard export comment fixed. Owner
   commissioned two Codex tasks, spec'd in "two commissioned tasks for Codex":
   (A) record and commit the first verified live agent session (needs
-  ANTHROPIC_API_KEY from the owner), (B) extract scenario runner page data
+  OPENAI_API_KEY from the owner), (B) extract scenario runner page data
   into a generated JSON with an exact-match gate against published values.
   Remaining owner decision for publishing: merge `v2` into `main` (47 commits
   ahead; GitHub Pages serves main, which still shows the V1 state).
