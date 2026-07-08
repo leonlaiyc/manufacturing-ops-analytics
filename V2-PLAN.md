@@ -79,7 +79,7 @@ git if ever needed.)
   tooling; the README frames this as a small-scale illustration of the
   simulation-in-the-loop pattern.
 
-### M11 Data quality and model reliability
+### M11 Data quality and model reliability (SHIPPED 2026-07-08, commits b6d3bbc..667e3da)
 - Event schema contract and validators (missing timestamps, negative
   durations, duplicates, impossible routes); leakage-safe as-of joins for
   M7 labels; drift monitoring; conformal prediction intervals for M7/M8
@@ -154,3 +154,13 @@ Use `py`, not `python`, on this machine:
   (scripts/run_live_agent_session.py) is key-gated; recorded transcript will
   be committed under reports/agent_sessions/ when the owner provides
   ANTHROPIC_API_KEY. Next: M11 data quality and model reliability.
+- 2026-07-08: M11 shipped; THE ROADMAP MODULE SERIES (M7 to M11) IS COMPLETE.
+  Stage A schema contract (C1-C6 clauses, seven corruption injectors mapped
+  exactly to clauses, leakage-safe as-of join with audit). Stage B drift
+  monitoring (degradation delay 4 days, arrival-shift delay 3 days, zero
+  clean-run false alarms), split conformal for the VM model (coverage 0.9545
+  at nominal 0.90; noise doubling doubles interval width), model cards with
+  trust boundaries. Stage C notebook 11 + three m11 figures. Checks now number
+  fourteen. Open items requiring owner decisions: (1) live agent transcript
+  (needs ANTHROPIC_API_KEY), (2) dashboard narrative refresh (owner copy
+  review), (3) advanced-packaging back-end scenario (locked-design unlock).

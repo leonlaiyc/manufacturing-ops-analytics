@@ -102,19 +102,19 @@ on the same day.
 | M8 Equipment health | SEMI E10-style tool states, MTBF / MTTR / availability, CRN-paired PM-timing trade-off, alert priority validated against simulated cost, GB+SHAP health model scored against known ground truth vs an EWMA baseline | [notebook 08](notebooks/08_equipment_health_e10_monitoring.ipynb), `src/equipment` |
 | M9 Dispatching policies | FIFO / EDD / critical ratio / queue-time-aware / bottleneck-WIP release control, CRN-paired with 95% CIs; a decision table where the winner depends on objective and demand; and a proven null result (the queue-time-aware rule reduces to FIFO on this line, shown structurally) | [notebook 09](notebooks/09_dispatching_policy_comparison.ipynb), `src/decision` |
 | M10 Agentic decision support | The what-if engines exposed as bounded, logged tools an LLM can call; decision memos where every cited number carries a run tag verified against the log; fabrication-catch and credential-guard gates run fully offline; a live-session runner records transcripts as public evidence | [notebook 10](notebooks/10_agentic_decision_support.ipynb), `src/agent` |
+| M11 Data quality & model reliability | Event-log schema contract with corruption-tested validators, leakage-safe as-of joins, drift monitoring with measured detection delay and zero clean-run false alarms, split conformal intervals for the metrology model (measured coverage), and model cards with explicit trust boundaries | [notebook 11](notebooks/11_data_quality_model_reliability.ipynb), `src/dataquality`, [model cards](docs/model_cards) |
 
-## Roadmap (planned, in build order)
+## Roadmap
 
-Each module states the outcome it must deliver before it counts as done.
-Everything below is planned, not yet built; this table is the contract.
+All roadmap modules (M7 through M11) are shipped; the table above is the
+record. Two extensions stay deliberately out of scope until decided:
 
-| Module | What it adds | Expected outcome | Status |
-|---|---|---|---|
-| M11 Data quality & model reliability | Event schema contract, leakage-safe joins, drift monitoring, conformal uncertainty | Every model ships with its stated trust boundary: when to believe it and when not to | Planned |
-
-A stylized advanced-packaging (HBM-class) back-end line is under consideration
-as a follow-on scenario; it reuses the same DES engine but changes the locked
-line design, so it is an explicit owner decision, not part of this roadmap yet.
+- A stylized advanced-packaging (HBM-class) back-end line scenario: it reuses
+  the same DES engine but changes the locked line design, so it is an explicit
+  owner decision rather than a default next step.
+- A recorded live agent session: the runner ships in `scripts/`, and the first
+  transcript is committed under `reports/agent_sessions/` once API credentials
+  are provided.
 
 ## The line
 
@@ -195,6 +195,8 @@ python src/generator/dispatch_check.py   # dispatch policies + FIFO byte-identit
 python src/decision/dispatch_whatif_check.py # policy-comparison pairing gates
 python src/agent/agent_check.py          # tool-layer traceability + tamper gates
 python src/agent/loop_check.py           # agent-loop fabrication-catch gates (offline)
+python src/dataquality/dq_check.py       # schema-contract + corruption + join gates
+python src/dataquality/reliability_check.py # drift, conformal coverage, model-card gates
 python src/kpi/export_html_dashboard.py  # rebuild the interactive dashboard
 ```
 
