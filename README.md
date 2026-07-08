@@ -113,8 +113,8 @@ record. Two extensions stay deliberately out of scope until decided:
   the same DES engine but changes the locked line design, so it is an explicit
   owner decision rather than a default next step.
 - A recorded live agent session: the runner ships in `scripts/`, and the first
-  transcript is committed under `reports/agent_sessions/` once API credentials
-  are provided.
+  verified transcript is committed at
+  [`reports/agent_sessions/session_20260708T161010Z/`](reports/agent_sessions/session_20260708T161010Z/).
 
 ## The line
 

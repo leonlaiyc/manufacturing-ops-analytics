@@ -1,0 +1,134 @@
+{
+  "api_usage": {
+    "calls": [
+      {
+        "call": 1,
+        "completion_tokens": 40,
+        "cumulative_estimated_usd": 0.000496,
+        "estimated_usd": 0.000496,
+        "prompt_tokens": 1080
+      },
+      {
+        "call": 2,
+        "completion_tokens": 101,
+        "cumulative_estimated_usd": 0.00115,
+        "estimated_usd": 0.000654,
+        "prompt_tokens": 1232
+      }
+    ],
+    "estimated_actual_usd": 0.00115,
+    "estimated_reserved_usd": 0.009094,
+    "max_usd": 1.0,
+    "provider": "openai"
+  },
+  "final_text": "Adding one more litho tool under 15 percent demand growth increases throughput by only 0.00795 [run:90894f5209e03906] lots/hour on average. This very small gain implies that the capacity benefit of an extra litho tool at this demand level is negligible. I recommend not investing in an additional litho tool solely for this demand increase. If future evidence showed a substantially larger throughput gain or worsening cycle times without the extra tool, that would change the recommendation.",
+  "model": "gpt-4.1-mini",
+  "question": "Is one more litho tool worth it under 15 percent demand growth?",
+  "run_log": [
+    {
+      "args": {
+        "demand_factors": [
+          1.15
+        ],
+        "n_reps": 30,
+        "seed0": 1000,
+        "station": "LITHO"
+      },
+      "engine_config": {
+        "default_config_seed": 42
+      },
+      "result": {
+        "demand_factors": [
+          1.15
+        ],
+        "n_reps": 30,
+        "per_factor": [
+          {
+            "factor": 1.15,
+            "mean_d_throughput": 0.007947530864197534,
+            "n": 30,
+            "std_d_throughput": 0.014266814931450688
+          }
+        ],
+        "run_id": "90894f5209e03906",
+        "seed0": 1000,
+        "station": "LITHO"
+      },
+      "run_id": "90894f5209e03906",
+      "seed": 1000,
+      "timestamp": "2026-07-08T16:10:10.280165+00:00",
+      "tool": "run_capacity_whatif"
+    }
+  ],
+  "status": "VERIFIED",
+  "turns_meta": [
+    {
+      "n_result_blocks": 1,
+      "n_result_messages": 1,
+      "n_tool_calls": 1
+    }
+  ],
+  "uncited_numbers": [],
+  "verification": {
+    "all_found": true,
+    "report": [
+      {
+        "citation_text": "30.00 [run:90894f5209e03906]",
+        "cited_value": 30.0,
+        "matched_against": 30.0,
+        "run_found": true,
+        "run_id": "90894f5209e03906",
+        "value_found": true
+      },
+      {
+        "citation_text": "1000.00 [run:90894f5209e03906]",
+        "cited_value": 1000.0,
+        "matched_against": 1000.0,
+        "run_found": true,
+        "run_id": "90894f5209e03906",
+        "value_found": true
+      },
+      {
+        "citation_text": "1.15 [run:90894f5209e03906]",
+        "cited_value": 1.15,
+        "matched_against": 1.15,
+        "run_found": true,
+        "run_id": "90894f5209e03906",
+        "value_found": true
+      },
+      {
+        "citation_text": "0.01 [run:90894f5209e03906]",
+        "cited_value": 0.01,
+        "matched_against": 0.007947530864197534,
+        "run_found": true,
+        "run_id": "90894f5209e03906",
+        "value_found": true
+      },
+      {
+        "citation_text": "0.01 [run:90894f5209e03906]",
+        "cited_value": 0.01,
+        "matched_against": 0.007947530864197534,
+        "run_found": true,
+        "run_id": "90894f5209e03906",
+        "value_found": true
+      },
+      {
+        "citation_text": "30.00 [run:90894f5209e03906]",
+        "cited_value": 30.0,
+        "matched_against": 30.0,
+        "run_found": true,
+        "run_id": "90894f5209e03906",
+        "value_found": true
+      },
+      {
+        "citation_text": "0.00795 [run:90894f5209e03906]",
+        "cited_value": 0.00795,
+        "matched_against": 0.007947530864197534,
+        "run_found": true,
+        "run_id": "90894f5209e03906",
+        "value_found": true
+      }
+    ],
+    "total_citations": 7
+  }
+}

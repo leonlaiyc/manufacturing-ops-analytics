@@ -441,3 +441,10 @@ Use `py`, not `python`, on this machine:
   into a generated JSON with an exact-match gate against published values.
   Remaining owner decision for publishing: merge `v2` into `main` (47 commits
   ahead; GitHub Pages serves main, which still shows the V1 state).
+- 2026-07-09: Task A resolved. Live OpenAI agent session recorded at
+  `reports/agent_sessions/session_20260708T161010Z/`: status VERIFIED, seven
+  citations, all_found true, uncited_numbers empty, estimated API cost
+  $0.001150 under the local $1.00 guard. README roadmap now links to the
+  committed transcript directory. `py src/agent/agent_check.py` and
+  `py src/agent/loop_check.py` re-run and pass. Earlier FAILED verification
+  attempts remain local only and are not evidence.
