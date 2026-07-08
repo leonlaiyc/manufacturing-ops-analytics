@@ -49,6 +49,12 @@ OPENAI_CREDENTIAL_MESSAGE = (
     "No OpenAI API credentials found. Set OPENAI_API_KEY in the environment "
     "and retry."
 )
+OPENAI_CITATION_REMINDER = (
+    "\n\nOpenAI adapter reminder: every substantive number in the final answer "
+    "must put its [run:<run_id>] citation immediately after the number and "
+    "before any unit or words. Correct: 0.01 [run:abc] lots/hour. Incorrect: "
+    "0.01 lots/hour [run:abc]."
+)
 
 
 def load_local_env(path: Path = LOCAL_ENV) -> None:
@@ -126,7 +132,7 @@ class OpenAILLM:
 
     @staticmethod
     def _convert_messages(system: str, messages: list[dict]) -> list[dict]:
-        out = [{"role": "system", "content": system}]
+        out = [{"role": "system", "content": system + OPENAI_CITATION_REMINDER}]
         for msg in messages:
             role = msg.get("role")
             content = msg.get("content")
