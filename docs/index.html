@@ -202,10 +202,10 @@
   <div class="finding">
     <span class="tag">01</span>
     <div class="en">
-      <h2>System-level counterfactuals against intuition-driven capacity mistakes</h2>
+      <h2>Full-view analysis to avoid intuition-driven mistakes</h2>
     </div>
     <div class="zh">
-      <h2>系統級反事實分析，擋下直覺式的產能誤判</h2>
+      <h2>全方位分析，避免直覺誤判</h2>
     </div>
 
     <div class="en">
@@ -431,24 +431,8 @@
       </table>
     </div>
 
-    <p class="caption en"><strong>Base case: equal tool-cost assumption.</strong> With the default
-    $20k added-tool cost for every station, LITHO wins both metrics: 2.46 h average cycle-time
-    reduction and about -$12k net cost change.</p>
-    <p class="caption zh"><strong>基準情境：相同工具成本假設。</strong>在每個站點新增工具成本皆為 $20k 的預設假設下，LITHO 同時勝出：平均 cycle time 降低 2.46 小時，淨成本變化約 -$12k。</p>
-    <p class="caption en"><strong>Investment-stress scenario: station-specific tool-cost assumptions.</strong>
-    LITHO $40k, FURNACE $8k, DEPO $5k, METRO $2k.</p>
-    <p class="caption zh"><strong>投資壓力情境：站點別工具成本假設。</strong>LITHO $40k、FURNACE $8k、DEPO $5k、METRO $2k。</p>
-    <p class="method-note en"><strong>Calculation:</strong> Net cost change = scenario total cost - baseline total cost. Total cost includes processing cost (tool busy-hours &times; illustrative processing rate), waiting / congestion cost (lot queue-wait hours &times; illustrative holding rate), and added tool cost (number of added tools &times; illustrative tool cost). Negative saves versus baseline; positive costs more.</p>
-    <p class="method-note zh"><strong>計算方式：</strong>淨成本變化 = 方案總成本 − 基準總成本</p>
-    <p class="method-note zh" style="margin-top:.6rem;">總成本包含：</p>
-    <ul class="method-list zh">
-      <li>處理成本（工具忙碌時數 &times; 示意處理費率）</li>
-      <li>等待 / 壅塞成本（lot 排隊等待時數 &times; 示意持有費率）</li>
-      <li>新增機台成本（新增機台數 &times; 示意機台成本）</li>
-    </ul>
-    <p class="method-note zh" style="margin-top:.5rem;">（負值代表相對基準省錢；正值代表成本增加）</p>
-    <p class="method-note en">Processing consumes tool time, energy, labor, and maintenance resources. Waiting creates WIP burden, longer lead time, and congestion risk.</p>
-    <p class="method-note zh">處理會消耗工具時間、能源、人力與維護資源；等待會造成 WIP 負擔、lead time 變長與壅塞風險。</p>
+    <p class="method-note en">Negative values save cost versus baseline; positive values add cost.</p>
+    <p class="method-note zh">（負值代表相對基準省錢；正值代表成本增加）</p>
 
     <div class="finding-note en">
       <h3>When metrics conflict</h3>
@@ -477,31 +461,27 @@
       control-chart method sensitive to small persistent drift, as the baseline. Labeled anomaly
       scenarios measure detection delay and false-alarm rate, then convert alert timing into cost
       still avoidable. In a 160-day synthetic backtest, an output-only monitor stays silent over the
-      whole horizon, while EWMA alerts 54 days after degradation onset, when most (about 95%) of the
-      extra congestion cost is still avoidable under illustrative waiting-cost assumptions. This is
-      not a real-fab savings promise; it shows how the workflow turns detection time into decision
-      value.</p></div>
+      whole horizon; EWMA alerts on day 84, meaning this experiment's EWMA method can avoid the
+      extra degradation cost that would accumulate over the following 76 days.</p></div>
     <div class="zh"><h2>慢性劣化監控：把偵測時間轉成決策價值</h2>
-      <p>設備緩慢劣化時，產出指標可能尚無警訊，等產出下滑，早已累積了一定的壅塞成本。本專案的監控設計以 EWMA 對小幅持續漂移敏感的管制圖方法作為基線，用標註好的異常情境量測偵測延遲與誤報率，再把警報時間點換算成仍可避免的成本。在 160 天的合成回測中，只看產出的監控整段期間沒有發出任何警報；EWMA 在劣化開始後 54 天發出警報，在示意等待成本假設下，此時大部分（約 95%）的額外壅塞成本仍可避免。這不是實廠節省承諾，而是展示這套流程如何把偵測時間轉成決策價值。</p></div>
+      <p>設備緩慢劣化時，產出指標可能尚無警訊，等產出下滑，早已累積了一定的壅塞成本。本專案的監控設計以 EWMA 對小幅持續漂移敏感的管制圖方法作為基線，用標註好的異常情境量測偵測延遲與誤報率，再把警報時間點換算成仍可避免的成本。在 160 天的合成回測中，只看產出的監控整段期間沒有發出任何警報；EWMA 在第 84 天發出警報，也就代表在此實驗中使用EWMA方法可以節省後面76天因劣化產生的額外成本。</p></div>
 
     <div class="table-wrap">
       <table class="metric-table">
-        <thead class="en"><tr><th>Monitoring approach</th><th>Signal watched</th><th>Alert logic</th><th>Result</th><th>Consequence</th></tr></thead>
-        <thead class="zh"><tr><th>監控方式</th><th>監控訊號</th><th>alert 邏輯</th><th>結果</th><th>後果</th></tr></thead>
+        <thead class="en"><tr><th>Monitoring approach</th><th>Signal watched</th><th>Alert logic</th><th>Result</th></tr></thead>
+        <thead class="zh"><tr><th>監控方式</th><th>監控訊號</th><th>alert 邏輯</th><th>結果</th></tr></thead>
         <tbody>
           <tr>
             <td><strong class="en">Output-only monitor</strong><strong class="zh">只看 output 的監控</strong></td>
             <td><span class="en">Daily output / throughput</span><span class="zh">Daily output / throughput</span></td>
             <td><span class="en">Alert only when output drops below the clean baseline lower control limit.</span><span class="zh">只有當 output 低於乾淨 baseline 的下控制線時才 alert。</span></td>
             <td><span class="en">No alert within 160 days</span><span class="zh">160 天內沒有 alert</span></td>
-            <td><span class="en">No alert: the problem runs to day 160 and ≈$249k of extra cost accumulates</span><span class="zh">沒有 alert，問題一路跑到 day 160，累積約 $249k 的額外成本</span></td>
           </tr>
           <tr class="metric-hot">
             <td><strong class="en">EWMA drift monitor</strong><strong class="zh">EWMA 漂移監控</strong></td>
             <td><span class="en">Daily median lot cycle time</span><span class="zh">每日 lot cycle time 中位數</span></td>
             <td><span class="en">Alert when small persistent cycle-time drift accumulates.</span><span class="zh">小而持續的 cycle-time 偏移累積後 alert。</span></td>
             <td><span class="en">Alert on day 84</span><span class="zh">day 84 alert</span></td>
-            <td><span class="en">Alert on day 84: only ≈$12k has accumulated; ≈$237k (95%) is still avoidable</span><span class="zh">day 84 alert，此時只累積約 $12k；約 $237k（95%）仍可避免</span></td>
           </tr>
         </tbody>
       </table>
@@ -511,21 +491,10 @@
       <img src="assets/finding03_output_cycle_time.png"
            alt="Degradation stays hidden in daily output but appears in daily median cycle time">
     </div>
-    <p class="caption en">Visual takeaway: daily output remains noisy but ordinary, while
+    <p class="caption en">-&gt; daily output remains noisy but ordinary, while
     daily median cycle time separates from the clean twin after degradation starts.</p>
-    <p class="caption zh">Visual takeaway：daily output 看起來仍在正常波動中，但 daily median cycle time
+    <p class="caption zh">-&gt; daily output 看起來仍在正常波動中，但 daily median cycle time
     在 degradation 開始後逐漸和 clean twin 分離。</p>
-
-    <p class="method-note en" style="margin-top:.7rem;"><strong>Where does $249k come from?</strong>
-    Waiting is priced at an illustrative $10 per lot-hour in queue, and the gap is measured
-    against a no-degradation twin of the same run. Degradation makes queues grow on themselves,
-    so the cost accelerates: the first 54 days accumulate only ≈$12k, the next 76 days ≈$237k.
-    The rate is an assumption; the structure is not: cost accelerates, and early detection
-    saves most of it.</p>
-    <p class="method-note zh" style="margin-top:.7rem;"><strong>$249k 是怎麼算出來的？</strong>等待以示意費率
-    $10／lot·小時計價，成本差距是與同一次 run 的無劣化對照（twin）相比。劣化會讓排隊自我放大，所以成本是
-    加速累積的：前 54 天只累積約 $12k，後 76 天累積約 $237k。費率是假設；但結構不是假設：
-    成本會加速累積，越早偵測出異常能省下越多成本。</p>
 
     <p class="caption en">Another advantage is that this workflow can be backtested: it checks
     whether a drift detector finds the problem before output makes it obvious, then estimates
@@ -538,16 +507,15 @@
     <span class="tag">03</span>
     <div class="en">
       <h2>One engine, four classes of fab operations questions</h2>
-      <p>These are not four separate dashboards. The point is that the same simulation core can
-      answer four operations questions: add capacity, time PM, choose dispatch policy, and evaluate
-      yield trade-offs. Each run records scenario settings, seed, assumptions, and KPIs, so the
-      numbers can be checked later. An agent can call that what-if engine to draft a decision memo
-      from logged results rather than inventing numbers. Packaging scenarios would still need their
-      own model; this page claims transferable method, not completed packaging modeling.</p>
+      <p>One agent contains analysis modules for four operations questions: how to add tools,
+      maintenance timing, dispatching rules, and output-yield trade-offs. Each analysis records
+      scenario, seed, assumptions, and KPI results in the same format, so the numbers are traceable.
+      This means a future AI agent can produce decision memos by calling the same what-if engine,
+      with traceable results instead of freely generated answers.</p>
     </div>
     <div class="zh">
       <h2>一顆引擎，回答四類 fab 營運問題</h2>
-      <p>這裡的重點不是四個獨立 dashboard，而是同一個模擬核心可以重複回答四種營運問題：加機台、維修時機、派工規則、良率取捨。每次分析都用相同格式留下 scenario、seed、假設與 KPI 結果，所以數字可以追溯。這代表未來若要讓 AI agent 產出決策備忘錄，它呼叫的是同一套 what-if engine，而不是自由生成答案。封裝情境仍需重新建模；這裡只主張方法可遷移，不主張已完成封裝模型。</p>
+      <p>一個agent內包含：該如何加機台、維修時機判斷、派工規則、產出與良率取捨，四個營運問題的分析流程模組。每次分析都用相同格式留下 scenario、seed、假設與 KPI 結果，讓數字可以追溯。這代表未來若要讓 AI agent 產出決策備忘錄，它呼叫的是同一套 what-if engine，且結果有跡可循，而不是自由生成答案。</p>
     </div>
 
     <div class="engine-grid">
