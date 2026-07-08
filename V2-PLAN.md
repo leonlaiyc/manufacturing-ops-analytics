@@ -170,13 +170,81 @@ Before editing, explain the exact small changes you will make. Keep edits to
 `docs/index.html` unless the owner explicitly asks for code or generated asset
 changes.
 
+### HANDOVER: scenario runner demo for Codex (2026-07-08)
+
+Goal: continue owner-directed work on the public pages on branch `v2`. Claude
+Code built the scenario runner demo the previous handover anticipated. This
+section is the current state; the index-page handover above is still valid for
+`docs/index.html` copy work.
+
+What shipped (two commits on `v2`):
+1. `663c0ff` added `docs/scenario-runner.html`, a bounded interactive demo over
+   the precomputed what-if library, plus a primary entry button in the
+   `docs/index.html` `.links` block (where the retired dashboard link used to
+   be). Button copy: "Try the scenario runner demo" / "操作情境模擬 demo".
+2. `c005ece` applied the owner's first review round (see locked rules below).
+
+What the page is (locked framing, do not loosen without owner instruction):
+1. It is a "Scenario Runner Demo" / "情境模擬 demo". NEVER call it a simulator,
+   decision platform, or optimization tool. It runs nothing live: every number
+   is read from a precomputed, fixed-seed, CRN-paired run and matches the
+   index page exactly. No new Python code, no free-form parameter input.
+2. Five tabs. The first four (capacity, maintenance, dispatch, yield) map to
+   the agent's four what-if decision modules in `src/agent/tools.py`. The fifth
+   (monitoring) is the detection layer that feeds those decisions, NOT a fifth
+   agent tool. The hero states this 4+1 relationship in both languages.
+3. Per-tab pattern: pick a scenario, see the KPI visual, then a decision-memo
+   preview, then a structured analysis record. There are no separate takeaway
+   lines (owner cut them as duplicating the memo). Memo sits ABOVE the record.
+4. The decision memo is a fixed template written index-style: it compares the
+   options and ends with objective-conditional guidance ("if the priority is
+   X ... if the priority is Y ..."). It is explicitly labeled "no live LLM, no
+   numbers outside the record". A real LLM memo wrapper stays in the local M10
+   agent flow, never on GitHub Pages.
+5. The analysis record is code-style structured fields: scenario id, engine
+   (module path), run (n_reps, CRN), seeds, assumptions, KPI result. Seed
+   ranges are real: capacity 1000-1029, maintenance 6000-6014, dispatch
+   8000-8029, yield 5000-5029 (shared QualityConfig seed), monitoring config
+   seed 42 with labeled onset day 30.
+6. Maintenance and yield tabs are LITHO-only by design: only LITHO runs are
+   published, and LITHO is the engineered bottleneck where each trade-off is
+   sharpest. Each tab carries a scope note saying the engine accepts a station
+   parameter but only the LITHO numbers are published. Do NOT fabricate other
+   stations to fill a selector.
+7. Bottom notes are titled "Scope" / "聲明" (owner changed "Honest scope" /
+   "誠實聲明" to a plain statement).
+
+Open owner question (do not act without instruction):
+- Whether `docs/index.html` Finding 03 should gain a half-sentence tying the
+  four agent decision modules to the Finding 02 monitoring detection layer
+  (the 4+1 framing). Claude Code did not touch the index narrative for this;
+  index copy is the owner's hand-tuned surface, surgical bilingual edits only.
+
+Validation performed:
+- Local preview at `http://127.0.0.1:8123/scenario-runner.html`
+  (`.claude/launch.json` config `docs-static`, `py -m http.server 8123`).
+- Programmatic checks across all five tabs: tab switching, single-select
+  highlight, memo/record swap per selection, structured record fields, cost
+  column always visible, memo-before-record order, scope notes present, chart
+  asset loads, EN/ZH toggle. No console errors.
+- No em dash in the file; `git diff --check` clean. No `src/` change, so the
+  fourteen validation scripts were not required.
+
+Suggested Codex prompt:
+Read `CLAUDE.md` in full, then read `V2-PLAN.md` sections "HANDOVER: scenario
+runner demo for Codex" and "HANDOVER: index page continuation". Continue only
+with the newest owner request. Keep edits to `docs/` unless the owner asks for
+code or generated-asset changes. Match the index visual system and the locked
+demo framing; make surgical, bilingual (.en/.zh paired) edits.
+
 ### Deferred (owner decision required)
 - Stylized advanced-packaging (HBM-class) back-end line scenario: reuses the
   DES engine but changes the locked single-product line design. Do not start
   without explicit owner unlock.
-- Lightweight scenario runner UI: potentially useful to close the loop between
-  the callable what-if modules and the public narrative. If requested, keep the
-  scope bounded and label it as a synthetic scenario runner demo.
+- Scenario runner UI: SHIPPED 2026-07-08 as `docs/scenario-runner.html` (see
+  the handover above). Remaining idea if the owner requests it: swap the
+  hardcoded page data for a generated JSON asset (would need a small Python
+  exporter); not started, kept out to avoid enlarging the task.
 
 ## Numbering note
 
@@ -250,3 +318,17 @@ Use `py`, not `python`, on this machine:
   fourteen. Open items requiring owner decisions: (1) live agent transcript
   (needs ANTHROPIC_API_KEY), (2) dashboard narrative refresh (owner copy
   review), (3) advanced-packaging back-end scenario (locked-design unlock).
+- 2026-07-08: scenario runner demo shipped (`docs/scenario-runner.html`,
+  commits 663c0ff and c005ece on `v2`). Bounded interactive view over the
+  precomputed what-if library: five tabs (capacity, maintenance, dispatch,
+  yield decision modules + monitoring detection layer), numbers matching the
+  index page, per-tab decision-memo preview (fixed template, no live LLM) above
+  a structured analysis record with real seed ranges, plus a primary entry
+  button in the index links block. Owner review round one applied: cost column
+  always shown, takeaway lines removed, memo above record, comparative
+  index-style memos, LITHO-only scope notes on maintenance/yield, notes retitled
+  to plain "Scope"/"聲明". No `src/` change. Open owner question: whether index
+  Finding 03 should gain a half-sentence on the 4+1 (four decision modules plus
+  monitoring detection layer) framing; index narrative left untouched pending
+  owner instruction. Full handover in the "scenario runner demo for Codex"
+  section above.
