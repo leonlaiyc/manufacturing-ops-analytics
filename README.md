@@ -168,14 +168,21 @@ manufacturing-ops-analytics/
 │   ├── synthetic/    # generated synthetic event log + ground-truth metadata
 │   └── README.md     # data provenance + honest-scope note
 ├── src/
-│   ├── generator/    # fab-style DES (batch tool, re-entrant route, CRN)
-│   ├── kpi/          # KPI computation + interactive dashboard export
+│   ├── generator/    # fab-style DES (batch tool, re-entrant route, CRN, dispatch)
+│   ├── kpi/          # KPI computation + GitHub Pages asset exports
 │   ├── bottleneck/   # evidence signals, naive baselines, CRN counterfactual
 │   ├── monitoring/   # anomaly injection, detectors, detection-quality scoring
-│   └── decision/     # cost model + capacity/demand/degradation what-ifs
-├── notebooks/        # one notebook per analysis stage (01-06)
-├── docs/             # glossary + GitHub Pages (interactive dashboard)
-└── reports/          # exported figures + standalone HTML dashboard
+│   ├── decision/     # cost model + capacity/demand/dispatch/yield what-ifs
+│   ├── quality/      # yield layer, virtual metrology, chamber matching (M7)
+│   ├── equipment/    # SEMI E10 states, PM-timing what-if, health model (M8)
+│   ├── agent/        # bounded logged tools + verified LLM agent loop (M10)
+│   └── dataquality/  # schema contract, drift, conformal, model cards (M11)
+├── notebooks/        # one notebook per analysis stage (01-11)
+├── scripts/          # live agent session runner (API-key gated)
+├── docs/             # GitHub Pages: narrative page, baseline, scenario runner
+│                     # demo, model cards, glossary
+└── reports/          # exported figures; recorded agent sessions land in
+                      # reports/agent_sessions/ once credentials are provided
 ```
 
 ## Reproducibility
@@ -197,7 +204,8 @@ python src/agent/agent_check.py          # tool-layer traceability + tamper gate
 python src/agent/loop_check.py           # agent-loop fabrication-catch gates (offline)
 python src/dataquality/dq_check.py       # schema-contract + corruption + join gates
 python src/dataquality/reliability_check.py # drift, conformal coverage, model-card gates
-python src/kpi/export_html_dashboard.py  # rebuild the interactive dashboard
+python src/kpi/export_html_dashboard.py  # rebuild the interactive baseline page
+python src/kpi/export_index_assets.py    # rebuild the static index chart assets
 ```
 
 ## Scope & honest notes
