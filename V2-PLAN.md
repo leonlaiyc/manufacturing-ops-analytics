@@ -68,7 +68,7 @@ git if ever needed.)
 - Done when: notebook 09 produces the paired comparison; FIFO reproduces the
   V1 baseline exactly (regression gate).
 
-### M10 Agentic decision support
+### M10 Agentic decision support (SHIPPED 2026-07-08, commits e8feff3..b238f31; live transcript pending owner API credentials)
 - An LLM agent exposes the what-if runner as a callable tool. Input: a natural
   language operational question. Output: a decision memo where every number
   cites a logged simulation run id. No number may originate from the LLM.
@@ -144,3 +144,13 @@ Use `py`, not `python`, on this machine:
   arrival order at any queue depth; proven under rho 0.90 stress, 0 of 1464
   dispatch rows differ). Checks now number ten. Next: M10 agentic decision
   support.
+- 2026-07-08: M10 shipped. Stage A tool layer (five bounded, logged tools with
+  deterministic run_ids; memo citation format [run:<id>]; tamper-detection
+  gate). Stage B LLM agent loop (claude-opus-4-8 adapter, MockLLM driving the
+  identical loop for five offline gates; two-layer verification: citations
+  must resolve in the run log AND no substantive uncited number may appear;
+  fabrication catch proven). Stage C notebook 10 + verification figure.
+  Checks now number twelve. Live session runner
+  (scripts/run_live_agent_session.py) is key-gated; recorded transcript will
+  be committed under reports/agent_sessions/ when the owner provides
+  ANTHROPIC_API_KEY. Next: M11 data quality and model reliability.
