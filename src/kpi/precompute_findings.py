@@ -1,6 +1,6 @@
 """
-Precompute the numbers/series behind the three findings for the interactive
-dashboard (docs/dashboard.html).
+Precompute the numbers/series behind the three findings for the published
+index visuals and related static evidence assets.
 
 Reuses the project's own validated modules (src/bottleneck/counterfactual.py,
 src/decision/whatif.py, src/decision/cost_model.py, src/monitoring/*) with the
@@ -9,8 +9,7 @@ the published ones under CRN + fixed seeds. Nothing here re-derives a method -
 it only calls the existing functions and caches their outputs.
 
 Writes data/synthetic/findings_cache.json (gitignored, like the rest of
-data/**). export_html_dashboard.py reads this cache; if it is missing, that
-script prints a clear "run precompute first" message and exits non-zero.
+data/**). Static index assets and legacy finding helpers read this cache.
 
 Run:  py src/kpi/precompute_findings.py
 

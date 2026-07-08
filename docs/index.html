@@ -93,6 +93,28 @@
   .workflow-step .n { color:var(--blue); font-weight:800; font-size:.76rem; margin-bottom:.18rem; }
   .workflow-step h3 { margin:.05rem 0 .2rem; font-size:.86rem; }
   .workflow-step p { margin:0; color:var(--muted); font-size:.78rem; line-height:1.45; }
+  .inline-chart { margin:1rem 0 .2rem; border:1px solid var(--line); border-radius:12px;
+                  background:#fff; padding:.55rem; }
+  .inline-chart img { width:100%; height:auto; display:block; border-radius:8px; }
+  .engine-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:.75rem; margin:1rem 0 .2rem; }
+  .engine-card { background:var(--bg); border:1px solid var(--line); border-radius:10px;
+                 padding:.8rem .85rem; }
+  .engine-card h3 { margin:.05rem 0 .25rem; font-size:.9rem; }
+  .engine-card .prompt { display:block; color:var(--muted); font-size:.78rem; margin-bottom:.5rem; }
+  .engine-bars { display:grid; gap:.42rem; margin:.45rem 0 .55rem; }
+  .engine-bar { display:grid; grid-template-columns:6.6rem minmax(0,1fr) 4.6rem;
+                gap:.45rem; align-items:center; font-size:.78rem; }
+  .engine-bar .value { text-align:right; font-weight:800; }
+  .engine-winners { display:grid; grid-template-columns:repeat(2,1fr); gap:.4rem; margin:.45rem 0 .55rem; }
+  .engine-winner { background:#fff; border:1px solid var(--line); border-radius:8px;
+                   padding:.5rem .55rem; }
+  .engine-winner span { display:block; color:var(--muted); font-size:.72rem; }
+  .engine-winner strong { display:block; color:var(--blue); font-size:.86rem; }
+  .engine-pair { display:grid; grid-template-columns:repeat(2,1fr); gap:.5rem; margin:.45rem 0 .55rem; }
+  .engine-pair div { background:#fff; border:1px solid var(--line); border-radius:8px;
+                     padding:.6rem .65rem; }
+  .engine-pair strong { display:block; font-size:1.25rem; line-height:1.1; }
+  .engine-pair span { display:block; color:var(--muted); font-size:.72rem; margin-top:.2rem; }
 
   figure { margin:1rem 0 .2rem; }
   svg { width:100%; height:auto; display:block; }
@@ -123,8 +145,10 @@
   .note { font-size:.82rem; color:var(--grey); margin-top:1.8rem; line-height:1.6; }
 
   @media (max-width:620px){
-    .steps,.stats,.workflow { grid-template-columns:1fr; }
+    .steps,.stats,.workflow,.engine-grid,.engine-winners,.engine-pair { grid-template-columns:1fr; }
     .stats.four { grid-template-columns:1fr; }
+    .engine-bar { grid-template-columns:1fr; gap:.22rem; }
+    .engine-bar .value { text-align:left; }
     h1 { font-size:1.5rem; }
     .finding { padding:1.05rem 1rem; }
     table.metric-table { min-width:660px; font-size:.8rem; }
@@ -511,6 +535,15 @@
       </table>
     </div>
 
+    <div class="inline-chart">
+      <img src="assets/finding03_output_cycle_time.png"
+           alt="Degradation stays hidden in daily output but appears in daily median cycle time">
+    </div>
+    <p class="caption en">Visual takeaway: daily output remains noisy but ordinary, while
+    daily median cycle time separates from the clean twin after degradation starts.</p>
+    <p class="caption zh">Visual takeaway：daily output 看起來仍在正常波動中，但 daily median cycle time
+    在 degradation 開始後逐漸和 clean twin 分離。</p>
+
     <p class="method-note en" style="margin-top:.7rem;"><strong>Where does $249k come from?</strong>
     Waiting is priced at an illustrative $10 per lot-hour in queue, and the gap is measured
     against a no-degradation twin of the same run. Degradation makes queues grow on themselves,
@@ -548,6 +581,86 @@
       <h2>一顆引擎，回答四類 fab 營運問題</h2>
       <p>產能投資值不值得、維修現在做還是等一等、哪個派工規則在當前需求與品質目標下較好、更快的流動會不會換來 queue time 超限與重工風險：這四類問題共用同一顆模擬引擎與同一套證據標準，每個答案都能追溯到一筆模擬紀錄。AI agent 可以直接呼叫這顆引擎執行 what-if，把結果整理成每個數字都可查證的決策備忘錄，對齊 Samsung 於 GTC 2026 展示的 agentic 智慧製造方向。專案建模的重入式與批次結構，與先進封裝（HBM 堆疊、bonding/molding 批次製程）的產能問題在方法上同構：這裡驗證的分析流程可以遷移到封裝瓶頸情境，這是方法的可轉移性，不是已完成的建模宣稱。</p>
     </div>
+
+    <div class="engine-grid">
+      <div class="engine-card">
+        <h3>Capacity investment</h3>
+        <span class="prompt en">Which station should receive the next tool?</span>
+        <span class="prompt zh">先加哪一站的 tool？</span>
+        <div class="engine-bars">
+          <div class="engine-bar">
+            <span>LITHO +1</span>
+            <div class="track"><div class="fill blue" style="width:100%"></div></div>
+            <span class="value">2.46 h</span>
+          </div>
+          <div class="engine-bar">
+            <span>FURNACE +1</span>
+            <div class="track"><div class="fill" style="width:28%"></div></div>
+            <span class="value">0.70 h</span>
+          </div>
+        </div>
+        <p class="caption en">Takeaway: capacity is ranked by whole-line cycle-time impact, not local batch intuition.</p>
+        <p class="caption zh">Takeaway：capacity decision 看 whole-line cycle-time impact，不只看局部 batch 直覺。</p>
+      </div>
+
+      <div class="engine-card">
+        <h3>Maintenance timing</h3>
+        <span class="prompt en">Maintain now or wait?</span>
+        <span class="prompt zh">現在 PM 還是延後？</span>
+        <div class="engine-bars">
+          <div class="engine-bar">
+            <span>Immediate PM</span>
+            <div class="track"><div class="fill green" style="width:38%"></div></div>
+            <span class="value">$1.75M</span>
+          </div>
+          <div class="engine-bar">
+            <span>Mid PM</span>
+            <div class="track"><div class="fill" style="width:53%"></div></div>
+            <span class="value">$2.45M</span>
+          </div>
+          <div class="engine-bar">
+            <span>Late PM</span>
+            <div class="track"><div class="fill red" style="width:100%"></div></div>
+            <span class="value">$4.59M</span>
+          </div>
+        </div>
+        <p class="caption en">Takeaway: monitoring becomes a PM-timing trade-off once cost is attached to delay.</p>
+        <p class="caption zh">Takeaway：當 delay 有成本，monitoring 就會變成 PM-timing trade-off。</p>
+      </div>
+
+      <div class="engine-card">
+        <h3>Dispatching policy</h3>
+        <span class="prompt en">Which queue rule fits the objective?</span>
+        <span class="prompt zh">哪個 queue rule 符合目標？</span>
+        <div class="engine-winners">
+          <div class="engine-winner"><span>Cycle time</span><strong>EDD</strong></div>
+          <div class="engine-winner"><span>On-time</span><strong>EDD</strong></div>
+          <div class="engine-winner"><span>Yield risk</span><strong>Release control</strong></div>
+          <div class="engine-winner"><span>Total cost</span><strong>Release control</strong></div>
+        </div>
+        <p class="caption en">Takeaway: the best dispatch policy changes when the operating objective changes.</p>
+        <p class="caption zh">Takeaway：operating objective 改變時，最佳 dispatch policy 也會改變。</p>
+      </div>
+
+      <div class="engine-card">
+        <h3>Yield trade-offs</h3>
+        <span class="prompt en">Does faster flow increase quality risk?</span>
+        <span class="prompt zh">加速 flow 是否增加 quality risk？</span>
+        <div class="engine-pair">
+          <div>
+            <strong>-2.87 h</strong>
+            <span>cycle-time change from LITHO +1</span>
+          </div>
+          <div>
+            <strong>+0.038</strong>
+            <span>post-litho violation-rate change</span>
+          </div>
+        </div>
+        <p class="caption en">Takeaway: speed and yield risk must be visible in the same decision view.</p>
+        <p class="caption zh">Takeaway：speed 和 yield risk 必須放在同一個 decision view 裡看。</p>
+      </div>
+    </div>
+
   </div>
 
   <p class="section-label"><span class="en">Methodology and validation</span><span class="zh">方法與驗證</span></p>
@@ -595,8 +708,6 @@
   </div>
 
   <div class="links">
-    <a class="btn primary" href="dashboard.html">
-      <span class="en">▶ Explore the interactive data</span><span class="zh">▶ 看互動式詳細數據</span></a>
     <a class="btn ghost" href="https://github.com/leonlaiyc/manufacturing-ops-analytics">
       <span class="en">View the full analysis on GitHub</span><span class="zh">在 GitHub 看完整分析</span></a>
   </div>
