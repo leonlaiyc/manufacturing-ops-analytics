@@ -237,14 +237,108 @@ with the newest owner request. Keep edits to `docs/` unless the owner asks for
 code or generated-asset changes. Match the index visual system and the locked
 demo framing; make surgical, bilingual (.en/.zh paired) edits.
 
+### HANDOVER: two commissioned tasks for Codex (2026-07-08, owner-approved)
+
+The owner commissioned both tasks below on 2026-07-08. Do Task A first: it
+closes the last README claim without evidence. Task B is an invisible
+refactor; the rendered page must not change. Read `CLAUDE.md` in full first
+and obey its hard rules (no em dash, English only, fixed seeds, `py` not
+`python` on this machine).
+
+#### Task A: record the live agent session (M10 evidence)
+
+GOAL: produce and commit the first VERIFIED live agent transcript under
+`reports/agent_sessions/`, so the M10 claim ("a live-session runner records
+transcripts as public evidence") is backed by an actual artifact. Everything
+else about M10 is already shipped and gated offline with MockLLM.
+
+SPEC:
+- Precondition: the owner sets `ANTHROPIC_API_KEY` in the environment for the
+  session. Never echo, log, or commit the key; abort if it is absent (the
+  runner exits 1 with a clear message).
+- Run exactly: `py scripts/run_live_agent_session.py` (default question,
+  one session per invocation). Cost is a single short session.
+- Exit 0 (VERIFIED): commit the produced
+  `reports/agent_sessions/session_<UTC stamp>/` (transcript.json + memo.md).
+  First confirm `.gitignore` does not swallow the path (only `data/**` and
+  generated synthetic artifacts are ignored; `reports/figures` is tracked).
+- Exit 2 (ran but FAILED verification): keep the artifacts locally, do NOT
+  commit them as evidence, and report the `verification` block to the owner.
+  One retry is allowed only for a clearly transient API failure. Never touch
+  the verification logic in `src/agent/` to make a session pass.
+- After a successful commit, update `README.md`: the Roadmap bullet about the
+  recorded live agent session becomes a link to the committed transcript
+  directory. Do not change the M10 table row (it becomes plainly true).
+- Do NOT touch: `src/agent/**` (verification logic), locked design decisions,
+  notebook 10.
+
+ACCEPTANCE (all must hold):
+- `transcript.json` has `"status": "VERIFIED"`, `verification.all_found`
+  true, and an empty `uncited_numbers` list.
+- `py src/agent/agent_check.py` and `py src/agent/loop_check.py` still exit 0.
+- No credential material anywhere in the committed diff (search the staged
+  diff for `sk-` and `ANTHROPIC` before committing).
+- Committed as `feat: record first verified live agent session (M10)` and
+  pushed to `v2`; V2-PLAN.md Log gains one entry marking open item (1)
+  resolved.
+
+REPORT: session status line, citation counts from the runner output, the
+committed path, and one line "verified:" / one line "assumed:".
+
+#### Task B: scenario runner data extraction (single source of truth)
+
+GOAL: move the numbers hardcoded in `docs/scenario-runner.html` into a
+generated `docs/assets/scenario_runner_data.json`, produced by a new exporter
+`src/kpi/export_scenario_runner_data.py`, so page numbers can never silently
+drift from engine outputs. This is a BEHAVIOR-PRESERVING change: the rendered
+page must show byte-identical numbers and text before vs after.
+
+SPEC:
+- Exporter: derive every numeric field from the same module entry points the
+  published numbers came from, with the published seeds: capacity
+  `src/decision/whatif.py` (n_reps=30, seed0=1000; stress costs via
+  `cost_model.py`, reuse `data/synthetic/findings_cache.json` /
+  `src/kpi/precompute_findings.py` where the value is already cached),
+  maintenance `src/equipment/maintenance_whatif.py` demo (n_reps=15,
+  seed0=6000), dispatch `src/decision/dispatch_whatif.py` run_all (n_reps=30,
+  seed0=8000), yield `src/decision/yield_whatif.py` demo_extra_litho_tool
+  (n_reps=30, seed0=5000), monitoring from the findings cache (seed 42,
+  onset day 30, alert day 84).
+- Hard gate inside the exporter: assert each derived value matches the
+  published value (2.46 / 0.70 / 0.26 / 0.05 h; +8.0k / -1.7k / +1.7k /
+  +1.4k; 1.75M / 2.45M / 4.59M; EDD and release_control winners; -2.87 h /
+  +0.038; day 84 of 160). If any value cannot be reproduced exactly at the
+  published rounding, STOP and report; do not widen tolerances and do not
+  ship the JSON.
+- Page: load the JSON (same-origin fetch works on GitHub Pages and the local
+  `docs-static` server; note in a code comment that file:// will not work)
+  and fill the numeric/data fields from it. The bilingual memo and note prose
+  STAYS in the HTML: it is the owner-reviewed copy surface. Structured record
+  fields (engine, run, seeds, assumptions, KPI strings) may move to the JSON.
+- Do NOT change any visible wording, layout, CSS, or the locked demo framing
+  (see the scenario runner handover above). No new JS libraries.
+
+ACCEPTANCE (all must hold):
+- `py src/kpi/export_scenario_runner_data.py` exits 0 and regenerating twice
+  produces an identical file (fixed seeds).
+- With the local `docs-static` server, every number and label shown on all
+  five tabs is identical to the pre-change page (record the pre-change values
+  first, then compare).
+- `git diff --check` clean; no em dash; no change outside
+  `src/kpi/export_scenario_runner_data.py`, `docs/scenario-runner.html`,
+  `docs/assets/scenario_runner_data.json`.
+- Committed as `refactor: generate scenario runner data from engines (V2)`.
+
+REPORT: before/after value comparison table, exporter runtime, file:line map
+of the page changes, anything that smelled wrong but was left alone.
+
 ### Deferred (owner decision required)
 - Stylized advanced-packaging (HBM-class) back-end line scenario: reuses the
   DES engine but changes the locked single-product line design. Do not start
   without explicit owner unlock.
 - Scenario runner UI: SHIPPED 2026-07-08 as `docs/scenario-runner.html` (see
-  the handover above). Remaining idea if the owner requests it: swap the
-  hardcoded page data for a generated JSON asset (would need a small Python
-  exporter); not started, kept out to avoid enlarging the task.
+  the handover above). The JSON extraction follow-up is now commissioned as
+  Task B in "two commissioned tasks for Codex".
 
 ## Numbering note
 
@@ -332,3 +426,13 @@ Use `py`, not `python`, on this machine:
   monitoring detection layer) framing; index narrative left untouched pending
   owner instruction. Full handover in the "scenario runner demo for Codex"
   section above.
+- 2026-07-08: pre-interview readiness pass. All fourteen validation scripts
+  re-run and pass. README repository-structure section updated to the real
+  tree (nine src modules, notebooks 01-11, scripts/, docs pages, agent-session
+  landing path) and the stale dashboard export comment fixed. Owner
+  commissioned two Codex tasks, spec'd in "two commissioned tasks for Codex":
+  (A) record and commit the first verified live agent session (needs
+  ANTHROPIC_API_KEY from the owner), (B) extract scenario runner page data
+  into a generated JSON with an exact-match gate against published values.
+  Remaining owner decision for publishing: merge `v2` into `main` (47 commits
+  ahead; GitHub Pages serves main, which still shows the V1 state).
