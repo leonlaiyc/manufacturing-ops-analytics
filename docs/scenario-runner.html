@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scenario Runner Demo, Manufacturing Operations Analytics</title>
+<style>
+  :root {
+    --ink:#22303C; --muted:#5B7180; --line:#DCE3E8; --bg:#F7F9FA;
+    --blue:#1565C0; --blue-soft:#E3F0FB; --grey:#9AA9B4;
+    --green:#2E7D32; --green-soft:#E6F4E7; --red:#C62828; --red-soft:#FBE9E9;
+    color-scheme:light;
+  }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,"Segoe UI",Roboto,"Noto Sans TC",Helvetica,Arial,sans-serif;
+         color:var(--ink); background:var(--bg); margin:0; line-height:1.6;
+         -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:880px; margin:0 auto; padding:0 1.2rem 4rem; }
+
+  .topbar { display:flex; justify-content:space-between; align-items:center; gap:.4rem;
+            max-width:880px; margin:0 auto; padding:1rem 1.2rem .2rem; }
+  .topbar .right { display:flex; gap:.4rem; }
+  .backlink { color:var(--muted); text-decoration:none; font-size:.85rem; font-weight:600; }
+  .backlink:hover { color:var(--blue); }
+  .langbtn { border:1px solid var(--line); background:#fff; color:var(--muted);
+             display:inline-flex; align-items:center; justify-content:center;
+             min-width:3.1rem; height:1.9rem; padding:0 .7rem;
+             font-size:.8rem; border-radius:999px; cursor:pointer;
+             font-weight:600; letter-spacing:0; line-height:1; }
+  .langbtn[aria-pressed="true"] { background:var(--blue); color:#fff; border-color:var(--blue); }
+  .lang-zh .en { display:none; } .lang-en .zh { display:none; }
+
+  header.hero { padding:1.4rem 0 1.2rem; border-bottom:1px solid var(--line); }
+  .kicker { color:var(--blue); font-weight:700; font-size:.8rem; letter-spacing:.08em;
+            text-transform:uppercase; margin:0 0 .5rem; }
+  h1 { font-size:1.6rem; line-height:1.25; margin:.1rem 0 .5rem; }
+  .lede { font-size:.98rem; color:var(--muted); margin:.3rem 0 0; }
+
+  .tabs { display:flex; flex-wrap:wrap; gap:.5rem; margin:1.3rem 0 1rem; }
+  .tabbtn { border:1px solid var(--line); background:#fff; color:var(--muted);
+            padding:.45rem .85rem; font-size:.86rem; border-radius:999px; cursor:pointer;
+            font-weight:700; line-height:1; }
+  .tabbtn[aria-pressed="true"] { background:var(--blue); color:#fff; border-color:var(--blue); }
+
+  .finding { background:#fff; border:1px solid var(--line); border-radius:14px;
+             padding:1.3rem 1.4rem; margin:0 0 1rem; }
+  .finding h2 { font-size:1.1rem; margin:.1rem 0 .4rem; line-height:1.3; }
+  .prompt { display:block; color:var(--muted); font-size:.88rem; margin:0 0 .6rem; }
+  .tabpane { display:none; }
+  .tabpane.active { display:block; }
+
+  .choices { display:flex; flex-wrap:wrap; gap:.5rem; margin:.4rem 0 .9rem; }
+  .choicebtn { border:1px solid var(--line); background:var(--bg); color:var(--ink);
+               padding:.5rem .9rem; font-size:.86rem; border-radius:9px; cursor:pointer;
+               font-weight:700; line-height:1.2; }
+  .choicebtn[aria-pressed="true"] { background:var(--blue-soft); color:var(--blue);
+                                    border-color:var(--blue); }
+  label.costtoggle { display:inline-flex; align-items:center; gap:.4rem; font-size:.84rem;
+                     color:var(--muted); cursor:pointer; margin:.1rem 0 .8rem; font-weight:600; }
+
+  .table-wrap { width:100%; overflow-x:auto; margin:.65rem 0 .95rem; border:1px solid var(--line);
+                border-radius:10px; background:#fff; }
+  table.metric-table { width:100%; min-width:640px; border-collapse:collapse; font-size:.85rem; }
+  .metric-table th, .metric-table td { padding:.65rem .7rem; border-bottom:1px solid var(--line);
+                                       vertical-align:top; text-align:left; }
+  .metric-table th { color:var(--muted); font-size:.74rem; letter-spacing:.04em;
+                     text-transform:uppercase; background:#F2F6F8; }
+  .metric-table tr:last-child td { border-bottom:0; }
+  .metric-table strong { color:var(--ink); }
+  .metric-table tr.sel { background:#FFF7E0; }
+  .hide-cost .costcol { display:none; }
+  .barcell { min-width:150px; }
+  .barlabel { display:flex; justify-content:space-between; gap:.7rem; font-weight:700; }
+  .track { height:.62rem; background:#EAF0F4; border-radius:999px; overflow:hidden; margin-top:.32rem; }
+  .fill { height:100%; border-radius:999px; background:var(--grey); min-width:4px; }
+  .fill.blue { background:var(--blue); }
+  .fill.green { background:var(--green); }
+  .fill.red { background:var(--red); }
+  .fill.tiny { min-width:6px; }
+  .cost-save { color:var(--green); }
+  .cost-cost { color:var(--red); }
+
+  .engine-bars { display:grid; gap:.42rem; margin:.45rem 0 .55rem; }
+  .engine-bar { display:grid; grid-template-columns:7.4rem minmax(0,1fr) 4.6rem;
+                gap:.45rem; align-items:center; font-size:.82rem;
+                padding:.3rem .4rem; border-radius:8px; border:1px solid transparent; }
+  .engine-bar.sel { background:#FFF7E0; border-color:#EAD9A0; }
+  .engine-bar .value { text-align:right; font-weight:800; }
+  .engine-winners { display:grid; grid-template-columns:repeat(2,1fr); gap:.4rem; margin:.45rem 0 .55rem; }
+  .engine-winner { background:var(--bg); border:1px solid var(--line); border-radius:8px;
+                   padding:.5rem .55rem; }
+  .engine-winner.sel { background:#FFF7E0; border-color:#EAD9A0; }
+  .engine-winner span { display:block; color:var(--muted); font-size:.72rem; }
+  .engine-winner strong { display:block; color:var(--blue); font-size:.86rem; }
+  .engine-pair { display:grid; grid-template-columns:repeat(2,1fr); gap:.5rem; margin:.45rem 0 .55rem; }
+  .engine-pair div { background:var(--bg); border:1px solid var(--line); border-radius:8px;
+                     padding:.6rem .65rem; }
+  .engine-pair strong { display:block; font-size:1.25rem; line-height:1.1; }
+  .engine-pair span { display:block; color:var(--muted); font-size:.72rem; margin-top:.2rem; }
+
+  .inline-chart { margin:1rem 0 .2rem; border:1px solid var(--line); border-radius:12px;
+                  background:#fff; padding:.55rem; }
+  .inline-chart img { width:100%; height:auto; display:block; border-radius:8px; }
+  .caption { font-size:.84rem; color:var(--muted); margin:.5rem 0 0; }
+  .caption strong { color:var(--ink); }
+
+  .record { background:var(--bg); border:1px solid var(--line); border-radius:10px;
+            padding:.75rem .85rem; margin:.85rem 0 0; font-size:.8rem; }
+  .record .rec-title { font-weight:800; font-size:.74rem; letter-spacing:.05em;
+                       text-transform:uppercase; color:var(--muted); margin:0 0 .4rem; }
+  .record .row { display:grid; grid-template-columns:7.2rem minmax(0,1fr); gap:.6rem;
+                 padding:.14rem 0; }
+  .record .k { color:var(--muted); font-weight:700; }
+  .record .v { color:var(--ink); overflow-wrap:anywhere; }
+  .record code { font-family:Consolas,Menlo,monospace; font-size:.78rem; background:#EDF2F5;
+                 padding:.05rem .3rem; border-radius:4px; }
+
+  .memo { background:var(--blue-soft); border:1px solid #BBD6F2; border-radius:10px;
+          padding:.75rem .85rem; margin:.6rem 0 0; font-size:.84rem; }
+  .memo .memo-title { font-weight:800; font-size:.74rem; letter-spacing:.05em;
+                      text-transform:uppercase; color:var(--blue); margin:0 0 .35rem; }
+  .memo p { margin:.25rem 0 0; }
+  .memo .memo-note { color:var(--muted); font-size:.74rem; margin-top:.45rem; }
+
+  .links { display:flex; flex-wrap:wrap; gap:.7rem; margin:1.2rem 0 0; }
+  a.btn { display:inline-block; text-decoration:none; font-weight:600; font-size:.94rem;
+          padding:.6rem 1.1rem; border-radius:9px; }
+  a.btn.ghost { background:#fff; color:var(--ink); border:1px solid var(--line); }
+  .note { font-size:.82rem; color:var(--grey); margin-top:1.8rem; line-height:1.6; }
+
+  @media (max-width:620px){
+    h1 { font-size:1.3rem; }
+    .finding { padding:1.05rem 1rem; }
+    table.metric-table { min-width:560px; font-size:.8rem; }
+    .engine-winners,.engine-pair { grid-template-columns:1fr; }
+    .engine-bar { grid-template-columns:1fr; gap:.22rem; }
+    .engine-bar .value { text-align:left; }
+    .record .row { grid-template-columns:1fr; gap:.1rem; }
+  }
+</style>
+</head>
+<body class="lang-zh">
+
+<div class="topbar">
+  <a class="backlink" href="index.html"><span class="en">&larr; Back to project page</span><span class="zh">&larr; 回專案首頁</span></a>
+  <div class="right">
+    <button class="langbtn" data-lang="zh" onclick="setLang('zh')">中文</button>
+    <button class="langbtn" data-lang="en" onclick="setLang('en')">EN</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header class="hero">
+    <p class="kicker">Scenario Runner Demo</p>
+    <div class="en">
+      <h1>Pick a scenario, see the recorded result</h1>
+      <p class="lede">An interactive view of the same precomputed, fixed-seed what-if library the
+      project page cites. Nothing runs live here: every number below is traceable to a recorded
+      CRN-paired run on the synthetic line.</p>
+    </div>
+    <div class="zh">
+      <h1>選一個情境，看紀錄下來的分析結果</h1>
+      <p class="lede">這裡展示的是專案首頁引用的同一批預先計算、固定 seed 的 what-if 情境庫。頁面不即時跑模擬：下面每個數字都能追溯到合成產線上一次 CRN 配對的紀錄 run。</p>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tabbtn" data-tab="capacity"><span class="en">Capacity</span><span class="zh">加機台</span></button>
+    <button class="tabbtn" data-tab="maintenance"><span class="en">Maintenance</span><span class="zh">維修時機</span></button>
+    <button class="tabbtn" data-tab="dispatch"><span class="en">Dispatching</span><span class="zh">派工規則</span></button>
+    <button class="tabbtn" data-tab="yield"><span class="en">Yield</span><span class="zh">良率取捨</span></button>
+    <button class="tabbtn" data-tab="monitor"><span class="en">Monitoring</span><span class="zh">劣化監控</span></button>
+  </nav>
+
+  <!-- CAPACITY -->
+  <section class="finding tabpane" id="pane-capacity">
+    <h2><span class="en">Which station should receive the next tool?</span><span class="zh">先加哪一站的 tool？</span></h2>
+    <span class="prompt"><span class="en">Pick a station to compare its whole-line impact against the other options.</span><span class="zh">選一個站點，比較它和其他選項對整條產線的影響。</span></span>
+
+    <div class="choices" id="cap-choices">
+      <button class="choicebtn" data-id="LITHO">LITHO +1</button>
+      <button class="choicebtn" data-id="FURNACE">FURNACE +1</button>
+      <button class="choicebtn" data-id="DEPO">DEPO +1</button>
+      <button class="choicebtn" data-id="METRO">METRO +1</button>
+    </div>
+    <label class="costtoggle"><input type="checkbox" id="cap-cost">
+      <span class="en">Show investment-stress cost view (illustrative rates, for ranking only)</span>
+      <span class="zh">顯示投資壓力成本情境（示意費率，僅供排序）</span></label>
+
+    <div class="table-wrap hide-cost" id="cap-tablewrap">
+      <table class="metric-table">
+        <thead>
+          <tr>
+            <th><span class="en">Station</span><span class="zh">站點</span></th>
+            <th><span class="en">Added Lot-Processing Slots</span><span class="zh">增加的 lot 處理槽數</span></th>
+            <th><span class="en">Avg Cycle-Time Reduction</span><span class="zh">平均 cycle time 降幅</span></th>
+            <th class="costcol"><span class="en">Investment-Stress Net Cost Change</span><span class="zh">投資壓力情境淨成本變化</span></th>
+          </tr>
+        </thead>
+        <tbody id="cap-rows">
+          <tr data-id="LITHO">
+            <td><strong>LITHO</strong></td>
+            <td class="barcell"><div class="barlabel"><span>+1 lot</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span>-2.46 h</span><span class="en">largest</span><span class="zh">最大</span></div><div class="track"><div class="fill blue" style="width:100%"></div></div></td>
+            <td class="barcell costcol"><div class="barlabel"><span class="cost-cost">+$8.0k</span><span></span></div><div class="track"><div class="fill red" style="width:100%"></div></div></td>
+          </tr>
+          <tr data-id="FURNACE">
+            <td><strong>FURNACE</strong></td>
+            <td class="barcell"><div class="barlabel"><span>+4 lots</span><span class="en">most slots</span><span class="zh">槽數最多</span></div><div class="track"><div class="fill green" style="width:100%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span>-0.70 h</span><span></span></div><div class="track"><div class="fill blue" style="width:28%"></div></div></td>
+            <td class="barcell costcol"><div class="barlabel"><span class="cost-save">-$1.7k</span><span></span></div><div class="track"><div class="fill green" style="width:22%"></div></div></td>
+          </tr>
+          <tr data-id="DEPO">
+            <td><strong>DEPO</strong></td>
+            <td class="barcell"><div class="barlabel"><span>+1 lot</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span>-0.26 h</span><span></span></div><div class="track"><div class="fill blue" style="width:10%"></div></div></td>
+            <td class="barcell costcol"><div class="barlabel"><span class="cost-cost">+$1.7k</span><span></span></div><div class="track"><div class="fill red" style="width:21%"></div></div></td>
+          </tr>
+          <tr data-id="METRO">
+            <td><strong>METRO</strong></td>
+            <td class="barcell"><div class="barlabel"><span>+1 lot</span><span></span></div><div class="track"><div class="fill tiny" style="width:25%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span>-0.05 h</span><span></span></div><div class="track"><div class="fill blue tiny" style="width:2%"></div></div></td>
+            <td class="barcell costcol"><div class="barlabel"><span class="cost-cost">+$1.4k</span><span></span></div><div class="track"><div class="fill red" style="width:17%"></div></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="caption" id="cap-takeaway"></p>
+    <div class="record" id="cap-record"></div>
+    <div class="memo" id="cap-memo"></div>
+  </section>
+
+  <!-- MAINTENANCE -->
+  <section class="finding tabpane" id="pane-maintenance">
+    <h2><span class="en">Maintain now or wait?</span><span class="zh">現在 PM 還是延後？</span></h2>
+    <span class="prompt"><span class="en">Pick a PM timing and compare its total cost against the alternatives.</span><span class="zh">選一個 PM 時機，和其他選項比較總成本。</span></span>
+
+    <div class="choices" id="mnt-choices">
+      <button class="choicebtn" data-id="immediate"><span class="en">Immediate PM</span><span class="zh">立即 PM</span></button>
+      <button class="choicebtn" data-id="mid"><span class="en">Mid PM</span><span class="zh">中期 PM</span></button>
+      <button class="choicebtn" data-id="late"><span class="en">Late PM</span><span class="zh">延後 PM</span></button>
+    </div>
+
+    <div class="engine-bars" id="mnt-bars">
+      <div class="engine-bar" data-id="immediate">
+        <span><span class="en">Immediate PM</span><span class="zh">立即 PM</span></span>
+        <div class="track"><div class="fill green" style="width:38%"></div></div>
+        <span class="value">$1.75M</span>
+      </div>
+      <div class="engine-bar" data-id="mid">
+        <span><span class="en">Mid PM</span><span class="zh">中期 PM</span></span>
+        <div class="track"><div class="fill" style="width:53%"></div></div>
+        <span class="value">$2.45M</span>
+      </div>
+      <div class="engine-bar" data-id="late">
+        <span><span class="en">Late PM</span><span class="zh">延後 PM</span></span>
+        <div class="track"><div class="fill red" style="width:100%"></div></div>
+        <span class="value">$4.59M</span>
+      </div>
+    </div>
+
+    <p class="caption" id="mnt-takeaway"></p>
+    <div class="record" id="mnt-record"></div>
+    <div class="memo" id="mnt-memo"></div>
+  </section>
+
+  <!-- DISPATCH -->
+  <section class="finding tabpane" id="pane-dispatch">
+    <h2><span class="en">Which queue rule fits the objective?</span><span class="zh">哪個 queue rule 符合目標？</span></h2>
+    <span class="prompt"><span class="en">Pick an operating objective; the winning policy is read from the same policy comparison runs.</span><span class="zh">選一個營運目標，最佳 policy 讀自同一批 policy 比較 run。</span></span>
+
+    <div class="choices" id="dsp-choices">
+      <button class="choicebtn" data-id="ct"><span class="en">Cycle time</span><span class="zh">Cycle time</span></button>
+      <button class="choicebtn" data-id="ontime"><span class="en">On-time delivery</span><span class="zh">準時交付</span></button>
+      <button class="choicebtn" data-id="yieldrisk"><span class="en">Yield risk</span><span class="zh">良率風險</span></button>
+      <button class="choicebtn" data-id="cost"><span class="en">Total cost</span><span class="zh">總成本</span></button>
+    </div>
+
+    <div class="engine-winners" id="dsp-winners">
+      <div class="engine-winner" data-id="ct"><span><span class="en">Cycle time</span><span class="zh">Cycle time</span></span><strong>EDD</strong></div>
+      <div class="engine-winner" data-id="ontime"><span><span class="en">On-time</span><span class="zh">準時交付</span></span><strong>EDD</strong></div>
+      <div class="engine-winner" data-id="yieldrisk"><span><span class="en">Yield risk</span><span class="zh">良率風險</span></span><strong>Release control</strong></div>
+      <div class="engine-winner" data-id="cost"><span><span class="en">Total cost</span><span class="zh">總成本</span></span><strong>Release control</strong></div>
+    </div>
+
+    <p class="caption" id="dsp-takeaway"></p>
+    <div class="record" id="dsp-record"></div>
+    <div class="memo" id="dsp-memo"></div>
+  </section>
+
+  <!-- YIELD -->
+  <section class="finding tabpane" id="pane-yield">
+    <h2><span class="en">Does faster flow increase quality risk?</span><span class="zh">加速 flow 是否增加 quality risk？</span></h2>
+    <span class="prompt"><span class="en">Flip between baseline and the LITHO +1 scenario; speed and yield risk share one view.</span><span class="zh">在 baseline 和 LITHO +1 情境之間切換，速度和良率風險放在同一個畫面。</span></span>
+
+    <div class="choices" id="yld-choices">
+      <button class="choicebtn" data-id="baseline">Baseline</button>
+      <button class="choicebtn" data-id="litho1">LITHO +1 tool</button>
+    </div>
+
+    <div class="engine-pair">
+      <div>
+        <strong id="yld-ct">0 h</strong>
+        <span><span class="en">avg cycle-time change vs baseline</span><span class="zh">平均 cycle time 相對 baseline 的變化</span></span>
+      </div>
+      <div>
+        <strong id="yld-vio">0</strong>
+        <span><span class="en">post-litho violation-rate change vs baseline</span><span class="zh">post-litho violation rate 相對 baseline 的變化</span></span>
+      </div>
+    </div>
+
+    <p class="caption" id="yld-takeaway"></p>
+    <div class="record" id="yld-record"></div>
+    <div class="memo" id="yld-memo"></div>
+  </section>
+
+  <!-- MONITORING -->
+  <section class="finding tabpane" id="pane-monitor">
+    <h2><span class="en">Which monitor catches slow drift in time?</span><span class="zh">哪種監控來得及抓到慢性劣化？</span></h2>
+    <span class="prompt"><span class="en">Pick a monitoring rule and see when it alerts in the 160-day labeled backtest.</span><span class="zh">選一種監控方式，看它在 160 天標註回測中何時發出警報。</span></span>
+
+    <div class="choices" id="mon-choices">
+      <button class="choicebtn" data-id="output"><span class="en">Output-only monitor</span><span class="zh">只看 output 的監控</span></button>
+      <button class="choicebtn" data-id="ewma"><span class="en">EWMA drift monitor</span><span class="zh">EWMA 漂移監控</span></button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="metric-table">
+        <thead class="en"><tr><th>Monitoring approach</th><th>Signal watched</th><th>Alert logic</th><th>Result</th></tr></thead>
+        <thead class="zh"><tr><th>監控方式</th><th>監控訊號</th><th>alert 邏輯</th><th>結果</th></tr></thead>
+        <tbody id="mon-rows">
+          <tr data-id="output">
+            <td><strong class="en">Output-only monitor</strong><strong class="zh">只看 output 的監控</strong></td>
+            <td>Daily output / throughput</td>
+            <td><span class="en">Alert only when output drops below the clean baseline lower control limit.</span><span class="zh">只有當 output 低於乾淨 baseline 的下控制線時才 alert。</span></td>
+            <td><span class="en">No alert within 160 days</span><span class="zh">160 天內沒有 alert</span></td>
+          </tr>
+          <tr data-id="ewma">
+            <td><strong class="en">EWMA drift monitor</strong><strong class="zh">EWMA 漂移監控</strong></td>
+            <td><span class="en">Daily median lot cycle time</span><span class="zh">每日 lot cycle time 中位數</span></td>
+            <td><span class="en">Alert when small persistent cycle-time drift accumulates.</span><span class="zh">小而持續的 cycle-time 偏移累積後 alert。</span></td>
+            <td><span class="en">Alert on day 84</span><span class="zh">day 84 alert</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="inline-chart">
+      <img src="assets/finding03_output_cycle_time.png"
+           alt="Degradation stays hidden in daily output but appears in daily median cycle time">
+    </div>
+    <p class="caption en"><strong>Observation:</strong> daily output remains noisy but ordinary, while
+    daily median cycle time separates from the clean twin after degradation starts.</p>
+    <p class="caption zh"><strong>圖表觀察：</strong>daily output 看起來仍在正常波動中，但 daily median cycle time
+    在 degradation 開始後逐漸和 clean twin 分離。</p>
+
+    <p class="caption" id="mon-takeaway"></p>
+    <div class="record" id="mon-record"></div>
+    <div class="memo" id="mon-memo"></div>
+  </section>
+
+  <div class="links">
+    <a class="btn ghost" href="index.html">
+      <span class="en">&larr; Back to project page</span><span class="zh">&larr; 回專案首頁</span></a>
+  </div>
+
+  <p class="note en">Honest scope: this page is a bounded demo over a precomputed scenario library;
+  it does not run new simulations or accept free-form parameters. The line is synthetic with fixed
+  seeds; cost figures are illustrative assumptions used for ranking, not real-fab prices or savings
+  forecasts. The memo preview uses a fixed template, not a live language model.</p>
+  <p class="note zh">誠實聲明：本頁是一個有界的 demo，展示預先計算好的情境庫，不會即時跑新模擬，也不接受自由輸入參數。產線為合成資料、固定 seed；成本數字為示意假設，僅用於相對排序，不是實廠價格或節省預測。memo 預覽使用固定模板，並非即時語言模型生成。</p>
+
+</div>
+
+<script>
+  function setLang(l){
+    document.body.className = 'lang-' + l;
+    document.documentElement.lang = (l === 'zh') ? 'zh-Hant' : 'en';
+    try { localStorage.setItem('mfg_lang', l); } catch(e){}
+    document.querySelectorAll('.langbtn').forEach(function(b){
+      b.setAttribute('aria-pressed', b.dataset.lang === l);
+    });
+  }
+  var saved;
+  try { saved = localStorage.getItem('mfg_lang'); } catch(e){}
+  setLang(saved || 'zh');
+
+  // Bilingual text helper: returns a span pair so the CSS language toggle applies.
+  function bi(en, zh){
+    return '<span class="en">' + en + '</span><span class="zh">' + zh + '</span>';
+  }
+
+  var REC_LABELS = {
+    scenario: bi('Scenario', 'Scenario'),
+    run: bi('Run', 'Run'),
+    assumptions: bi('Assumptions', '假設'),
+    kpi: bi('KPI result', 'KPI 結果')
+  };
+
+  function renderRecord(el, rec){
+    var html = '<p class="rec-title">' + bi('Analysis record', '分析紀錄') + '</p>';
+    ['scenario', 'run', 'assumptions', 'kpi'].forEach(function(k){
+      html += '<div class="row"><span class="k">' + REC_LABELS[k] + '</span><span class="v">' + rec[k] + '</span></div>';
+    });
+    el.innerHTML = html;
+  }
+
+  function renderMemo(el, body){
+    el.innerHTML = '<p class="memo-title">' + bi('Decision memo preview', '決策備忘錄預覽') + '</p>'
+      + '<p>' + body + '</p>'
+      + '<p class="memo-note">' + bi(
+          'Fixed template filled from the analysis record above; no live LLM, no numbers outside the record.',
+          '由上方分析紀錄套入固定模板產生；非即時 LLM，也不使用紀錄以外的數字。') + '</p>';
+  }
+
+  // Generic single-select group: buttons + highlighted result elements share data-id.
+  function wireChoices(groupEl, onSelect){
+    var btns = groupEl.querySelectorAll('.choicebtn');
+    btns.forEach(function(b){
+      b.addEventListener('click', function(){
+        btns.forEach(function(x){ x.setAttribute('aria-pressed', x === b); });
+        onSelect(b.dataset.id);
+      });
+    });
+    return function(id){
+      btns.forEach(function(x){ x.setAttribute('aria-pressed', x.dataset.id === id); });
+      onSelect(id);
+    };
+  }
+
+  function highlight(containerSel, itemSel, id){
+    document.querySelectorAll(containerSel + ' ' + itemSel).forEach(function(el){
+      el.classList.toggle('sel', el.dataset.id === id);
+    });
+  }
+
+  /* ---------- Capacity ---------- */
+  var CAP_ASSUMP = bi(
+    'Locked 7-station synthetic line, FIFO dispatch, Poisson arrivals, lognormal times; stress-cost view uses illustrative CostRates for ranking only.',
+    '鎖定的 7 站合成產線、FIFO 派工、Poisson 到達、lognormal 處理時間；投資壓力成本情境使用示意 CostRates，僅供排序。');
+  var CAP_RUN = bi('N=30 CRN-paired replications, seeds 1000-1029',
+                   'N=30 CRN 配對重複實驗，seeds 1000-1029');
+  var CAP = {
+    LITHO: {
+      kpi: { plain: bi('avg cycle time -2.46 h (95% CI 2.13-2.79 h)', '平均 cycle time -2.46 h（95% CI 2.13-2.79 h）'),
+             cost:  bi('avg cycle time -2.46 h; net cost +$8.0k', '平均 cycle time -2.46 h；淨成本 +$8.0k') },
+      take: { plain: bi('Takeaway: the largest whole-line reduction (2.46 h) comes from adding only one slot; capacity ranks by system impact, not slot count.',
+                        'Takeaway：只加 1 個槽卻帶來最大的全線降幅（2.46 h），產能排序看的是系統影響，不是槽數。'),
+              cost:  bi('Takeaway: still the fastest option, but the most expensive one (+$8.0k) under the stress assumptions; the operational and financial rankings disagree.',
+                        'Takeaway：仍是改善最快的選項，但在壓力情境下也最貴（+$8.0k），營運排名和財務排名出現分歧。') },
+      memo: { plain: bi('Adding one LITHO tool gives the largest whole-line cycle-time reduction of the four options: 2.46 h on average (95% CI 2.13-2.79 h). If the objective is shortening cycle time, LITHO is the leading candidate in this scenario set.',
+                        '四個選項中，LITHO 加 1 台帶來最大的全線 cycle time 降幅：平均 2.46 h（95% CI 2.13-2.79 h）。若目標是縮短 cycle time，在這組情境中 LITHO 是首選。'),
+              cost:  bi('Adding one LITHO tool remains the fastest option (2.46 h reduction) but carries the highest net cost (+$8.0k) under the investment-stress assumptions. The choice depends on whether the priority is cycle time or short-term cost.',
+                        '在投資壓力假設下，LITHO 加 1 台仍是改善最大的選項（降 2.46 h），但淨成本也最高（+$8.0k）。要選哪個，取決於優先目標是 cycle time 還是短期成本。') }
+    },
+    FURNACE: {
+      kpi: { plain: bi('avg cycle time -0.70 h', '平均 cycle time -0.70 h'),
+             cost:  bi('avg cycle time -0.70 h; net cost -$1.7k', '平均 cycle time -0.70 h；淨成本 -$1.7k') },
+      take: { plain: bi('Takeaway: FURNACE adds the most slots (+4 lots) but only cuts 0.70 h; a batch tool far from the constraint helps less than intuition suggests.',
+                        'Takeaway：FURNACE 增加最多槽數（+4 lots），卻只降 0.70 h；離瓶頸很遠的 batch 機台，效果比直覺小。'),
+              cost:  bi('Takeaway: the only net-saving option (-$1.7k) under the stress assumptions, but the cycle-time gain stays modest (0.70 h).',
+                        'Takeaway：壓力情境下唯一淨省錢的選項（-$1.7k），但 cycle time 改善仍然有限（0.70 h）。') },
+      memo: { plain: bi('Adding one FURNACE tool adds the most lot-processing slots (+4) yet reduces average cycle time by only 0.70 h, because FURNACE is not the constraint. Slot count alone is a misleading basis for this decision.',
+                        'FURNACE 加 1 台增加最多處理槽數（+4），平均 cycle time 卻只降 0.70 h，因為 FURNACE 不是瓶頸。單看槽數會誤導這個決策。'),
+              cost:  bi('Under the investment-stress assumptions FURNACE is the only net-saving option (-$1.7k), at the price of a modest 0.70 h cycle-time gain. It fits a cost-first objective, not a speed-first one.',
+                        '在投資壓力假設下，FURNACE 是唯一淨省錢的選項（-$1.7k），代價是 cycle time 只改善 0.70 h。它適合成本優先的目標，不適合速度優先。') }
+    },
+    DEPO: {
+      kpi: { plain: bi('avg cycle time -0.26 h', '平均 cycle time -0.26 h'),
+             cost:  bi('avg cycle time -0.26 h; net cost +$1.7k', '平均 cycle time -0.26 h；淨成本 +$1.7k') },
+      take: { plain: bi('Takeaway: a 0.26 h gain leaves DEPO well behind the leaders; the business case is weak either way.',
+                        'Takeaway：只降 0.26 h，DEPO 明顯落後領先選項，怎麼看理由都偏弱。'),
+              cost:  bi('Takeaway: paying +$1.7k for a 0.26 h gain is a weak business case under the stress assumptions.',
+                        'Takeaway：在壓力情境下花 +$1.7k 只換 0.26 h，商業理由偏弱。') },
+      memo: { plain: bi('Adding one DEPO tool reduces average cycle time by 0.26 h, well behind LITHO (2.46 h). In this scenario set DEPO is not a competitive first investment.',
+                        'DEPO 加 1 台平均只降 0.26 h，遠低於 LITHO 的 2.46 h。在這組情境中，DEPO 不是有競爭力的首選投資。'),
+              cost:  bi('Adding one DEPO tool costs +$1.7k for a 0.26 h gain under the stress assumptions; both rankings place it behind the leading options.',
+                        '在壓力假設下，DEPO 加 1 台花 +$1.7k 只換 0.26 h；不論營運或財務排名都落後領先選項。') }
+    },
+    METRO: {
+      kpi: { plain: bi('avg cycle time -0.05 h', '平均 cycle time -0.05 h'),
+             cost:  bi('avg cycle time -0.05 h; net cost +$1.4k', '平均 cycle time -0.05 h；淨成本 +$1.4k') },
+      take: { plain: bi('Takeaway: 0.05 h is minimal system impact; METRO is nowhere near the constraint.',
+                        'Takeaway：只降 0.05 h，對整體系統影響很小，METRO 離瓶頸很遠。'),
+              cost:  bi('Takeaway: +$1.4k for a 0.05 h gain; minimal impact at added cost.',
+                        'Takeaway：花 +$1.4k 只換 0.05 h，影響極小還增加成本。') },
+      memo: { plain: bi('Adding one METRO tool changes average cycle time by only 0.05 h; the station is far from the constraint and the investment has minimal system impact.',
+                        'METRO 加 1 台平均只降 0.05 h；該站離瓶頸很遠，這筆投資對系統影響極小。'),
+              cost:  bi('Adding one METRO tool costs +$1.4k for a 0.05 h gain under the stress assumptions; it ranks last on both views.',
+                        '在壓力假設下，METRO 加 1 台花 +$1.4k 只換 0.05 h，兩種排名都是最後。') }
+    }
+  };
+  var capState = { id: 'LITHO', cost: false };
+  function renderCapacity(){
+    var d = CAP[capState.id];
+    var mode = capState.cost ? 'cost' : 'plain';
+    highlight('#cap-rows', 'tr', capState.id);
+    document.getElementById('cap-tablewrap').classList.toggle('hide-cost', !capState.cost);
+    document.getElementById('cap-takeaway').innerHTML = d.take[mode];
+    renderRecord(document.getElementById('cap-record'), {
+      scenario: '<code>add_tool_' + capState.id + (capState.cost ? '_stress_cost' : '') + '</code>',
+      run: CAP_RUN,
+      assumptions: CAP_ASSUMP,
+      kpi: d.kpi[mode]
+    });
+    renderMemo(document.getElementById('cap-memo'), d.memo[mode]);
+  }
+  var setCap = wireChoices(document.getElementById('cap-choices'), function(id){
+    capState.id = id; renderCapacity();
+  });
+  document.getElementById('cap-cost').addEventListener('change', function(e){
+    capState.cost = e.target.checked; renderCapacity();
+  });
+
+  /* ---------- Maintenance ---------- */
+  var MNT_RUN = bi('N=15 CRN-paired replications, seeds 6000-6014',
+                   'N=15 CRN 配對重複實驗，seeds 6000-6014');
+  var MNT_ASSUMP = bi(
+    'LITHO PM-timing scenario on the E10 state layer; downtime and delay cost rates are illustrative, used for ranking only.',
+    'E10 狀態層上的 LITHO PM 時機情境；停機與延遲成本費率為示意假設，僅供排序。');
+  var MNT = {
+    immediate: {
+      kpi: bi('total cost $1.75M (lowest of three timings)', '總成本 $1.75M（三個時機中最低）'),
+      take: bi('Takeaway: acting at the alert keeps total cost lowest; waiting lets congestion cost accumulate.',
+               'Takeaway：警報出現就行動，總成本最低；等下去只會累積壅塞成本。'),
+      memo: bi('Immediate PM totals $1.75M, the lowest of the three timings. The comparison shows the alert is worth acting on: each unit of delay adds accumulated congestion cost.',
+               '立即 PM 的總成本為 $1.75M，是三個時機中最低。這組比較顯示警報值得立即處理：每多等一段時間，就多累積一段壅塞成本。')
+    },
+    mid: {
+      kpi: bi('total cost $2.45M (+40% vs immediate)', '總成本 $2.45M（比立即 PM 高 40%）'),
+      take: bi('Takeaway: a partial delay already costs 40% more than acting at the alert.',
+               'Takeaway：延後一段時間，成本就比警報當下行動高出 40%。'),
+      memo: bi('Mid-timing PM totals $2.45M, 40% above immediate PM. Partial delay already gives up a large share of the avoidable cost.',
+               '中期 PM 的總成本為 $2.45M，比立即 PM 高 40%。只延後一部分時間，就已放棄相當比例的可避免成本。')
+    },
+    late: {
+      kpi: bi('total cost $4.59M (2.6x immediate)', '總成本 $4.59M（是立即 PM 的 2.6 倍）'),
+      take: bi('Takeaway: at 2.6x the immediate-PM cost, the delay penalty dominates whatever the deferral saved.',
+               'Takeaway：成本是立即 PM 的 2.6 倍，延遲的代價遠大於延後 PM 省下的部分。'),
+      memo: bi('Late PM totals $4.59M, 2.6 times the immediate option. Once a cost is attached to delay, monitoring becomes a PM-timing trade-off with a clear ranking.',
+               '延後 PM 的總成本為 $4.59M，是立即 PM 的 2.6 倍。一旦替延遲標上成本，monitoring 就變成有明確排序的 PM 時機取捨。')
+    }
+  };
+  var setMnt = wireChoices(document.getElementById('mnt-choices'), function(id){
+    var d = MNT[id];
+    highlight('#mnt-bars', '.engine-bar', id);
+    document.getElementById('mnt-takeaway').innerHTML = d.take;
+    renderRecord(document.getElementById('mnt-record'), {
+      scenario: '<code>pm_timing_' + id + '</code>',
+      run: MNT_RUN, assumptions: MNT_ASSUMP, kpi: d.kpi
+    });
+    renderMemo(document.getElementById('mnt-memo'), d.memo);
+  });
+
+  /* ---------- Dispatching ---------- */
+  var DSP_RUN = bi('N=30 CRN-paired replications, seeds 8000-8029',
+                   'N=30 CRN 配對重複實驗，seeds 8000-8029');
+  var DSP_ASSUMP = bi(
+    'Policies compared on the same paired runs: FIFO, EDD, critical ratio, release control; yield and congestion cost rates are illustrative.',
+    '在同一批配對 run 上比較 FIFO、EDD、critical ratio、release control 四種 policy；良率與壅塞成本費率為示意假設。');
+  var DSP = {
+    ct: {
+      kpi: bi('best policy for average cycle time: EDD', '平均 cycle time 的最佳 policy：EDD'),
+      take: bi('Takeaway: EDD wins on cycle time, but this ranking holds only for this objective.',
+               'Takeaway：以 cycle time 為目標時 EDD 勝出，但這個排序只在這個目標下成立。'),
+      memo: bi('For an average cycle-time objective, EDD is the winning policy in this comparison. Note the winner flips to release control once yield risk or total cost becomes the objective.',
+               '以平均 cycle time 為目標時，這組比較的最佳 policy 是 EDD。注意當目標換成良率風險或總成本，贏家會換成 release control。')
+    },
+    ontime: {
+      kpi: bi('best policy for on-time delivery: EDD', '準時交付的最佳 policy：EDD'),
+      take: bi('Takeaway: due-date-driven EDD also wins the on-time objective.',
+               'Takeaway：以準時交付為目標時，看交期的 EDD 同樣勝出。'),
+      memo: bi('For an on-time-delivery objective, EDD wins in this comparison, consistent with its due-date-driven queue ordering.',
+               '以準時交付為目標時，這組比較的贏家是 EDD，和它依交期排隊的邏輯一致。')
+    },
+    yieldrisk: {
+      kpi: bi('best policy for yield risk: release control', '良率風險的最佳 policy：release control'),
+      take: bi('Takeaway: holding lots at release lowers queue-time yield risk, at some flow cost; the winner changes with the objective.',
+               'Takeaway：在投產端控制放行可降低 queue-time 良率風險，代價是流速；目標一換，贏家就換。'),
+      memo: bi('For a yield-risk objective, release control wins: fewer lots in flight means less queue-time exposure. This is the first objective where the cycle-time winner (EDD) is no longer the answer.',
+               '以良率風險為目標時，release control 勝出：在線 lot 變少，queue-time 暴露就變少。從這個目標開始，cycle time 的贏家（EDD）不再是答案。')
+    },
+    cost: {
+      kpi: bi('best policy for total cost: release control', '總成本的最佳 policy：release control'),
+      take: bi('Takeaway: once yield and congestion costs are combined (illustrative rates), release control wins overall.',
+               'Takeaway：把良率與壅塞成本合併計算後（示意費率），release control 整體勝出。'),
+      memo: bi('For a total-cost objective under the illustrative rates, release control wins once yield and congestion costs are combined. No single dispatch rule dominates all four objectives.',
+               '以總成本為目標、採用示意費率時，合併良率與壅塞成本後 release control 勝出。沒有任何一個派工規則能在四個目標下全部領先。')
+    }
+  };
+  var setDsp = wireChoices(document.getElementById('dsp-choices'), function(id){
+    var d = DSP[id];
+    highlight('#dsp-winners', '.engine-winner', id);
+    document.getElementById('dsp-takeaway').innerHTML = d.take;
+    renderRecord(document.getElementById('dsp-record'), {
+      scenario: '<code>dispatch_objective_' + id + '</code>',
+      run: DSP_RUN, assumptions: DSP_ASSUMP, kpi: d.kpi
+    });
+    renderMemo(document.getElementById('dsp-memo'), d.memo);
+  });
+
+  /* ---------- Yield ---------- */
+  var YLD_RUN = bi('N=30 CRN-paired replications, seeds 5000-5029; shared QualityConfig seed keeps the yield noise paired',
+                   'N=30 CRN 配對重複實驗，seeds 5000-5029；共用 QualityConfig seed 讓良率雜訊也保持配對');
+  var YLD_ASSUMP = bi(
+    'Same locked line as the capacity scenarios; queue-time-driven violation model with linear-additive synthetic ground truth.',
+    '與加機台情境相同的鎖定產線；violation 模型由 queue time 驅動，合成 ground truth 為線性可加。');
+  var YLD = {
+    baseline: {
+      ct: '0 h', vio: '0',
+      kpi: bi('reference point: both deltas are zero by construction', '參考點：兩個變化量依定義皆為 0'),
+      take: bi('Takeaway: this is the reference; flip to LITHO +1 to see speed and yield move together.',
+               'Takeaway：這是參考基準；切到 LITHO +1，就能看到速度和良率一起變動。'),
+      memo: bi('Baseline reference: both KPIs are defined as deltas against this run, so they read zero here. The LITHO +1 scenario shows the actual trade-off.',
+               'Baseline 參考：兩個 KPI 都定義為相對這次 run 的變化量，因此在這裡讀值為 0。實際的取捨請看 LITHO +1 情境。')
+    },
+    litho1: {
+      ct: '-2.87 h', vio: '+0.038',
+      kpi: bi('avg cycle time -2.87 h; post-litho violation rate +0.038', '平均 cycle time -2.87 h；post-litho violation rate +0.038'),
+      take: bi('Takeaway: 2.87 h faster, but +0.038 more post-litho violations; a capacity decision made on cycle time alone hides this axis.',
+               'Takeaway：快了 2.87 h，但 post-litho violation 增加 0.038；只看 cycle time 做產能決策會漏掉這個軸。'),
+      memo: bi('Adding one LITHO tool cuts average cycle time by 2.87 h but raises the post-litho violation rate by 0.038. The two effects come from the same paired runs, so the speed gain and the quality risk belong in one decision view.',
+               'LITHO 加 1 台讓平均 cycle time 降 2.87 h，但 post-litho violation rate 上升 0.038。兩個效果來自同一批配對 run，因此速度收益和品質風險必須放在同一個決策畫面裡。')
+    }
+  };
+  var setYld = wireChoices(document.getElementById('yld-choices'), function(id){
+    var d = YLD[id];
+    document.getElementById('yld-ct').textContent = d.ct;
+    document.getElementById('yld-vio').textContent = d.vio;
+    document.getElementById('yld-takeaway').innerHTML = d.take;
+    renderRecord(document.getElementById('yld-record'), {
+      scenario: '<code>yield_' + (id === 'litho1' ? 'litho_plus1' : 'baseline') + '</code>',
+      run: YLD_RUN, assumptions: YLD_ASSUMP, kpi: d.kpi
+    });
+    renderMemo(document.getElementById('yld-memo'), d.memo);
+  });
+
+  /* ---------- Monitoring ---------- */
+  var MON_RUN = bi('Deterministic 160-day backtest, config seed 42, labeled degradation injected on day 30',
+                   '160 天確定性回測，config seed 42，標註的 degradation 於 day 30 注入');
+  var MON_ASSUMP = bi(
+    'Same locked line observed for 160 days; the anomaly is synthetic and labeled, so detection delay is measured against known ground truth.',
+    '同一條鎖定產線觀察 160 天；異常為合成且有標註，偵測延遲以已知 ground truth 衡量。');
+  var MON = {
+    output: {
+      kpi: bi('no alert within the 160-day horizon', '160 天內沒有發出任何警報'),
+      take: bi('Takeaway: daily output stays inside its normal band for the whole backtest; by the time output falls, congestion cost has already accumulated.',
+               'Takeaway：整段回測中 daily output 都留在正常波動帶內；等 output 真的下滑，壅塞成本早已累積。'),
+      memo: bi('The output-only monitor never alerts within the 160-day horizon even though degradation starts on day 30. Watching output alone reports the problem only after the cost is already sunk.',
+               '只看 output 的監控在 160 天內完全沒有警報，即使 degradation 在 day 30 就已開始。只盯 output，等於在成本已經沉沒之後才知道問題。')
+    },
+    ewma: {
+      kpi: bi('alert on day 84; 76 days of horizon remain for action', 'day 84 發出警報；距離回測結束還有 76 天可行動'),
+      take: bi('Takeaway: EWMA alerts on day 84, leaving 76 days of the horizon; that lead time is what converts detection into avoidable cost.',
+               'Takeaway：EWMA 在 day 84 警報，離回測結束還有 76 天；這段提前量就是把偵測轉成可避免成本的關鍵。'),
+      memo: bi('The EWMA drift monitor alerts on day 84 against a day-30 onset, while the output signal stays silent for all 160 days. In this experiment the 76 remaining days are where early action can still avoid the extra degradation cost.',
+               'EWMA 漂移監控在 day 84 對 day 30 開始的劣化發出警報，而 output 訊號整整 160 天都沒有反應。在此實驗中，剩下的 76 天就是及早行動仍可避免額外劣化成本的空間。')
+    }
+  };
+  var setMon = wireChoices(document.getElementById('mon-choices'), function(id){
+    var d = MON[id];
+    highlight('#mon-rows', 'tr', id);
+    document.getElementById('mon-takeaway').innerHTML = d.take;
+    renderRecord(document.getElementById('mon-record'), {
+      scenario: '<code>slow_drift_backtest_' + id + '</code>',
+      run: MON_RUN, assumptions: MON_ASSUMP, kpi: d.kpi
+    });
+    renderMemo(document.getElementById('mon-memo'), d.memo);
+  });
+
+  /* ---------- Tabs ---------- */
+  var tabBtns = document.querySelectorAll('#tabs .tabbtn');
+  function setTab(id){
+    tabBtns.forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.tab === id); });
+    document.querySelectorAll('.tabpane').forEach(function(p){
+      p.classList.toggle('active', p.id === 'pane-' + id);
+    });
+  }
+  tabBtns.forEach(function(b){
+    b.addEventListener('click', function(){ setTab(b.dataset.tab); });
+  });
+
+  // Initial state: first tab, one default selection per pane.
+  setTab('capacity');
+  setCap('LITHO');
+  setMnt('immediate');
+  setDsp('ct');
+  setYld('litho1');
+  setMon('ewma');
+</script>
+</body>
+</html>
