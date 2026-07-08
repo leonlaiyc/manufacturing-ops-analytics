@@ -40,6 +40,7 @@ from agent_loop import (                     # noqa: E402
 )
 
 
+LOCAL_ENV = REPO / ".env.local"
 OPENAI_MODEL = "gpt-4.1-mini"
 OPENAI_MAX_TOKENS = 1400
 OPENAI_INPUT_USD_PER_1M = 0.40
@@ -48,6 +49,21 @@ OPENAI_CREDENTIAL_MESSAGE = (
     "No OpenAI API credentials found. Set OPENAI_API_KEY in the environment "
     "and retry."
 )
+
+
+def load_local_env(path: Path = LOCAL_ENV) -> None:
+    """Load simple KEY=value pairs from .env.local without overriding env vars."""
+    if not path.exists():
+        return
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
 
 
 @dataclass
@@ -90,7 +106,8 @@ class OpenAILLM:
     @staticmethod
     def check_credentials(environ: dict | None = None) -> None:
         env = environ if environ is not None else os.environ
-        if not env.get("OPENAI_API_KEY"):
+        key = env.get("OPENAI_API_KEY", "").strip()
+        if not key or key == "paste-your-key-here":
             raise AgentCredentialError(OPENAI_CREDENTIAL_MESSAGE)
 
     @staticmethod
@@ -252,6 +269,7 @@ def _build_llm(provider: str):
 
 
 def main() -> int:
+    load_local_env()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--provider", choices=("openai", "anthropic"),
                         default=os.environ.get("LIVE_AGENT_PROVIDER", "openai"),
