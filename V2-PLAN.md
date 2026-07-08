@@ -256,7 +256,9 @@ SPEC:
 - Precondition: the owner sets `OPENAI_API_KEY` in the environment for the
   session. Never echo, log, or commit the key; abort if it is absent (the
   runner exits 1 with a clear message). The runner defaults to OpenAI and
-  supports `OPENAI_MODEL` if a different model is needed.
+  supports `OPENAI_MODEL` if a different model is needed. It also has a local
+  `LIVE_AGENT_MAX_USD` budget guard, default `$5.00`, with actual token usage
+  recorded in the transcript.
 - Run exactly: `py scripts/run_live_agent_session.py` (default provider,
   default question, one session per invocation). Cost is a single short
   session.

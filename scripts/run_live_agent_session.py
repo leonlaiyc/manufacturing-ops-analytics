@@ -41,6 +41,9 @@ from agent_loop import (                     # noqa: E402
 
 
 OPENAI_MODEL = "gpt-4.1-mini"
+OPENAI_MAX_TOKENS = 1400
+OPENAI_INPUT_USD_PER_1M = 0.40
+OPENAI_OUTPUT_USD_PER_1M = 1.60
 OPENAI_CREDENTIAL_MESSAGE = (
     "No OpenAI API credentials found. Set OPENAI_API_KEY in the environment "
     "and retry."
@@ -78,6 +81,11 @@ class OpenAILLM:
 
     def __init__(self, model: str | None = None) -> None:
         self.model = model or os.environ.get("OPENAI_MODEL", OPENAI_MODEL)
+        self.max_usd = float(os.environ.get("LIVE_AGENT_MAX_USD", "5.00"))
+        self.actual_usd = 0.0
+        self.estimated_reserved_usd = 0.0
+        self.api_calls = 0
+        self.usage: list[dict] = []
 
     @staticmethod
     def check_credentials(environ: dict | None = None) -> None:
@@ -143,6 +151,29 @@ class OpenAILLM:
                         })
         return out
 
+    @staticmethod
+    def _usage_cost(prompt_tokens: int, completion_tokens: int) -> float:
+        return (
+            prompt_tokens * OPENAI_INPUT_USD_PER_1M
+            + completion_tokens * OPENAI_OUTPUT_USD_PER_1M
+        ) / 1_000_000
+
+    def _reserve_budget(self, payload: dict) -> None:
+        payload_text = json.dumps(payload, sort_keys=True)
+        # Conservative for the ASCII-heavy prompts and JSON schemas used here:
+        # one character is treated as one token before the request is sent.
+        estimated_prompt_tokens = len(payload_text)
+        estimated = self._usage_cost(estimated_prompt_tokens, OPENAI_MAX_TOKENS)
+        projected = self.actual_usd + estimated
+        if projected > self.max_usd:
+            raise RuntimeError(
+                "OpenAI budget guard stopped before the next request: "
+                f"actual=${self.actual_usd:.4f}, "
+                f"reserved_next_request=${estimated:.4f}, "
+                f"limit=${self.max_usd:.2f}."
+            )
+        self.estimated_reserved_usd += estimated
+
     def create(self, system: str, messages: list, tools: list) -> OpenAIResponse:
         self.check_credentials()
         payload = {
@@ -152,8 +183,9 @@ class OpenAILLM:
             "tool_choice": "auto",
             "parallel_tool_calls": False,
             "temperature": 0,
-            "max_tokens": 1400,
+            "max_tokens": OPENAI_MAX_TOKENS,
         }
+        self._reserve_budget(payload)
         request = urllib.request.Request(
             "https://api.openai.com/v1/chat/completions",
             data=json.dumps(payload).encode("utf-8"),
@@ -171,6 +203,25 @@ class OpenAILLM:
             if exc.code in (401, 403):
                 raise AgentCredentialError(OPENAI_CREDENTIAL_MESSAGE) from exc
             raise RuntimeError(f"OpenAI API request failed ({exc.code}): {body}") from exc
+
+        self.api_calls += 1
+        usage = data.get("usage") or {}
+        prompt_tokens = int(usage.get("prompt_tokens") or 0)
+        completion_tokens = int(usage.get("completion_tokens") or 0)
+        cost = self._usage_cost(prompt_tokens, completion_tokens)
+        self.actual_usd += cost
+        self.usage.append({
+            "call": self.api_calls,
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "estimated_usd": round(cost, 6),
+            "cumulative_estimated_usd": round(self.actual_usd, 6),
+        })
+        if self.actual_usd > self.max_usd:
+            raise RuntimeError(
+                "OpenAI budget guard stopped after a response crossed the "
+                f"limit: actual=${self.actual_usd:.4f}, limit=${self.max_usd:.2f}."
+            )
 
         message = data["choices"][0]["message"]
         tool_calls = message.get("tool_calls") or []
@@ -229,6 +280,14 @@ def main() -> int:
     transcript = {k: session[k] for k in
                   ("question", "model", "turns_meta", "final_text",
                    "verification", "uncited_numbers", "status")}
+    if hasattr(llm, "usage"):
+        transcript["api_usage"] = {
+            "provider": args.provider,
+            "max_usd": llm.max_usd,
+            "estimated_actual_usd": round(llm.actual_usd, 6),
+            "estimated_reserved_usd": round(llm.estimated_reserved_usd, 6),
+            "calls": llm.usage,
+        }
     transcript["run_log"] = [json.loads(line) for line in
                              session["run_log_jsonl"].splitlines() if line]
     (out_dir / "transcript.json").write_text(
@@ -239,6 +298,9 @@ def main() -> int:
     print(f"Tool runs logged: {len(transcript['run_log'])}")
     print(f"Citations: {v['total_citations']}, all_found={v['all_found']}, "
           f"uncited={session['uncited_numbers']}")
+    if hasattr(llm, "usage"):
+        print(f"OpenAI API calls: {llm.api_calls}, estimated actual cost: "
+              f"${llm.actual_usd:.6f} (limit ${llm.max_usd:.2f})")
     print(f"Status: {session['status']}")
     print(f"Saved: {out_dir}")
     return 0 if session["status"] == "VERIFIED" else 2
