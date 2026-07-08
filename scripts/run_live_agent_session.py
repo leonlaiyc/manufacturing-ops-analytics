@@ -53,7 +53,9 @@ OPENAI_CITATION_REMINDER = (
     "\n\nOpenAI adapter reminder: every substantive number in the final answer "
     "must put its [run:<run_id>] citation immediately after the number and "
     "before any unit or words. Correct: 0.01 [run:abc] lots/hour. Incorrect: "
-    "0.01 lots/hour [run:abc]."
+    "0.01 lots/hour [run:abc]. Do not write hypothetical numeric thresholds "
+    "or uncited numeric examples. Use qualitative wording instead when "
+    "describing what evidence would change the recommendation."
 )
 
 
