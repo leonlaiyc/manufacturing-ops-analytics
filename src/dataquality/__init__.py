@@ -1,7 +1,9 @@
 """
-M11 Stage A - event-log schema contract, corruption injectors, and a
-leakage-safe as-of join helper.
+M11 - event-log schema contract, corruption injectors, leakage-safe as-of
+join helper (Stage A), plus drift monitoring and conformal prediction
+intervals for the M7 virtual-metrology model (Stage B).
 
+Stage A:
   - ``schema_contract.py`` : the contract as data (required columns, dtype
                              expectations, locked route) plus six named
                              clauses (C1-C6), each returning a violation
@@ -19,9 +21,26 @@ leakage-safe as-of join helper.
                              reproducibility, completeness meta-gate, as-of
                              join correctness).
 
+Stage B:
+  - ``drift.py``           : hand-built rolling-window drift monitor
+                             (reference window vs sliding test window,
+                             standardized mean-difference score, k-consecutive
+                             alarm rule). Two channels: a station's daily mean
+                             process time and the daily arrival count, plus a
+                             stylized arrival-rate cut-over builder.
+  - ``conformal.py``       : split conformal prediction intervals wrapping
+                             the M7 virtual-metrology OLS model (train /
+                             calibration / test three-way time split,
+                             finite-sample-correct quantile of calibration
+                             residuals).
+  - ``reliability_check.py``: gate script (drift recovery, arrival-shift
+                             recovery, conformal coverage, noise sensitivity,
+                             reproducibility, model-card meta-gate).
+
 Import convention (matches the rest of ``src/``): modules use BARE imports
 (``from schema_contract import ...``) and consumers put ``src/dataquality``
-on ``sys.path`` -- see ``dq_check.py`` for the pattern.
+on ``sys.path`` -- see ``dq_check.py`` / ``reliability_check.py`` for the
+pattern.
 
 Public exports by module:
 
@@ -33,6 +52,11 @@ Public exports by module:
                     negate_duration, duplicate_rows, impossible_hop,
                     orphan_tool, shuffle_step_seq
   asof_join       : leakage_safe_asof_join, audit_join
+  drift           : daily_mean_process_time, daily_arrival_count,
+                    build_arrival_shift_series, rolling_drift_scan,
+                    detection_delay_days, false_alarm_count, DriftReport
+  conformal       : three_way_time_split, conformal_quantile,
+                    fit_and_calibrate, ConformalResult
 
 See each module's docstring for design rationale.
 """
