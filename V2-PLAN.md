@@ -448,3 +448,10 @@ Use `py`, not `python`, on this machine:
   committed transcript directory. `py src/agent/agent_check.py` and
   `py src/agent/loop_check.py` re-run and pass. Earlier FAILED verification
   attempts remain local only and are not evidence.
+- 2026-07-09: Task B resolved. Scenario runner data now exports from engine
+  entry points via `src/kpi/export_scenario_runner_data.py`, with exact-match
+  gates against the published values and deterministic JSON output at
+  `docs/assets/scenario_runner_data.json`. `docs/scenario-runner.html` fetches
+  the JSON for numeric/data fields while keeping owner-reviewed bilingual memo
+  prose in HTML. Claude progress report written at
+  `reports/claude_handoffs/2026-07-09_codex_task_a_b_report.md`.
