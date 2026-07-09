@@ -575,7 +575,11 @@ def main() -> None:
     fig_baseline = build_baseline_figure()
 
     print("Rendering baseline HTML (plotly.js via CDN) ...")
-    div_baseline = fig_baseline.to_html(include_plotlyjs="cdn", full_html=False)
+    div_baseline = fig_baseline.to_html(
+        include_plotlyjs="cdn",
+        full_html=False,
+        div_id="baseline-kpi-figure",
+    )
     baseline_html = BASELINE_TEMPLATE.replace("{fig_baseline}", div_baseline)
 
     if OUT_DOCS.exists():

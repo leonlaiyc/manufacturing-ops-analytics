@@ -190,22 +190,22 @@ manufacturing-ops-analytics/
 All synthetic data is generated from fixed seeds. Regenerate and re-validate:
 
 ```bash
-python src/generator/validate_m2.py      # Little's Law + bottleneck recovery
-python src/generator/crn_check.py        # CRN determinism gates (exact zero delta)
-python src/monitoring/monitoring_check.py # anomaly-injection regression gates
-python src/quality/quality_check.py      # yield-layer ground-truth gates
-python src/quality/vm_check.py           # virtual metrology + pairing gates
-python src/equipment/equipment_check.py  # E10 state-partition + RAM gates
-python src/equipment/maintenance_check.py # PM-timing pairing + priority gates
-python src/equipment/pdm_check.py        # sensor/GB+SHAP detection-quality gates
-python src/generator/dispatch_check.py   # dispatch policies + FIFO byte-identity gates
-python src/decision/dispatch_whatif_check.py # policy-comparison pairing gates
-python src/agent/agent_check.py          # tool-layer traceability + tamper gates
-python src/agent/loop_check.py           # agent-loop fabrication-catch gates (offline)
-python src/dataquality/dq_check.py       # schema-contract + corruption + join gates
-python src/dataquality/reliability_check.py # drift, conformal coverage, model-card gates
-python src/kpi/export_html_dashboard.py  # rebuild the interactive baseline page
-python src/kpi/export_index_assets.py    # rebuild the static index chart assets
+py src/generator/validate_m2.py      # Little's Law + bottleneck recovery
+py src/generator/crn_check.py        # CRN determinism gates (exact zero delta)
+py src/monitoring/monitoring_check.py # anomaly-injection regression gates
+py src/quality/quality_check.py      # yield-layer ground-truth gates
+py src/quality/vm_check.py           # virtual metrology + pairing gates
+py src/equipment/equipment_check.py  # E10 state-partition + RAM gates
+py src/equipment/maintenance_check.py # PM-timing pairing + priority gates
+py src/equipment/pdm_check.py        # sensor/GB+SHAP detection-quality gates
+py src/generator/dispatch_check.py   # dispatch policies + FIFO byte-identity gates
+py src/decision/dispatch_whatif_check.py # policy-comparison pairing gates
+py src/agent/agent_check.py          # tool-layer traceability + tamper gates
+py src/agent/loop_check.py           # agent-loop fabrication-catch gates (offline)
+py src/dataquality/dq_check.py       # schema-contract + corruption + join gates
+py src/dataquality/reliability_check.py # drift, conformal coverage, model-card gates
+py src/kpi/export_html_dashboard.py  # rebuild the interactive baseline page
+py src/kpi/export_index_assets.py    # rebuild the static index chart assets
 ```
 
 ## Scope & honest notes
