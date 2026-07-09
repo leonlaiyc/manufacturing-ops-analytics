@@ -496,6 +496,15 @@ Use `py`, not `python`, on this machine:
   committed transcript directory. `py src/agent/agent_check.py` and
   `py src/agent/loop_check.py` re-run and pass. Earlier FAILED verification
   attempts remain local only and are not evidence.
+- 2026-07-09: SA/SD handoff accepted by Claude Code. All seven validation
+  steps pass: style checks clean, no overclaim found, locked line design
+  matches, `py scripts/validate_all.py` reports 18 passed 0 failed. One gap
+  found and fixed during acceptance: `src/generator/validate_m2.py` printed
+  PASS/CHECK but always exited 0; it now exits nonzero when the Little's Law
+  gap exceeds 5% or the empirical bottleneck is not LITHO, matching the
+  SD.md failure-handling claim. AGENTS.md stale handover pointer fixed and
+  the operating-standards routing block committed. Owner instruction: freeze
+  and merge `v2` into `main` for publication.
 - 2026-07-09: Task B resolved. Scenario runner data now exports from engine
   entry points via `src/kpi/export_scenario_runner_data.py`, with exact-match
   gates against the published values and deterministic JSON output at
