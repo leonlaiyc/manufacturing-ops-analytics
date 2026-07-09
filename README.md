@@ -104,6 +104,15 @@ on the same day.
 | M10 Agentic decision support | The what-if engines exposed as bounded, logged tools an LLM can call; decision memos where every cited number carries a run tag verified against the log; fabrication-catch and credential-guard gates run fully offline; a live-session runner records transcripts as public evidence | [notebook 10](notebooks/10_agentic_decision_support.ipynb), `src/agent` |
 | M11 Data quality & model reliability | Event-log schema contract with corruption-tested validators, leakage-safe as-of joins, drift monitoring with measured detection delay and zero clean-run false alarms, split conformal intervals for the metrology model (measured coverage), and model cards with explicit trust boundaries | [notebook 11](notebooks/11_data_quality_model_reliability.ipynb), `src/dataquality`, [model cards](docs/model_cards) |
 
+## Design documentation
+
+For reviewer-style SA and SD documentation:
+
+- [System Analysis](docs/SA.md): business problem, scope, stakeholders, use
+  cases, requirements, acceptance map, and honest boundaries.
+- [System Design](docs/SD.md): architecture, module map, data flow, event-log
+  schema, generator design, validation flow, and artifact generation.
+
 ## Roadmap
 
 All roadmap modules (M7 through M11) are shipped; the table above is the
@@ -179,8 +188,7 @@ manufacturing-ops-analytics/
 │   └── dataquality/  # schema contract, drift, conformal, model cards (M11)
 ├── notebooks/        # one notebook per analysis stage (01-11)
 ├── scripts/          # live agent session runner (API-key gated)
-├── docs/             # GitHub Pages: narrative page, baseline, scenario runner
-│                     # demo, model cards, glossary
+├── docs/             # GitHub Pages pages, SA/SD docs, model cards, glossary
 └── reports/          # exported figures; recorded agent sessions land in
                       # reports/agent_sessions/ once credentials are provided
 ```

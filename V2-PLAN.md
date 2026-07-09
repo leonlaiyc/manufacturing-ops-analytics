@@ -237,6 +237,54 @@ with the newest owner request. Keep edits to `docs/` unless the owner asks for
 code or generated-asset changes. Match the index visual system and the locked
 demo framing; make surgical, bilingual (.en/.zh paired) edits.
 
+### HANDOVER: SA/SD documentation validation for Claude Code (2026-07-09)
+
+Goal: review the new reviewer-facing system analysis and system design docs.
+The owner asked for SA/SD-style documentation similar to what a Java system
+handoff would include, adapted to an analytics and decision-support project.
+
+Files added or linked:
+1. `docs/SA.md`: system analysis. It covers problem framing, stakeholders,
+   scope, data boundary, use cases, functional and nonfunctional requirements,
+   acceptance map, open boundaries, and AI assistance note.
+2. `docs/SD.md`: system design. It covers architecture overview, module map,
+   data products, event-log schema, generator design, KPI and bottleneck
+   design, monitoring design, decision and agent design, validation design,
+   public artifacts, failure handling, extension points, and traceability.
+3. `README.md`: added a short "Design documentation" entry that links to the
+   two docs.
+
+Validation requested from Claude Code:
+1. Read `AGENTS.md`, `CLAUDE.md`, `docs/SA.md`, `docs/SD.md`, and the README
+   "Design documentation" section.
+2. Check that both docs are English, reader-facing, and contain no em dash
+   character.
+3. Check that no sentence overclaims the project as a production digital twin,
+   production optimizer, real fab predictive model, or private semiconductor
+   dataset.
+4. Check that the docs match the locked line design:
+   `CLEAN -> FURNACE -> DEPO -> LITHO -> ETCH -> LITHO -> IMPLANT -> METRO`,
+   batch FURNACE, re-entrant LITHO, slot utilization, fixed seeds, CRN
+   validation, and LITHO bottleneck.
+5. Run:
+   `rg -n "\x{2014}|python src/| ," README.md docs/SA.md docs/SD.md docs/glossary.md`
+6. Run:
+   `py scripts/validate_all.py`
+7. Run:
+   `git diff --check`
+
+Expected outcome:
+- No code behavior should change from the SA/SD docs.
+- `py scripts/validate_all.py` should report `Summary: 18 passed, 0 failed`.
+- Only documentation files should be involved unless the owner asks for further
+  scope.
+
+Suggested Claude Code prompt:
+Read `CLAUDE.md` in full, then read `V2-PLAN.md` section "HANDOVER: SA/SD
+documentation validation for Claude Code". Validate only the SA/SD handoff
+unless the owner gives a newer request. Report findings first, with file and
+line references, then list any recommended documentation edits.
+
 ### HANDOVER: two commissioned tasks for Codex (2026-07-08, owner-approved)
 
 The owner commissioned both tasks below on 2026-07-08. Do Task A first: it
