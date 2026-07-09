@@ -197,27 +197,27 @@
         <tbody id="cap-rows">
           <tr data-id="LITHO">
             <td><strong>LITHO</strong></td>
-            <td class="barcell"><div class="barlabel"><span>+1 lot</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
-            <td class="barcell"><div class="barlabel"><span>-2.46 h</span><span class="en">largest</span><span class="zh">最大</span></div><div class="track"><div class="fill blue" style="width:100%"></div></div></td>
-            <td class="barcell"><div class="barlabel"><span class="cost-cost">+$8.0k</span><span></span></div><div class="track"><div class="fill red" style="width:100%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span data-cap-field="slot_label"></span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span data-cap-field="cycle_label"></span><span class="en">largest</span><span class="zh">最大</span></div><div class="track"><div class="fill blue" style="width:100%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span class="cost-cost" data-cap-field="cost_label"></span><span></span></div><div class="track"><div class="fill red" style="width:100%"></div></div></td>
           </tr>
           <tr data-id="FURNACE">
             <td><strong>FURNACE</strong></td>
-            <td class="barcell"><div class="barlabel"><span>+4 lots</span><span class="en">most slots</span><span class="zh">槽數最多</span></div><div class="track"><div class="fill green" style="width:100%"></div></div></td>
-            <td class="barcell"><div class="barlabel"><span>-0.70 h</span><span></span></div><div class="track"><div class="fill blue" style="width:28%"></div></div></td>
-            <td class="barcell"><div class="barlabel"><span class="cost-save">-$1.7k</span><span></span></div><div class="track"><div class="fill green" style="width:22%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span data-cap-field="slot_label"></span><span class="en">most slots</span><span class="zh">槽數最多</span></div><div class="track"><div class="fill green" style="width:100%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span data-cap-field="cycle_label"></span><span></span></div><div class="track"><div class="fill blue" style="width:28%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span class="cost-save" data-cap-field="cost_label"></span><span></span></div><div class="track"><div class="fill green" style="width:22%"></div></div></td>
           </tr>
           <tr data-id="DEPO">
             <td><strong>DEPO</strong></td>
-            <td class="barcell"><div class="barlabel"><span>+1 lot</span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
-            <td class="barcell"><div class="barlabel"><span>-0.26 h</span><span></span></div><div class="track"><div class="fill blue" style="width:10%"></div></div></td>
-            <td class="barcell"><div class="barlabel"><span class="cost-cost">+$1.7k</span><span></span></div><div class="track"><div class="fill red" style="width:21%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span data-cap-field="slot_label"></span><span></span></div><div class="track"><div class="fill" style="width:25%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span data-cap-field="cycle_label"></span><span></span></div><div class="track"><div class="fill blue" style="width:10%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span class="cost-cost" data-cap-field="cost_label"></span><span></span></div><div class="track"><div class="fill red" style="width:21%"></div></div></td>
           </tr>
           <tr data-id="METRO">
             <td><strong>METRO</strong></td>
-            <td class="barcell"><div class="barlabel"><span>+1 lot</span><span></span></div><div class="track"><div class="fill tiny" style="width:25%"></div></div></td>
-            <td class="barcell"><div class="barlabel"><span>-0.05 h</span><span></span></div><div class="track"><div class="fill blue tiny" style="width:2%"></div></div></td>
-            <td class="barcell"><div class="barlabel"><span class="cost-cost">+$1.4k</span><span></span></div><div class="track"><div class="fill red" style="width:17%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span data-cap-field="slot_label"></span><span></span></div><div class="track"><div class="fill tiny" style="width:25%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span data-cap-field="cycle_label"></span><span></span></div><div class="track"><div class="fill blue tiny" style="width:2%"></div></div></td>
+            <td class="barcell"><div class="barlabel"><span class="cost-cost" data-cap-field="cost_label"></span><span></span></div><div class="track"><div class="fill red" style="width:17%"></div></div></td>
           </tr>
         </tbody>
       </table>
@@ -243,17 +243,17 @@
       <div class="engine-bar" data-id="immediate">
         <span><span class="en">Immediate PM</span><span class="zh">立即 PM</span></span>
         <div class="track"><div class="fill green" style="width:38%"></div></div>
-        <span class="value">$1.75M</span>
+        <span class="value" data-mnt-field="value"></span>
       </div>
       <div class="engine-bar" data-id="mid">
         <span><span class="en">Mid PM</span><span class="zh">中期 PM</span></span>
         <div class="track"><div class="fill" style="width:53%"></div></div>
-        <span class="value">$2.45M</span>
+        <span class="value" data-mnt-field="value"></span>
       </div>
       <div class="engine-bar" data-id="late">
         <span><span class="en">Late PM</span><span class="zh">延後 PM</span></span>
         <div class="track"><div class="fill red" style="width:100%"></div></div>
-        <span class="value">$4.59M</span>
+        <span class="value" data-mnt-field="value"></span>
       </div>
     </div>
 
@@ -274,10 +274,10 @@
     </div>
 
     <div class="engine-winners" id="dsp-winners">
-      <div class="engine-winner" data-id="ct"><span><span class="en">Cycle time</span><span class="zh">Cycle time</span></span><strong>EDD</strong></div>
-      <div class="engine-winner" data-id="ontime"><span><span class="en">On-time</span><span class="zh">準時交付</span></span><strong>EDD</strong></div>
-      <div class="engine-winner" data-id="yieldrisk"><span><span class="en">Yield risk</span><span class="zh">良率風險</span></span><strong>Release control</strong></div>
-      <div class="engine-winner" data-id="cost"><span><span class="en">Total cost</span><span class="zh">總成本</span></span><strong>Release control</strong></div>
+      <div class="engine-winner" data-id="ct"><span><span class="en">Cycle time</span><span class="zh">Cycle time</span></span><strong data-dsp-field="winner"></strong></div>
+      <div class="engine-winner" data-id="ontime"><span><span class="en">On-time</span><span class="zh">準時交付</span></span><strong data-dsp-field="winner"></strong></div>
+      <div class="engine-winner" data-id="yieldrisk"><span><span class="en">Yield risk</span><span class="zh">良率風險</span></span><strong data-dsp-field="winner"></strong></div>
+      <div class="engine-winner" data-id="cost"><span><span class="en">Total cost</span><span class="zh">總成本</span></span><strong data-dsp-field="winner"></strong></div>
     </div>
 
     <div class="memo" id="dsp-memo"></div>
@@ -297,11 +297,11 @@
 
     <div class="engine-pair">
       <div>
-        <strong id="yld-ct">0 h</strong>
+        <strong id="yld-ct"></strong>
         <span><span class="en">avg cycle-time change vs baseline</span><span class="zh">平均 cycle time 相對 baseline 的變化</span></span>
       </div>
       <div>
-        <strong id="yld-vio">0</strong>
+        <strong id="yld-vio"></strong>
         <span><span class="en">post-litho violation-rate change vs baseline</span><span class="zh">post-litho violation rate 相對 baseline 的變化</span></span>
       </div>
     </div>
@@ -329,13 +329,13 @@
             <td><strong class="en">Output-only monitor</strong><strong class="zh">只看 output 的監控</strong></td>
             <td>Daily output / throughput</td>
             <td><span class="en">Alert only when output drops below the clean baseline lower control limit.</span><span class="zh">只有當 output 低於乾淨 baseline 的下控制線時才 alert。</span></td>
-            <td><span class="en">No alert within 160 days</span><span class="zh">160 天內沒有 alert</span></td>
+            <td><span class="en" data-mon-result="en"></span><span class="zh" data-mon-result="zh"></span></td>
           </tr>
           <tr data-id="ewma">
             <td><strong class="en">EWMA drift monitor</strong><strong class="zh">EWMA 漂移監控</strong></td>
             <td><span class="en">Daily median lot cycle time</span><span class="zh">每日 lot cycle time 中位數</span></td>
             <td><span class="en">Alert when small persistent cycle-time drift accumulates.</span><span class="zh">小而持續的 cycle-time 偏移累積後 alert。</span></td>
-            <td><span class="en">Alert on day 84</span><span class="zh">day 84 alert</span></td>
+            <td><span class="en" data-mon-result="en"></span><span class="zh" data-mon-result="zh"></span></td>
           </tr>
         </tbody>
       </table>
@@ -433,168 +433,161 @@
     });
   }
 
+  var DATA = null;
+
+  function recordRows(section){
+    var r = DATA[section].records;
+    return [
+      [L.engine, r.engine],
+      [L.run, r.run],
+      [L.seeds, r.seeds],
+      [L.assumptions, r.assumptions]
+    ];
+  }
+
+  function applyStaticData(){
+    Object.keys(DATA.capacity.rows).forEach(function(id){
+      var row = document.querySelector('#cap-rows tr[data-id="' + id + '"]');
+      Object.keys(DATA.capacity.rows[id]).forEach(function(field){
+        row.querySelector('[data-cap-field="' + field + '"]').textContent =
+          DATA.capacity.rows[id][field];
+      });
+    });
+    Object.keys(DATA.maintenance.scenarios).forEach(function(id){
+      document.querySelector('#mnt-bars [data-id="' + id + '"] [data-mnt-field="value"]')
+        .textContent = DATA.maintenance.scenarios[id].value;
+    });
+    Object.keys(DATA.dispatch.winners).forEach(function(id){
+      document.querySelector('#dsp-winners [data-id="' + id + '"] [data-dsp-field="winner"]')
+        .textContent = DATA.dispatch.winners[id];
+    });
+    Object.keys(DATA.monitoring.rows).forEach(function(id){
+      var row = document.querySelector('#mon-rows tr[data-id="' + id + '"]');
+      row.querySelector('[data-mon-result="en"]').textContent = DATA.monitoring.rows[id].result_en;
+      row.querySelector('[data-mon-result="zh"]').textContent = DATA.monitoring.rows[id].result_zh;
+    });
+  }
+
   /* ---------- Capacity ---------- */
   var CAP = {
     LITHO: {
-      kpi: 'delta_cycle_time = -2.46 h (95% CI 2.13-2.79) &middot; net_cost = +$8.0k',
       memo: bi('Scenario add_tool_LITHO ranks first on cycle time: a 2.46 h reduction (95% CI 2.13-2.79 h), against 0.70 h for FURNACE, 0.26 h for DEPO and 0.05 h for METRO. Under the illustrative investment-stress rates it is also the most expensive option (+$8.0k), while FURNACE is the only net saver (-$1.7k). If the priority is shortening cycle time, LITHO is the pick and the cost premium is the price; if the priority is short-term cost, FURNACE is the defensible choice.',
                '情境 add_tool_LITHO 在 cycle time 排第一：降 2.46 h（95% CI 2.13-2.79 h），其餘選項為 FURNACE 0.70 h、DEPO 0.26 h、METRO 0.05 h。在示意投資壓力費率下它同時是最貴的選項（+$8.0k），FURNACE 則是唯一淨省錢者（-$1.7k）。若優先目標是縮短 cycle time，就選 LITHO 並接受成本溢價；若優先目標是短期成本，FURNACE 比較站得住腳。')
     },
     FURNACE: {
-      kpi: 'delta_cycle_time = -0.70 h &middot; net_cost = -$1.7k',
       memo: bi('Scenario add_tool_FURNACE adds the most lot-processing slots (+4) but cuts cycle time by only 0.70 h, against 2.46 h for LITHO: the batch tool sits far from the constraint. Under the illustrative stress rates it is the only net-saving option (-$1.7k), while LITHO costs +$8.0k. If the priority is short-term cost, FURNACE wins; if the priority is cycle time, the slot count is a distraction and LITHO is the answer.',
                '情境 add_tool_FURNACE 增加最多處理槽數（+4），cycle time 卻只降 0.70 h，對比 LITHO 的 2.46 h：這台 batch 機離瓶頸很遠。在示意壓力費率下它是唯一淨省錢的選項（-$1.7k），LITHO 則要 +$8.0k。若優先目標是短期成本，FURNACE 勝出；若優先目標是 cycle time，槽數只是干擾，答案是 LITHO。')
     },
     DEPO: {
-      kpi: 'delta_cycle_time = -0.26 h &middot; net_cost = +$1.7k',
       memo: bi('Scenario add_tool_DEPO reduces cycle time by 0.26 h at a net cost of +$1.7k: behind LITHO (2.46 h) on speed and behind FURNACE (-$1.7k) on cost. It wins under neither objective, so in this scenario set the investment goes elsewhere regardless of priority.',
                '情境 add_tool_DEPO 只降 0.26 h，淨成本 +$1.7k：速度輸 LITHO（2.46 h），成本輸 FURNACE（-$1.7k）。兩種目標下它都不是贏家，所以在這組情境中，不論優先順序為何，投資都應該放在別站。')
     },
     METRO: {
-      kpi: 'delta_cycle_time = -0.05 h &middot; net_cost = +$1.4k',
       memo: bi('Scenario add_tool_METRO changes cycle time by only 0.05 h at a net cost of +$1.4k, last on both rankings: the station is far from the constraint. Whichever objective leads, the comparison points to LITHO (speed) or FURNACE (cost) instead.',
                '情境 add_tool_METRO 只降 0.05 h，淨成本 +$1.4k，兩種排名都墊底：這站離瓶頸很遠。不論以哪個目標為先，比較結果都指向 LITHO（速度）或 FURNACE（成本）。')
     }
   };
-  var CAP_ROWS_STATIC = [
-    [L.engine, 'src/decision/whatif.py + cost_model.py'],
-    [L.run, 'n_reps=30, CRN-paired'],
-    [L.seeds, '1000-1029'],
-    [L.assumptions, 'FIFO dispatch; Poisson arrivals; lognormal PT; illustrative CostRates (ranking only)']
-  ];
   var setCap = wireChoices(document.getElementById('cap-choices'), function(id){
-    var d = CAP[id];
+    var d = DATA.capacity.scenarios[id];
+    var copy = CAP[id];
     highlight('#cap-rows', 'tr', id);
-    renderMemo(document.getElementById('cap-memo'), d.memo);
+    renderMemo(document.getElementById('cap-memo'), copy.memo);
     renderRecord(document.getElementById('cap-record'),
-      [[L.scenario, '<code>add_tool_' + id + '</code>']].concat(CAP_ROWS_STATIC, [[L.kpi, d.kpi]]));
+      [[L.scenario, '<code>add_tool_' + id + '</code>']].concat(recordRows('capacity'), [[L.kpi, d.kpi]]));
   });
 
   /* ---------- Maintenance ---------- */
   var MNT = {
     immediate: {
-      kpi: 'total_cost = $1.75M (rank 1 of 3)',
       memo: bi('Immediate PM totals $1.75M against $2.45M for mid and $4.59M for late: acting at the alert ranks first under the illustrative rates. Every step of delay adds accumulated congestion cost, +40% by mid and 2.6x by late, so unless capacity constraints force a deferral, the alert is worth acting on now.',
                '立即 PM 總成本 $1.75M，對比中期 $2.45M、延後 $4.59M：在示意費率下，警報當下行動排名第一。每多延一段就多累積壅塞成本，中期多 40%、延後達 2.6 倍；除非產能限制被迫延期，警報值得立即處理。')
     },
     mid: {
-      kpi: 'total_cost = $2.45M (rank 2 of 3)',
       memo: bi('Mid PM totals $2.45M: 40% above immediate ($1.75M) but $2.14M below late ($4.59M). If PM must be deferred, for example through a capacity crunch, mid is the damage-control option; if nothing forces the wait, immediate still ranks first.',
                '中期 PM 總成本 $2.45M：比立即 PM（$1.75M）多 40%，但比延後（$4.59M）省 $2.14M。若 PM 非延不可（例如產能吃緊），中期是停損選項；若沒有非等不可的理由，立即 PM 仍然排第一。')
     },
     late: {
-      kpi: 'total_cost = $4.59M (rank 3 of 3)',
       memo: bi('Late PM totals $4.59M, 2.6 times the immediate option ($1.75M) and well above mid ($2.45M). Once a cost is attached to delay, there is no objective in this comparison under which waiting to the end wins: the delay penalty dominates whatever the deferral saved.',
                '延後 PM 總成本 $4.59M，是立即 PM（$1.75M）的 2.6 倍，也遠高於中期（$2.45M）。一旦替延遲標上成本，這組比較中沒有任何目標會讓拖到最後勝出：延遲的代價遠大於延後省下的部分。')
     }
   };
-  var MNT_ROWS_STATIC = [
-    [L.engine, 'src/equipment/maintenance_whatif.py'],
-    [L.run, 'n_reps=15, CRN-paired'],
-    [L.seeds, '6000-6014'],
-    [L.assumptions, 'station=LITHO (engineered bottleneck); E10 state layer; illustrative downtime + delay cost rates']
-  ];
   var setMnt = wireChoices(document.getElementById('mnt-choices'), function(id){
-    var d = MNT[id];
+    var d = DATA.maintenance.scenarios[id];
+    var copy = MNT[id];
     highlight('#mnt-bars', '.engine-bar', id);
-    renderMemo(document.getElementById('mnt-memo'), d.memo);
+    renderMemo(document.getElementById('mnt-memo'), copy.memo);
     renderRecord(document.getElementById('mnt-record'),
-      [[L.scenario, '<code>pm_timing_' + id + '</code>']].concat(MNT_ROWS_STATIC, [[L.kpi, d.kpi]]));
+      [[L.scenario, '<code>pm_timing_' + id + '</code>']].concat(recordRows('maintenance'), [[L.kpi, d.kpi]]));
   });
 
   /* ---------- Dispatching ---------- */
   var DSP = {
     ct: {
-      kpi: 'best_policy = EDD (objective: avg cycle time)',
       memo: bi('For an average cycle-time objective EDD is the winning policy; it also wins on-time delivery. The winner flips to release control once the objective becomes yield risk or total cost, so the rule to deploy depends on which objective the line is being run for, not on a single all-purpose ranking.',
                '以平均 cycle time 為目標，最佳 policy 是 EDD，它同時也贏準時交付。目標一旦換成良率風險或總成本，贏家就換成 release control：該用哪條規則取決於產線當下追求的目標，而不是一份萬用排名。')
     },
     ontime: {
-      kpi: 'best_policy = EDD (objective: on-time delivery)',
       memo: bi('For an on-time-delivery objective EDD wins, consistent with its due-date-driven queue ordering, and it also holds the cycle-time objective. Yield risk and total cost point to release control instead, so the on-time pick does not transfer automatically to cost-led operations.',
                '以準時交付為目標，EDD 勝出，和它依交期排隊的邏輯一致，且 cycle time 目標它同樣領先。但良率風險與總成本兩個目標的答案是 release control：準時導向的選擇不能直接搬到成本導向的營運。')
     },
     yieldrisk: {
-      kpi: 'best_policy = release_control (objective: yield risk)',
       memo: bi('For a yield-risk objective release control wins: holding lots at release keeps fewer in flight and cuts queue-time exposure, at some flow cost. This is where the cycle-time winner (EDD) stops being the answer; if quality exposure leads, control the release, if speed leads, switch back to EDD.',
                '以良率風險為目標，release control 勝出：在投產端控制放行讓在線 lot 變少、queue-time 暴露下降，代價是流速。cycle time 的贏家（EDD）從這裡開始不再是答案：品質暴露優先就控制放行，速度優先就換回 EDD。')
     },
     cost: {
-      kpi: 'best_policy = release_control (objective: total cost)',
       memo: bi('For a total-cost objective under the illustrative rates, release control wins once yield and congestion costs are combined, mirroring the yield-risk result; EDD keeps the speed objectives. No single dispatch rule dominates all four objectives, which is the point of running the comparison per objective.',
                '以總成本為目標、採用示意費率時，合併良率與壅塞成本後 release control 勝出，與良率風險的結果一致；速度類目標仍屬 EDD。沒有任何一條派工規則能包辦四個目標，這正是要按目標逐一比較的原因。')
     }
   };
-  var DSP_ROWS_STATIC = [
-    [L.engine, 'src/decision/dispatch_whatif.py'],
-    [L.run, 'n_reps=30, CRN-paired'],
-    [L.seeds, '8000-8029'],
-    [L.assumptions, 'policies = fifo, edd, critical_ratio, release_control; illustrative yield + congestion cost rates']
-  ];
   var setDsp = wireChoices(document.getElementById('dsp-choices'), function(id){
-    var d = DSP[id];
+    var d = DATA.dispatch.scenarios[id];
+    var copy = DSP[id];
     highlight('#dsp-winners', '.engine-winner', id);
-    renderMemo(document.getElementById('dsp-memo'), d.memo);
+    renderMemo(document.getElementById('dsp-memo'), copy.memo);
     renderRecord(document.getElementById('dsp-record'),
-      [[L.scenario, '<code>dispatch_objective_' + id + '</code>']].concat(DSP_ROWS_STATIC, [[L.kpi, d.kpi]]));
+      [[L.scenario, '<code>dispatch_objective_' + id + '</code>']].concat(recordRows('dispatch'), [[L.kpi, d.kpi]]));
   });
 
   /* ---------- Yield ---------- */
   var YLD = {
     baseline: {
-      ct: '0 h', vio: '0',
-      kpi: 'delta_cycle_time = 0 &middot; delta_violation_rate = 0 (reference run)',
       memo: bi('Baseline reference: both KPIs are defined as deltas against this run, so they read zero here. Flip to LITHO +1 to see the recorded trade-off: the speed gain and the quality risk move together in the paired runs.',
                'Baseline 參考：兩個 KPI 都定義為相對這次 run 的變化量，因此在這裡讀值為 0。切到 LITHO +1 可看到紀錄下來的取捨：在配對 run 裡，速度收益和品質風險是一起變動的。')
     },
     litho1: {
-      ct: '-2.87 h', vio: '+0.038',
-      kpi: 'delta_cycle_time = -2.87 h &middot; delta_violation_rate = +0.038',
       memo: bi('Adding one LITHO tool cuts average cycle time by 2.87 h but raises the post-litho violation rate by 0.038, and both numbers come from the same paired runs. If the capacity decision is made on cycle time alone, the quality axis stays invisible; if post-litho violations carry cost, the option ranking can change once both axes are combined, which is why speed and yield risk belong in one decision view.',
                'LITHO 加 1 台讓平均 cycle time 降 2.87 h，但 post-litho violation rate 上升 0.038，兩個數字來自同一批配對 run。只看 cycle time 做產能決策，品質這條軸完全隱形；若 post-litho violation 有成本，把兩條軸合併後選項排名可能改變，這正是速度與良率風險必須放進同一個決策畫面的原因。')
     }
   };
-  var YLD_ROWS_STATIC = [
-    [L.engine, 'src/decision/yield_whatif.py'],
-    [L.run, 'n_reps=30, CRN-paired'],
-    [L.seeds, '5000-5029 (shared QualityConfig seed)'],
-    [L.assumptions, 'station=LITHO (engineered bottleneck); queue-time-driven violations; linear-additive ground truth']
-  ];
   var setYld = wireChoices(document.getElementById('yld-choices'), function(id){
-    var d = YLD[id];
+    var d = DATA.yield.scenarios[id];
+    var copy = YLD[id];
     document.getElementById('yld-ct').textContent = d.ct;
     document.getElementById('yld-vio').textContent = d.vio;
-    renderMemo(document.getElementById('yld-memo'), d.memo);
+    renderMemo(document.getElementById('yld-memo'), copy.memo);
     renderRecord(document.getElementById('yld-record'),
       [[L.scenario, '<code>yield_' + (id === 'litho1' ? 'litho_plus1' : 'baseline') + '</code>']]
-        .concat(YLD_ROWS_STATIC, [[L.kpi, d.kpi]]));
+        .concat(recordRows('yield'), [[L.kpi, d.kpi]]));
   });
 
   /* ---------- Monitoring ---------- */
   var MON = {
     output: {
-      kpi: 'alert_day = none (silent over 160-day horizon)',
       memo: bi('The output-only monitor never alerts within the 160-day horizon even though degradation starts on day 30, while the EWMA rule on the same backtest alerts on day 84. Watching output alone reports the problem only after the congestion cost is already sunk; if early action matters, the drift signal is the one to watch.',
                '只看 output 的監控在 160 天內完全沒有警報，即使 degradation 在 day 30 就已開始；同一場回測中 EWMA 在 day 84 就發出警報。只盯 output，等於在壅塞成本已經沉沒之後才知道問題；若及早行動有價值，該盯的是漂移訊號。')
     },
     ewma: {
-      kpi: 'alert_day = 84 &middot; remaining_horizon = 76 days',
       memo: bi('The EWMA drift monitor alerts on day 84 against a day-30 onset, while the output-only rule stays silent for all 160 days. In this experiment the 76 remaining days are where early action can still avoid the extra degradation cost; paired with the PM-timing comparison, that lead time is what turns detection into decision value.',
                'EWMA 漂移監控對 day 30 開始的劣化在 day 84 發出警報，只看 output 的規則則整整 160 天沉默。在此實驗中，剩下的 76 天就是及早行動仍可避免額外劣化成本的空間；搭配 PM 時機比較，這段提前量就是把偵測轉成決策價值的關鍵。')
     }
   };
-  var MON_ROWS_STATIC = [
-    [L.engine, 'src/monitoring + src/kpi/precompute_findings.py'],
-    [L.run, 'deterministic backtest, horizon=160 days'],
-    [L.seeds, 'config seed 42; labeled onset = day 30'],
-    [L.assumptions, 'same locked line observed for 160 days; synthetic labeled anomaly, so detection delay is measured against known ground truth']
-  ];
   var setMon = wireChoices(document.getElementById('mon-choices'), function(id){
-    var d = MON[id];
+    var d = DATA.monitoring.scenarios[id];
+    var copy = MON[id];
     highlight('#mon-rows', 'tr', id);
-    renderMemo(document.getElementById('mon-memo'), d.memo);
+    renderMemo(document.getElementById('mon-memo'), copy.memo);
     renderRecord(document.getElementById('mon-record'),
-      [[L.scenario, '<code>slow_drift_backtest_' + id + '</code>']].concat(MON_ROWS_STATIC, [[L.kpi, d.kpi]]));
+      [[L.scenario, '<code>slow_drift_backtest_' + id + '</code>']].concat(recordRows('monitoring'), [[L.kpi, d.kpi]]));
   });
 
   /* ---------- Tabs ---------- */
@@ -609,13 +602,32 @@
     b.addEventListener('click', function(){ setTab(b.dataset.tab); });
   });
 
-  // Initial state: first tab, one default selection per pane.
-  setTab('capacity');
-  setCap('LITHO');
-  setMnt('immediate');
-  setDsp('ct');
-  setYld('litho1');
-  setMon('ewma');
+  function initialize(data){
+    DATA = data;
+    applyStaticData();
+    setTab('capacity');
+    setCap('LITHO');
+    setMnt('immediate');
+    setDsp('ct');
+    setYld('litho1');
+    setMon('ewma');
+  }
+
+  // Same-origin fetch works on GitHub Pages and local docs-static servers;
+  // opening this file directly with file:// will not load the JSON asset.
+  fetch('assets/scenario_runner_data.json')
+    .then(function(response){
+      if (!response.ok) throw new Error('scenario data fetch failed');
+      return response.json();
+    })
+    .then(initialize)
+    .catch(function(error){
+      console.error(error);
+      document.body.insertAdjacentHTML(
+        'beforeend',
+        '<p style="padding:1rem;color:#B00020">Scenario data failed to load. Use a local static server.</p>'
+      );
+    });
 </script>
 </body>
 </html>

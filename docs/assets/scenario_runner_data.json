@@ -1,0 +1,159 @@
+{
+  "capacity": {
+    "records": {
+      "assumptions": "FIFO dispatch; Poisson arrivals; lognormal PT; illustrative CostRates (ranking only)",
+      "engine": "src/decision/whatif.py + cost_model.py",
+      "run": "n_reps=30, CRN-paired",
+      "seeds": "1000-1029"
+    },
+    "rows": {
+      "DEPO": {
+        "cost_label": "+$1.7k",
+        "cycle_label": "-0.26 h",
+        "slot_label": "+1 lot"
+      },
+      "FURNACE": {
+        "cost_label": "-$1.7k",
+        "cycle_label": "-0.70 h",
+        "slot_label": "+4 lots"
+      },
+      "LITHO": {
+        "cost_label": "+$8.0k",
+        "cycle_label": "-2.46 h",
+        "slot_label": "+1 lot"
+      },
+      "METRO": {
+        "cost_label": "+$1.4k",
+        "cycle_label": "-0.05 h",
+        "slot_label": "+1 lot"
+      }
+    },
+    "scenarios": {
+      "DEPO": {
+        "delta_cycle_time_h": -0.26,
+        "kpi": "delta_cycle_time = -0.26 h &middot; net_cost = +$1.7k",
+        "net_cost_k": 1.7
+      },
+      "FURNACE": {
+        "delta_cycle_time_h": -0.7,
+        "kpi": "delta_cycle_time = -0.70 h &middot; net_cost = -$1.7k",
+        "net_cost_k": -1.7
+      },
+      "LITHO": {
+        "delta_cycle_time_h": -2.46,
+        "kpi": "delta_cycle_time = -2.46 h (95% CI 2.13-2.79) &middot; net_cost = +$8.0k",
+        "net_cost_k": 8.0
+      },
+      "METRO": {
+        "delta_cycle_time_h": -0.05,
+        "kpi": "delta_cycle_time = -0.05 h &middot; net_cost = +$1.4k",
+        "net_cost_k": 1.4
+      }
+    }
+  },
+  "dispatch": {
+    "records": {
+      "assumptions": "policies = fifo, edd, critical_ratio, release_control; illustrative yield + congestion cost rates",
+      "engine": "src/decision/dispatch_whatif.py",
+      "run": "n_reps=30, CRN-paired",
+      "seeds": "8000-8029"
+    },
+    "scenarios": {
+      "cost": {
+        "kpi": "best_policy = release_control (objective: total cost)",
+        "winner": "Release control"
+      },
+      "ct": {
+        "kpi": "best_policy = EDD (objective: avg cycle time)",
+        "winner": "EDD"
+      },
+      "ontime": {
+        "kpi": "best_policy = EDD (objective: on-time delivery)",
+        "winner": "EDD"
+      },
+      "yieldrisk": {
+        "kpi": "best_policy = release_control (objective: yield risk)",
+        "winner": "Release control"
+      }
+    },
+    "winners": {
+      "cost": "Release control",
+      "ct": "EDD",
+      "ontime": "EDD",
+      "yieldrisk": "Release control"
+    }
+  },
+  "maintenance": {
+    "records": {
+      "assumptions": "station=LITHO (engineered bottleneck); E10 state layer; illustrative downtime + delay cost rates",
+      "engine": "src/equipment/maintenance_whatif.py",
+      "run": "n_reps=15, CRN-paired",
+      "seeds": "6000-6014"
+    },
+    "scenarios": {
+      "immediate": {
+        "kpi": "total_cost = $1.75M (rank 1 of 3)",
+        "total_cost_m": 1.75,
+        "value": "$1.75M"
+      },
+      "late": {
+        "kpi": "total_cost = $4.59M (rank 3 of 3)",
+        "total_cost_m": 4.59,
+        "value": "$4.59M"
+      },
+      "mid": {
+        "kpi": "total_cost = $2.45M (rank 2 of 3)",
+        "total_cost_m": 2.45,
+        "value": "$2.45M"
+      }
+    }
+  },
+  "monitoring": {
+    "records": {
+      "assumptions": "same locked line observed for 160 days; synthetic labeled anomaly, so detection delay is measured against known ground truth",
+      "engine": "src/monitoring + src/kpi/precompute_findings.py",
+      "run": "deterministic backtest, horizon=160 days",
+      "seeds": "config seed 42; labeled onset = day 30"
+    },
+    "rows": {
+      "ewma": {
+        "result_en": "Alert on day 84",
+        "result_zh": "day 84 alert"
+      },
+      "output": {
+        "result_en": "No alert within 160 days",
+        "result_zh": "160 \u5929\u5167\u6c92\u6709 alert"
+      }
+    },
+    "scenarios": {
+      "ewma": {
+        "kpi": "alert_day = 84 &middot; remaining_horizon = 76 days"
+      },
+      "output": {
+        "kpi": "alert_day = none (silent over 160-day horizon)"
+      }
+    }
+  },
+  "schema_version": 1,
+  "source": "src/kpi/export_scenario_runner_data.py",
+  "yield": {
+    "records": {
+      "assumptions": "station=LITHO (engineered bottleneck); queue-time-driven violations; linear-additive ground truth",
+      "engine": "src/decision/yield_whatif.py",
+      "run": "n_reps=30, CRN-paired",
+      "seeds": "5000-5029 (shared QualityConfig seed)"
+    },
+    "scenarios": {
+      "baseline": {
+        "ct": "0 h",
+        "kpi": "delta_cycle_time = 0 &middot; delta_violation_rate = 0 (reference run)",
+        "vio": "0"
+      },
+      "litho1": {
+        "ct": "-2.87 h",
+        "kpi": "delta_cycle_time = -2.87 h &middot; delta_violation_rate = +0.038",
+        "vio": "+0.038"
+      }
+    }
+  }
+}
