@@ -535,8 +535,8 @@
             <span class="value">0.70 h</span>
           </div>
         </div>
-        <p class="caption en">Takeaway: capacity is ranked by whole-line cycle-time impact, not local batch intuition.</p>
-        <p class="caption zh">Takeaway：capacity decision 看 whole-line cycle-time impact，不只看局部 batch 直覺。</p>
+        <p class="caption en">Provides simulation data for different tool-addition cases.</p>
+        <p class="caption zh">提供針對不同機台添加情況的模擬數據。</p>
       </div>
 
       <div class="engine-card">
@@ -560,8 +560,8 @@
             <span class="value">$4.59M</span>
           </div>
         </div>
-        <p class="caption en">Takeaway: monitoring becomes a PM-timing trade-off once cost is attached to delay.</p>
-        <p class="caption zh">Takeaway：當 delay 有成本，monitoring 就會變成 PM-timing trade-off。</p>
+        <p class="caption en">Provides PM cost estimates under different scenarios.</p>
+        <p class="caption zh">提供不同情境下 PM 的成本評估。</p>
       </div>
 
       <div class="engine-card">
@@ -574,8 +574,8 @@
           <div class="engine-winner"><span>Yield risk</span><strong>Release control</strong></div>
           <div class="engine-winner"><span>Total cost</span><strong>Release control</strong></div>
         </div>
-        <p class="caption en">Takeaway: the best dispatch policy changes when the operating objective changes.</p>
-        <p class="caption zh">Takeaway：operating objective 改變時，最佳 dispatch policy 也會改變。</p>
+        <p class="caption en">Shows the best dispatch policy under different operating objectives.</p>
+        <p class="caption zh">提供不同運營目標下，最佳 dispatch policy。</p>
       </div>
 
       <div class="engine-card">
@@ -592,42 +592,29 @@
             <span>post-litho violation-rate change</span>
           </div>
         </div>
-        <p class="caption en">Takeaway: speed and yield risk must be visible in the same decision view.</p>
-        <p class="caption zh">Takeaway：speed 和 yield risk 必須放在同一個 decision view 裡看。</p>
+        <p class="caption en">Provides multiple KPI perspectives for combined evaluation.</p>
+        <p class="caption zh">提供不同面向指標，便利使用者綜合評估。</p>
       </div>
     </div>
 
   </div>
 
-  <p class="section-label"><span class="en">Methodology and validation</span><span class="zh">方法與驗證</span></p>
+  <p class="section-label"><span class="en">References</span><span class="zh">參考文獻</span></p>
 
   <div class="finding">
     <div class="en">
-      <p><strong>Ground truth by design:</strong> the synthetic line's bottleneck and anomalies are
-      injected on purpose, so detection and diagnosis quality is measured against a known answer;
-      synthetic data is labeled synthetic throughout.</p>
-      <p><strong>Consistency check:</strong> the simulation core passes a Little's Law
-      internal-consistency check with a long-run WIP gap of 0.2%; per simulation V&amp;V methodology
-      this is a check of internal model correctness, not a validity claim about any real fab.</p>
-      <p><strong>Scope boundary:</strong> the cost model produces only relative rankings under
-      stated assumptions with sensitivity checks; the real production log is used only for
-      defensible process reconstruction and diagnosis; a live data link to a physical fab (the
-      defining feature of a digital twin) is explicitly outside the boundary.</p>
-      <p><strong>References:</strong>
-      <a href="https://pubsonline.informs.org/doi/10.1287/opre.9.3.383">Little (1961, Operations Research)</a>;
-      <a href="https://www.tandfonline.com/doi/abs/10.1057/jos.2012.20">Sargent (2013, Journal of Simulation)</a>;
-      <a href="https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc324.htm">NIST/SEMATECH e-Handbook 6.3.2.4</a>;
-      <a href="https://arxiv.org/abs/2403.03837">Capezza et al. (2024, Journal of Quality Technology)</a>.</p>
+      <p>
+        <a href="https://pubsonline.informs.org/doi/10.1287/opre.9.3.383">Little (1961, Operations Research)</a>;
+        <a href="https://www.tandfonline.com/doi/abs/10.1057/jos.2012.20">Sargent (2013, Journal of Simulation)</a>;
+        <a href="https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc324.htm">NIST/SEMATECH e-Handbook 6.3.2.4</a>.
+      </p>
     </div>
     <div class="zh">
-      <p><strong>已知真值設計：</strong>合成產線的瓶頸與異常皆為刻意注入，方法的偵測與診斷品質有標準答案可對照量測；合成資料全程明示為合成。</p>
-      <p><strong>一致性檢查：</strong>模擬核心以 Little's Law 做內部一致性檢查，長期運行的 WIP 誤差 0.2%；依模擬驗證方法學，此為模型內部正確性檢查，不是對任何真實工廠的有效性宣稱。</p>
-      <p><strong>適用邊界：</strong>成本模型只做給定假設下的相對排序與敏感度分析；真實生產紀錄僅用於可辯護的流程診斷；與實體工廠的即時資料連線（數位孿生的定義性特徵）明確劃在邊界之外。</p>
-      <p><strong>參考文獻：</strong>
-      <a href="https://pubsonline.informs.org/doi/10.1287/opre.9.3.383">Little (1961, Operations Research)</a>、
-      <a href="https://www.tandfonline.com/doi/abs/10.1057/jos.2012.20">Sargent (2013, Journal of Simulation)</a>、
-      <a href="https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc324.htm">NIST/SEMATECH e-Handbook 6.3.2.4</a>、
-      <a href="https://arxiv.org/abs/2403.03837">Capezza et al. (2024, Journal of Quality Technology)</a>。</p>
+      <p>
+        <a href="https://pubsonline.informs.org/doi/10.1287/opre.9.3.383">Little (1961, Operations Research)</a>、
+        <a href="https://www.tandfonline.com/doi/abs/10.1057/jos.2012.20">Sargent (2013, Journal of Simulation)</a>、
+        <a href="https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc324.htm">NIST/SEMATECH e-Handbook 6.3.2.4</a>。
+      </p>
     </div>
   </div>
 
@@ -650,11 +637,11 @@
       <span class="en">View the full analysis on GitHub</span><span class="zh">在 GitHub 看完整分析</span></a>
   </div>
 
-  <p class="note en">Honest scope: the simulated line is clearly labeled synthetic; it exists to
+  <p class="note en">Scope: the simulated line is clearly labeled synthetic; it exists to
   give the methods a known ground truth (an engineered bottleneck, labeled fault windows).
   The real production log is used for diagnosis only. Cost figures are illustrative and used for
   ranking, not as dollar forecasts.</p>
-  <p class="note zh">誠實聲明:模擬產線全程標示為合成資料。它的用途是給方法一個已知的「標準答案」
+  <p class="note zh">聲明:模擬產線全程標示為合成資料。它的用途是給方法一個已知的「標準答案」
   (刻意設計的瓶頸、標記好的故障區間)。真實生產紀錄僅用於診斷。成本數字為示意性質,用於相對排序,
   並非金額預測。</p>
 
