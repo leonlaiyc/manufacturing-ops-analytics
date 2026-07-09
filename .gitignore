@@ -12,3 +12,6 @@ __pycache__/
 .ipynb_checkpoints/
 .venv/
 env/
+
+# Local secrets (never commit API keys)
+.env.local

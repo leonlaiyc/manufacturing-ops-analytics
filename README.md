@@ -104,6 +104,15 @@ on the same day.
 | M10 Agentic decision support | The what-if engines exposed as bounded, logged tools an LLM can call; decision memos where every cited number carries a run tag verified against the log; fabrication-catch and credential-guard gates run fully offline; a live-session runner records transcripts as public evidence | [notebook 10](notebooks/10_agentic_decision_support.ipynb), `src/agent` |
 | M11 Data quality & model reliability | Event-log schema contract with corruption-tested validators, leakage-safe as-of joins, drift monitoring with measured detection delay and zero clean-run false alarms, split conformal intervals for the metrology model (measured coverage), and model cards with explicit trust boundaries | [notebook 11](notebooks/11_data_quality_model_reliability.ipynb), `src/dataquality`, [model cards](docs/model_cards) |
 
+## Design documentation
+
+For reviewer-style SA and SD documentation:
+
+- [System Analysis](docs/SA.md): business problem, scope, stakeholders, use
+  cases, requirements, acceptance map, and honest boundaries.
+- [System Design](docs/SD.md): architecture, module map, data flow, event-log
+  schema, generator design, validation flow, and artifact generation.
+
 ## Roadmap
 
 All roadmap modules (M7 through M11) are shipped; the table above is the
@@ -113,8 +122,8 @@ record. Two extensions stay deliberately out of scope until decided:
   the same DES engine but changes the locked line design, so it is an explicit
   owner decision rather than a default next step.
 - A recorded live agent session: the runner ships in `scripts/`, and the first
-  transcript is committed under `reports/agent_sessions/` once API credentials
-  are provided.
+  verified transcript is committed at
+  [`reports/agent_sessions/session_20260708T161010Z/`](reports/agent_sessions/session_20260708T161010Z/).
 
 ## The line
 
@@ -168,14 +177,20 @@ manufacturing-ops-analytics/
 │   ├── synthetic/    # generated synthetic event log + ground-truth metadata
 │   └── README.md     # data provenance + honest-scope note
 ├── src/
-│   ├── generator/    # fab-style DES (batch tool, re-entrant route, CRN)
-│   ├── kpi/          # KPI computation + interactive dashboard export
+│   ├── generator/    # fab-style DES (batch tool, re-entrant route, CRN, dispatch)
+│   ├── kpi/          # KPI computation + GitHub Pages asset exports
 │   ├── bottleneck/   # evidence signals, naive baselines, CRN counterfactual
 │   ├── monitoring/   # anomaly injection, detectors, detection-quality scoring
-│   └── decision/     # cost model + capacity/demand/degradation what-ifs
-├── notebooks/        # one notebook per analysis stage (01-06)
-├── docs/             # glossary + GitHub Pages (interactive dashboard)
-└── reports/          # exported figures + standalone HTML dashboard
+│   ├── decision/     # cost model + capacity/demand/dispatch/yield what-ifs
+│   ├── quality/      # yield layer, virtual metrology, chamber matching (M7)
+│   ├── equipment/    # SEMI E10 states, PM-timing what-if, health model (M8)
+│   ├── agent/        # bounded logged tools + verified LLM agent loop (M10)
+│   └── dataquality/  # schema contract, drift, conformal, model cards (M11)
+├── notebooks/        # one notebook per analysis stage (01-11)
+├── scripts/          # live agent session runner (API-key gated)
+├── docs/             # GitHub Pages pages, SA/SD docs, model cards, glossary
+└── reports/          # exported figures; recorded agent sessions land in
+                      # reports/agent_sessions/ once credentials are provided
 ```
 
 ## Reproducibility
@@ -183,21 +198,22 @@ manufacturing-ops-analytics/
 All synthetic data is generated from fixed seeds. Regenerate and re-validate:
 
 ```bash
-python src/generator/validate_m2.py      # Little's Law + bottleneck recovery
-python src/generator/crn_check.py        # CRN determinism gates (exact zero delta)
-python src/monitoring/monitoring_check.py # anomaly-injection regression gates
-python src/quality/quality_check.py      # yield-layer ground-truth gates
-python src/quality/vm_check.py           # virtual metrology + pairing gates
-python src/equipment/equipment_check.py  # E10 state-partition + RAM gates
-python src/equipment/maintenance_check.py # PM-timing pairing + priority gates
-python src/equipment/pdm_check.py        # sensor/GB+SHAP detection-quality gates
-python src/generator/dispatch_check.py   # dispatch policies + FIFO byte-identity gates
-python src/decision/dispatch_whatif_check.py # policy-comparison pairing gates
-python src/agent/agent_check.py          # tool-layer traceability + tamper gates
-python src/agent/loop_check.py           # agent-loop fabrication-catch gates (offline)
-python src/dataquality/dq_check.py       # schema-contract + corruption + join gates
-python src/dataquality/reliability_check.py # drift, conformal coverage, model-card gates
-python src/kpi/export_html_dashboard.py  # rebuild the interactive dashboard
+py src/generator/validate_m2.py      # Little's Law + bottleneck recovery
+py src/generator/crn_check.py        # CRN determinism gates (exact zero delta)
+py src/monitoring/monitoring_check.py # anomaly-injection regression gates
+py src/quality/quality_check.py      # yield-layer ground-truth gates
+py src/quality/vm_check.py           # virtual metrology + pairing gates
+py src/equipment/equipment_check.py  # E10 state-partition + RAM gates
+py src/equipment/maintenance_check.py # PM-timing pairing + priority gates
+py src/equipment/pdm_check.py        # sensor/GB+SHAP detection-quality gates
+py src/generator/dispatch_check.py   # dispatch policies + FIFO byte-identity gates
+py src/decision/dispatch_whatif_check.py # policy-comparison pairing gates
+py src/agent/agent_check.py          # tool-layer traceability + tamper gates
+py src/agent/loop_check.py           # agent-loop fabrication-catch gates (offline)
+py src/dataquality/dq_check.py       # schema-contract + corruption + join gates
+py src/dataquality/reliability_check.py # drift, conformal coverage, model-card gates
+py src/kpi/export_html_dashboard.py  # rebuild the interactive baseline page
+py src/kpi/export_index_assets.py    # rebuild the static index chart assets
 ```
 
 ## Scope & honest notes

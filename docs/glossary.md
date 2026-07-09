@@ -14,10 +14,10 @@ defined in one sentence.
 - **Takt time**: available time / customer demand; the pace the line must hit.
 - **Capacity**: maximum sustainable output of a station or line (tools × rate × availability).
 - **Utilization**: fraction of available capacity actually used at a station.
-- **Slot utilization**: for a batch tool, work arriving per hour ÷ lot-slots servable per hour (busy time ÷ n_tools × batch_size × window); the fab-standard capacity view — raw busy-time overstates a batch tool's load.
-- **X-factor**: cycle time ÷ raw process time; the headline fab flow metric — X = 1 means zero queueing, and the excess above 1 is time spent waiting.
-- **Re-entrant flow**: a route that visits the same station multiple times — characteristic of semiconductor fabs.
-- **Batch tool**: a tool (e.g., diffusion furnace) that processes several lots in one run; slow per run but high per-slot capacity — the classic trap for per-operation bottleneck heuristics.
+- **Slot utilization**: for a batch tool, work arriving per hour ÷ lot-slots servable per hour (busy time ÷ n_tools × batch_size × window); the fab-standard capacity view, raw busy-time overstates a batch tool's load.
+- **X-factor**: cycle time ÷ raw process time; the headline fab flow metric, X = 1 means zero queueing, and the excess above 1 is time spent waiting.
+- **Re-entrant flow**: a route that visits the same station multiple times, characteristic of semiconductor fabs.
+- **Batch tool**: a tool (e.g., diffusion furnace) that processes several lots in one run; slow per run but high per-slot capacity, the classic trap for per-operation bottleneck heuristics.
 - **Lot / FOUP**: a production batch unit tracked through the line; in a fab, typically a carrier holding 25 wafers.
 
 ## Bottleneck & improvement
@@ -26,7 +26,7 @@ defined in one sentence.
 - **Theory of Constraints (TOC)**: improve the system by managing the bottleneck; non-bottleneck improvements rarely raise throughput.
 - **Little's Law**: WIP = throughput × cycle time. Used here to validate the synthetic generator.
 - **Dispatch rule**: the policy deciding which waiting lot a station processes next (e.g., FIFO).
-- **OEE (Overall Equipment Effectiveness)**: availability × performance × quality; a breakdown is an Availability loss, a slow-running tool a Performance loss — the two equipment anomalies injected and monitored in M5.
+- **OEE (Overall Equipment Effectiveness)**: availability × performance × quality; a breakdown is an Availability loss, a slow-running tool a Performance loss, the two equipment anomalies injected and monitored in M5.
 - **Yield**: fraction of units passing without scrap/rework.
 - **Rework loop**: a unit returning to an earlier step after a failure.
 - **Illustrative cost model**: a simplified cost framework used to compare scenarios under shared assumptions; it is not a real factory quote or financial forecast.
@@ -49,7 +49,7 @@ defined in one sentence.
 
 ## Process mining
 
-- **Event log**: records of (case, activity, timestamp) — the input to process mining.
+- **Event log**: records of (case, activity, timestamp), the input to process mining.
 - **Directly-follows graph (DFG)**: a map of which activities follow which, with frequencies/durations.
 - **Conformance**: how far the observed flow deviates from the intended process.
 

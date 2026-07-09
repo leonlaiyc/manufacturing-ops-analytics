@@ -1,24 +1,20 @@
 """
-Export two standalone Plotly HTML pages: the interactive evidence page for the
-three findings, and the M3 KPI baseline page.
+Export the standalone Plotly HTML page for the M3 KPI baseline.
 
 Reads:
   - the committed synthetic artifacts (data/synthetic/event_log.csv,
     lot_lifecycle.csv, metadata.json) for the baseline 6-panel figure, and
-  - data/synthetic/findings_cache.json (written by precompute_findings.py) for
-    the three finding figures.
+  - data/synthetic/findings_cache.json when refreshing legacy finding caches.
 
 Writes (plotly.js via CDN on the first figure of each page, so files stay small):
 
-  - docs/dashboard.html                  (evidence page: the three findings)
   - docs/baseline.html                   (M3 KPI baseline page)
   - reports/html/03_kpi_dashboard.html   (repo copy of the BASELINE page:
                                           it is the M3 artifact, so its name
                                           matches its content)
 
-The evidence page leads with the three findings (CRN counterfactual, cost
-trade-off, degradation backtest) and links to the baseline page in its footer.
-Both pages carry the same honest-scope labeling (synthetic data, clearly stated).
+The former dashboard evidence page has been retired. The index page now carries
+the selected visual observations directly.
 
 Run:  py src/kpi/export_html_dashboard.py
       (run src/kpi/precompute_findings.py first if findings_cache.json is missing)
@@ -532,7 +528,7 @@ BASELINE_TEMPLATE = """<!DOCTYPE html>
 </head>
 <body class="lang-zh">
 <div class="topbar">
-  <a class="back" href="dashboard.html"><span class="en">← Back to the findings evidence</span><span class="zh">← 回到 findings 證據頁</span></a>
+  <a class="back" href="index.html"><span class="en">← Back to the 1-page report</span><span class="zh">← 回到單頁報告</span></a>
   <div>
     <button class="langbtn" data-lang="zh" onclick="setLang('zh')">中文</button>
     <button class="langbtn" data-lang="en" onclick="setLang('en')">EN</button>
@@ -575,32 +571,20 @@ BASELINE_TEMPLATE = """<!DOCTYPE html>
 
 def main() -> None:
     t0 = time.time()
-    print("Loading findings cache ...")
-    cache = load_findings_cache()
-
-    print("Building Finding 01 figure (CRN counterfactual) ...")
-    fig1 = build_finding01_figure(cache)
-    print("Building Finding 02 figure (cost trade-off) ...")
-    fig2 = build_finding02_figure(cache)
-    print("Building Finding 03 figure (degradation backtest) ...")
-    fig3 = build_finding03_figure(cache)
     print("Building baseline 6-panel figure ...")
     fig_baseline = build_baseline_figure()
 
-    print("Rendering HTML (plotly.js via CDN on the first figure of each page) ...")
-    div1 = fig1.to_html(include_plotlyjs="cdn", full_html=False)
-    div2 = fig2.to_html(include_plotlyjs=False, full_html=False)
-    div3 = fig3.to_html(include_plotlyjs=False, full_html=False)
-    div_baseline = fig_baseline.to_html(include_plotlyjs="cdn", full_html=False)
-
-    evidence_html = PAGE_TEMPLATE.replace("{fig_finding01}", div1) \
-                                 .replace("{fig_finding02}", div2) \
-                                 .replace("{fig_finding03}", div3)
+    print("Rendering baseline HTML (plotly.js via CDN) ...")
+    div_baseline = fig_baseline.to_html(
+        include_plotlyjs="cdn",
+        full_html=False,
+        div_id="baseline-kpi-figure",
+    )
     baseline_html = BASELINE_TEMPLATE.replace("{fig_baseline}", div_baseline)
 
-    OUT_DOCS.parent.mkdir(parents=True, exist_ok=True)
-    OUT_DOCS.write_text(evidence_html, encoding="utf-8")
-    print(f"wrote {OUT_DOCS}  ({OUT_DOCS.stat().st_size/1024:.0f} KB)  [evidence page]")
+    if OUT_DOCS.exists():
+        OUT_DOCS.unlink()
+        print(f"removed retired evidence page {OUT_DOCS}")
 
     # The M3 artifact (03_kpi_dashboard.html) is the BASELINE page; its name
     # must match its content, and docs/baseline.html is its published copy.

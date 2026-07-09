@@ -93,6 +93,28 @@
   .workflow-step .n { color:var(--blue); font-weight:800; font-size:.76rem; margin-bottom:.18rem; }
   .workflow-step h3 { margin:.05rem 0 .2rem; font-size:.86rem; }
   .workflow-step p { margin:0; color:var(--muted); font-size:.78rem; line-height:1.45; }
+  .inline-chart { margin:1rem 0 .2rem; border:1px solid var(--line); border-radius:12px;
+                  background:#fff; padding:.55rem; }
+  .inline-chart img { width:100%; height:auto; display:block; border-radius:8px; }
+  .engine-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:.75rem; margin:1rem 0 .2rem; }
+  .engine-card { background:var(--bg); border:1px solid var(--line); border-radius:10px;
+                 padding:.8rem .85rem; }
+  .engine-card h3 { margin:.05rem 0 .25rem; font-size:.9rem; }
+  .engine-card .prompt { display:block; color:var(--muted); font-size:.78rem; margin-bottom:.5rem; }
+  .engine-bars { display:grid; gap:.42rem; margin:.45rem 0 .55rem; }
+  .engine-bar { display:grid; grid-template-columns:6.6rem minmax(0,1fr) 4.6rem;
+                gap:.45rem; align-items:center; font-size:.78rem; }
+  .engine-bar .value { text-align:right; font-weight:800; }
+  .engine-winners { display:grid; grid-template-columns:repeat(2,1fr); gap:.4rem; margin:.45rem 0 .55rem; }
+  .engine-winner { background:#fff; border:1px solid var(--line); border-radius:8px;
+                   padding:.5rem .55rem; }
+  .engine-winner span { display:block; color:var(--muted); font-size:.72rem; }
+  .engine-winner strong { display:block; color:var(--blue); font-size:.86rem; }
+  .engine-pair { display:grid; grid-template-columns:repeat(2,1fr); gap:.5rem; margin:.45rem 0 .55rem; }
+  .engine-pair div { background:#fff; border:1px solid var(--line); border-radius:8px;
+                     padding:.6rem .65rem; }
+  .engine-pair strong { display:block; font-size:1.25rem; line-height:1.1; }
+  .engine-pair span { display:block; color:var(--muted); font-size:.72rem; margin-top:.2rem; }
 
   figure { margin:1rem 0 .2rem; }
   svg { width:100%; height:auto; display:block; }
@@ -123,8 +145,10 @@
   .note { font-size:.82rem; color:var(--grey); margin-top:1.8rem; line-height:1.6; }
 
   @media (max-width:620px){
-    .steps,.stats,.workflow { grid-template-columns:1fr; }
+    .steps,.stats,.workflow,.engine-grid,.engine-winners,.engine-pair { grid-template-columns:1fr; }
     .stats.four { grid-template-columns:1fr; }
+    .engine-bar { grid-template-columns:1fr; gap:.22rem; }
+    .engine-bar .value { text-align:left; }
     h1 { font-size:1.5rem; }
     .finding { padding:1.05rem 1rem; }
     table.metric-table { min-width:660px; font-size:.8rem; }
@@ -144,17 +168,9 @@
     <p class="kicker">Fab Simulation, Monitoring &amp; Decision Support</p>
     <div class="en">
       <h1>A fab simulation and decision engine built for AI agents to call</h1>
-      <p class="lede">Fab operations decisions are hard for three reasons: local metrics contradict
-      each other, equipment degrades quietly, and every option is expensive. This project connects
-      process diagnosis of a real production log with a synthetic fab-style line whose bottleneck
-      and anomalies are known by design, into one data-to-decision workflow: capacity investment,
-      maintenance timing, dispatching policy, and yield trade-offs are tested in simulation, with a
-      traceable record, before they become decisions. This is the simulation decision layer that
-      agentic smart-manufacturing architectures call before an AI agent acts on the real line.</p>
     </div>
     <div class="zh">
       <h1>支援 AI Agent 呼叫的 fab 模擬決策引擎</h1>
-      <p class="lede">半導體產線的營運決策難在三件事：局部指標互相矛盾、設備劣化悄悄發生、而每一個選項都很貴。本專案把真實生產紀錄的流程診斷，與一條瓶頸和異常皆為已知設計的合成產線，接成同一套從資料到決策的流程：產能投資、維修時機、派工策略與良率取捨，先在模擬中驗證、留下可追溯的紀錄，再成為決策。這正是 agentic 智慧製造架構中，AI agent 在對真實產線行動之前，用來評估選項的模擬決策層。</p>
     </div>
   </header>
 
@@ -162,23 +178,21 @@
   <div class="steps">
     <div class="step">
       <span class="n">1</span>
-      <div class="en"><h3>Process reconstruction</h3><p>Process-mine a real production log to
-        recover the actual paths of re-entrant and batch flows and locate where time is lost.</p></div>
-      <div class="zh"><h3>流程還原</h3><p>用 process mining 從真實製程紀錄還原重入式與批次流程的實際路徑，定位時間損失。</p></div>
+      <div class="en"><h3>Diagnose</h3><p>Read a public 4TU job-shop manufacturing production log,
+        then summarize case paths, DFG, cycle time, waiting time, and rework signals.</p></div>
+      <div class="zh"><h3>診斷</h3><p>讀取公開 4TU.ResearchData 的 job-shop manufacturing production log，整理 case path、DFG、cycle time、waiting time 與 rework 訊號，作為真實製造紀錄的流程診斷示範。</p></div>
     </div>
     <div class="step">
       <span class="n">2</span>
-      <div class="en"><h3>Synthetic line model</h3><p>A transparent, hand-built line with a batch
-        furnace and re-entrant litho; the bottleneck and anomalies are known by design, so method
-        quality is measured, not just demonstrated.</p></div>
-      <div class="zh"><h3>合成產線模型</h3><p>手工打造含批次爐管、重入式微影的透明產線；瓶頸與異常皆為已知設計，方法的偵測與診斷品質因此可以被量測，而不是只被展示。</p></div>
+      <div class="en"><h3>Model</h3><p>Build a fixed-seed synthetic fab with batch furnace and
+        re-entrant litho, then test each method against known bottlenecks and injected anomalies.</p></div>
+      <div class="zh"><h3>建模</h3><p>建立固定 seed 的合成 fab，包含 batch furnace 與 re-entrant LITHO，再用已知瓶頸和刻意注入的異常檢查方法是否抓得到答案。</p></div>
     </div>
     <div class="step">
       <span class="n">3</span>
-      <div class="en"><h3>Decision support</h3><p>Every operational option goes through what-if
-        simulation comparing cycle time, yield risk, and cost, producing traceable decision
-        evidence.</p></div>
-      <div class="zh"><h3>決策支援</h3><p>把每一個營運選項放進 what-if 模擬，比較 cycle time、良率風險與成本的取捨，輸出可追溯的決策依據。</p></div>
+      <div class="en"><h3>Decide</h3><p>Compare capacity, maintenance, dispatching, and yield
+        options with CRN-paired what-if runs, each tied to traceable assumptions and KPIs.</p></div>
+      <div class="zh"><h3>決策</h3><p>把加機台、維修時機、派工規則與良率取捨放進 CRN paired what-if，每次輸出都保留假設、seed 與 KPI 結果。</p></div>
     </div>
   </div>
 
@@ -188,24 +202,14 @@
   <div class="finding">
     <span class="tag">01</span>
     <div class="en">
-      <h2>System-level counterfactuals against intuition-driven capacity mistakes</h2>
-      <p>Local metrics often contradict each other: the furnace has the longest batch time and
-      carries the most lots per run, while litho runs at the highest utilization. This project uses
-      common-random-number (CRN) paired what-if simulation so every option is compared under
-      identical random conditions. In the project's baseline scenario, adding the right tool
-      improves mean cycle time 3.5 times more than the intuitive candidate; an investment-stress
-      scenario with differentiated tool costs then shows how the decision returns to the business
-      objective when operational and financial rankings reverse. These figures are rankings under
-      stated assumptions, not real-fab benefit claims; what they demonstrate is that the workflow
-      can evaluate capacity investments quantitatively.</p>
+      <h2>Full-view analysis to avoid intuition-driven mistakes</h2>
     </div>
     <div class="zh">
-      <h2>系統級反事實分析，擋下直覺式的產能誤判</h2>
-      <p>局部指標常常互相矛盾：爐管單批加工時間最長、一次可處理最多 lots，微影機台的稼動率卻最高。本專案用共同隨機數（CRN）配對的 what-if 模擬，讓每個方案在完全相同的隨機條件下對比。在本專案的基準情境下，加對一台機台對平均 cycle time 的改善，是直覺候選方案的 3.5 倍；再引入機台成本差異化的投資壓力情境，展示營運排名與財務排名反轉時，決策如何回到業務目標本身。這些數字是給定假設下的排序依據，不是實廠效益承諾；它們證明的是這套流程具備量化評估產能投資的能力。</p>
+      <h2>全方位分析，避免直覺誤判</h2>
     </div>
 
     <div class="en">
-      <h3>Step 1 - Local metrics point to different signals</h3>
+      <h3>1 - A single metric only gives a partial signal</h3>
       <div class="table-wrap">
         <table class="metric-table">
           <thead>
@@ -250,7 +254,7 @@
     </div>
 
     <div class="zh">
-      <h3>步驟 1 - 局部指標顯示不同訊號</h3>
+      <h3>1 - 單一指標只能傳達片面訊息</h3>
       <div class="table-wrap">
         <table class="metric-table">
           <thead>
@@ -294,7 +298,7 @@
     </div>
 
     <div class="en">
-      <h3>Step 2 - Capacity what-if shows the system impact</h3>
+      <h3>2 - Capacity what-if shows the system impact</h3>
       <div class="table-wrap">
         <table class="metric-table">
           <thead>
@@ -335,9 +339,6 @@
       </div>
       <p class="method-note"><strong>Method:</strong> Cycle-time reduction = baseline average lot cycle time minus the average lot cycle time after adding one tool to that station. Negative table values mean the scenario's average cycle time is lower than baseline.</p>
       <p class="method-note">Estimates come from CRN-paired what-if replications (N=30); the LITHO reduction is 2.46 h with a 95% CI of 2.13-2.79 h.</p>
-      <p class="finding-note">Each scenario adds one tool to one station. The question is not only how
-      many lots the added tool can process, but whether adding it actually reduces the whole line's
-      average cycle time.</p>
       <p class="finding-note">FURNACE looks important because one added tool can process 4 lots at a
       time. But adding one FURNACE tool only reduces average cycle time by about 0.70 hours. Adding
       one LITHO tool processes only 1 additional lot at a time, but reduces average cycle time by
@@ -346,7 +347,7 @@
     </div>
 
     <div class="zh">
-      <h3>步驟 2 - 產能 what-if 比較整體影響</h3>
+      <h3>2 - 產能 what-if 比較整體影響</h3>
       <div class="table-wrap">
         <table class="metric-table">
           <thead>
@@ -387,10 +388,9 @@
       </div>
       <p class="method-note"><strong>方法：</strong>cycle-time 下降 = 基準情境的平均 lot cycle time - 加一台工具後的平均 lot cycle time。表中的負值代表該情境的平均 cycle time 比基準更短。</p>
       <p class="method-note">數據來自 CRN 配對的 what-if 重複實驗（N=30）；LITHO 的降幅為 2.46 小時，95% CI 為 2.13-2.79 小時。</p>
-      <p class="finding-note">每個情境都是在一個站點新增一台工具。問題不只是新增工具一次能處理多少 lots，而是新增後是否真的讓整條線的平均 cycle time 下降。</p>
-      <p class="finding-note">FURNACE 看起來重要，因為新增一台工具一次可以處理 4 lots。但新增一台 FURNACE 工具，只讓平均 cycle time 下降約 0.70 小時。新增一台 LITHO 工具一次只多處理 1 lot，卻讓平均 cycle time 下降約 2.46 小時。在這個情境裡，較好的產能決策不是新增最多 lot-processing slots 的站點，而是最能降低整條線 cycle time 的站點。</p>
+      <p class="finding-note">FURNACE 看似重要，因為新增一台可以多處理 4 lots。但新增一台 FURNACE 工具，只讓平均 cycle time 下降約 0.70 小時。新增一台 LITHO 一次只多處理 1 lot，卻讓平均 cycle time 下降約 2.46 小時。在此情境，較好的產能決策不是新增最多 lot-processing slots 的站點，而是最能降低整條線 cycle time 的站點。</p>
     </div>
-    <h3><span class="en">Step 3 - Investment stress: when operational and financial rankings reverse</span><span class="zh">步驟 3 - 投資壓力情境：營運與財務排名的反轉</span></h3>
+    <h3><span class="en">3 - Investment stress: when operational and financial rankings reverse</span><span class="zh">3 - 投資壓力情境：營運與財務排名的反轉</span></h3>
 
     <div class="table-wrap">
       <table class="metric-table">
@@ -431,25 +431,8 @@
       </table>
     </div>
 
-    <p class="caption en"><strong>Base case: equal tool-cost assumption.</strong> With the default
-    $20k added-tool cost for every station, LITHO wins both metrics: 2.46 h average cycle-time
-    reduction and about -$12k net cost change.</p>
-    <p class="caption zh"><strong>基準情境：相同工具成本假設。</strong>在每個站點新增工具成本皆為 $20k 的預設假設下，LITHO 同時勝出：平均 cycle time 降低 2.46 小時，淨成本變化約 -$12k。</p>
-    <p class="caption en"><strong>Investment-stress scenario: station-specific tool-cost assumptions.</strong>
-    LITHO $40k, FURNACE $8k, DEPO $5k, METRO $2k. These are illustrative station-specific
-    cost assumptions used to test decision sensitivity, not real factory prices.</p>
-    <p class="caption zh"><strong>投資壓力情境：站點別工具成本假設。</strong>LITHO $40k、FURNACE $8k、DEPO $5k、METRO $2k。這些是用來測試決策敏感度的示意站點別成本假設，不是真實工廠價格。</p>
-    <p class="method-note en"><strong>Calculation:</strong> Net cost change = scenario total cost - baseline total cost. Total cost includes processing cost (tool busy-hours &times; illustrative processing rate), waiting / congestion cost (lot queue-wait hours &times; illustrative holding rate), and added tool cost (number of added tools &times; illustrative tool cost). Negative saves versus baseline; positive costs more.</p>
-    <p class="method-note zh"><strong>計算方式：</strong>淨成本變化 = 方案總成本 − 基準總成本</p>
-    <p class="method-note zh" style="margin-top:.6rem;">總成本包含：</p>
-    <ul class="method-list zh">
-      <li>處理成本（工具忙碌時數 &times; 示意處理費率）</li>
-      <li>等待 / 壅塞成本（lot 排隊等待時數 &times; 示意持有費率）</li>
-      <li>新增機台成本（新增機台數 &times; 示意機台成本）</li>
-    </ul>
-    <p class="method-note zh" style="margin-top:.5rem;">（負值代表相對基準省錢；正值代表成本增加）</p>
-    <p class="method-note en">Processing consumes tool time, energy, labor, and maintenance resources. Waiting creates WIP burden, longer lead time, and congestion risk.</p>
-    <p class="method-note zh">處理會消耗工具時間、能源、人力與維護資源；等待會造成 WIP 負擔、lead time 變長與壅塞風險。</p>
+    <p class="method-note en">Negative values save cost versus baseline; positive values add cost.</p>
+    <p class="method-note zh">（負值代表相對基準省錢；正值代表成本增加）</p>
 
     <div class="finding-note en">
       <h3>When metrics conflict</h3>
@@ -473,54 +456,45 @@
   <div class="finding">
     <span class="tag">02</span>
     <div class="en"><h2>Slow-drift monitoring: turning detection time into decision value</h2>
-      <p>When equipment degrades slowly, output metrics often show nothing until congestion cost
-      has already accumulated. The monitoring design moves the question from "was it detected" to
-      "what is the detection time worth": EWMA, a transparent, classic control-chart method
-      sensitive to small persistent drift, serves as the baseline; labeled anomaly scenarios
-      measure its detection delay and false-alarm rate; and the alert time is converted into the
-      cost still avoidable. In a 160-day synthetic backtest, an output-only monitor stays silent
-      over the whole horizon, while EWMA alerts 54 days after degradation onset, when most (about
-      95%) of the extra congestion cost is still avoidable under illustrative waiting-cost
-      assumptions. This is not a real-fab savings promise; it shows how the workflow turns
-      detection time into decision value. The same monitoring design lets equipment-health risk
-      scores and forecast residuals feed the same alerting and costing pipeline, matching the
-      industry's move from univariate control charts toward predictive monitoring.</p></div>
+      <p>When equipment degrades slowly, output metrics may not warn immediately; by the time output
+      falls, congestion cost has already accumulated. This monitoring design uses EWMA, a
+      control-chart method sensitive to small persistent drift, as the baseline. Labeled anomaly
+      scenarios measure detection delay and false-alarm rate, then convert alert timing into cost
+      still avoidable. In a 160-day synthetic backtest, an output-only monitor stays silent over the
+      whole horizon; EWMA alerts on day 84, meaning this experiment's EWMA method can avoid the
+      extra degradation cost that would accumulate over the following 76 days.</p></div>
     <div class="zh"><h2>慢性劣化監控：把偵測時間轉成決策價值</h2>
-      <p>設備緩慢劣化時，產出指標往往毫無警訊，等產出真的掉下來，壅塞成本早已累積。本專案的監控設計把問題從「有沒有偵測到」推進到「偵測到的時間值多少」：以 EWMA 這個透明、經典、對小幅持續漂移敏感的管制圖方法作為基線，用標註好的異常情境量測偵測延遲與誤報率，再把警報時間點換算成仍可避免的成本。在 160 天的合成回測中，只看產出的監控整段期間沒有發出任何警報；EWMA 在劣化開始後 54 天發出警報，在示意等待成本假設下，此時大部分（約 95%）的額外壅塞成本仍可避免。這不是實廠節省承諾，而是展示這套流程如何把偵測時間轉成決策價值。同一套監控架構的設計，讓設備健康模型的風險分數與預測殘差可以接入同一條警報與成本評估流程，對應業界從單變數管制圖走向預測式監控的演進。</p></div>
+      <p>設備緩慢劣化時，產出指標可能尚無警訊，等產出下滑，早已累積了一定的壅塞成本。本專案的監控設計以 EWMA 對小幅持續漂移敏感的管制圖方法作為基線，用標註好的異常情境量測偵測延遲與誤報率，再把警報時間點換算成仍可避免的成本。在 160 天的合成回測中，只看產出的監控整段期間沒有發出任何警報；EWMA 在第 84 天發出警報，也就代表在此實驗中使用EWMA方法可以節省後面76天因劣化產生的額外成本。</p></div>
 
     <div class="table-wrap">
       <table class="metric-table">
-        <thead class="en"><tr><th>Monitoring approach</th><th>Signal watched</th><th>Alert logic</th><th>Result</th><th>Consequence</th></tr></thead>
-        <thead class="zh"><tr><th>監控方式</th><th>監控訊號</th><th>alert 邏輯</th><th>結果</th><th>後果</th></tr></thead>
+        <thead class="en"><tr><th>Monitoring approach</th><th>Signal watched</th><th>Alert logic</th><th>Result</th></tr></thead>
+        <thead class="zh"><tr><th>監控方式</th><th>監控訊號</th><th>alert 邏輯</th><th>結果</th></tr></thead>
         <tbody>
           <tr>
             <td><strong class="en">Output-only monitor</strong><strong class="zh">只看 output 的監控</strong></td>
             <td><span class="en">Daily output / throughput</span><span class="zh">Daily output / throughput</span></td>
             <td><span class="en">Alert only when output drops below the clean baseline lower control limit.</span><span class="zh">只有當 output 低於乾淨 baseline 的下控制線時才 alert。</span></td>
             <td><span class="en">No alert within 160 days</span><span class="zh">160 天內沒有 alert</span></td>
-            <td><span class="en">No alert: the problem runs to day 160 and ≈$249k of extra cost accumulates</span><span class="zh">沒有 alert，問題一路跑到 day 160，累積約 $249k 的額外成本</span></td>
           </tr>
           <tr class="metric-hot">
             <td><strong class="en">EWMA drift monitor</strong><strong class="zh">EWMA 漂移監控</strong></td>
             <td><span class="en">Daily median lot cycle time</span><span class="zh">每日 lot cycle time 中位數</span></td>
             <td><span class="en">Alert when small persistent cycle-time drift accumulates.</span><span class="zh">小而持續的 cycle-time 偏移累積後 alert。</span></td>
             <td><span class="en">Alert on day 84</span><span class="zh">day 84 alert</span></td>
-            <td><span class="en">Alert on day 84: only ≈$12k has accumulated; ≈$237k (95%) is still avoidable</span><span class="zh">day 84 alert，此時只累積約 $12k；約 $237k（95%）仍可避免</span></td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <p class="method-note en" style="margin-top:.7rem;"><strong>Where does $249k come from?</strong>
-    Waiting is priced at an illustrative $10 per lot-hour in queue, and the gap is measured
-    against a no-degradation twin of the same run. Degradation makes queues grow on themselves,
-    so the cost accelerates: the first 54 days accumulate only ≈$12k, the next 76 days ≈$237k.
-    The rate is an assumption; the structure is not: cost accelerates, and early detection
-    saves most of it.</p>
-    <p class="method-note zh" style="margin-top:.7rem;"><strong>$249k 是怎麼算出來的？</strong>等待以示意費率
-    $10／lot·小時計價，成本差距是與同一次 run 的無劣化對照（twin）相比。劣化會讓排隊自我放大，所以成本是
-    加速累積的：前 54 天只累積約 $12k，後 76 天累積約 $237k。費率是假設；但結構不是假設：
-    成本會加速累積，及早偵測能省下大部分。</p>
+    <div class="inline-chart">
+      <img src="assets/finding03_output_cycle_time.png"
+           alt="Degradation stays hidden in daily output but appears in daily median cycle time">
+    </div>
+    <p class="caption en"><strong>Observation:</strong> daily output remains noisy but ordinary, while
+    daily median cycle time separates from the clean twin after degradation starts.</p>
+    <p class="caption zh"><strong>圖表觀察：</strong>daily output 看起來仍在正常波動中，但 daily median cycle time
+    在 degradation 開始後逐漸和 clean twin 分離。</p>
 
     <p class="caption en">Another advantage is that this workflow can be backtested: it checks
     whether a drift detector finds the problem before output makes it obvious, then estimates
@@ -532,22 +506,97 @@
   <div class="finding">
     <span class="tag">03</span>
     <div class="en">
-      <h2>One engine, four classes of fab operations questions</h2>
-      <p>Is the capacity investment worth it; maintain now or wait; which dispatching rule fits
-      current demand and quality targets; does faster flow buy queue-time violations and rework
-      risk: these four question classes share one simulation engine and one evidence standard,
-      and every answer traces back to a logged simulation run. An AI agent can call the engine to
-      run what-ifs and assemble the results into a decision memo in which every number is
-      checkable, in line with the agentic smart-manufacturing direction Samsung showed at GTC
-      2026. The re-entrant and batch structures modeled here are methodologically isomorphic to
-      advanced-packaging capacity problems (HBM stacking, bonding/molding batch tools): the
-      analysis workflow proven here transfers to packaging bottleneck scenarios. That is method
-      transferability, not a claim of completed modeling.</p>
+      <h2>One agent, four classes of fab operations questions</h2>
+      <p>One agent contains analysis modules for four operations questions: how to add tools,
+      maintenance timing, dispatching rules, and output-yield trade-offs. Each analysis records
+      scenario, seed, assumptions, and KPI results in the same format, so the numbers are traceable.
+      This means a future AI agent can produce decision memos by calling the same what-if engine,
+      with traceable results instead of freely generated answers.</p>
     </div>
     <div class="zh">
-      <h2>一顆引擎，回答四類 fab 營運問題</h2>
-      <p>產能投資值不值得、維修現在做還是等一等、哪個派工規則在當前需求與品質目標下較好、更快的流動會不會換來 queue time 超限與重工風險：這四類問題共用同一顆模擬引擎與同一套證據標準，每個答案都能追溯到一筆模擬紀錄。AI agent 可以直接呼叫這顆引擎執行 what-if，把結果整理成每個數字都可查證的決策備忘錄，對齊 Samsung 於 GTC 2026 展示的 agentic 智慧製造方向。專案建模的重入式與批次結構，與先進封裝（HBM 堆疊、bonding/molding 批次製程）的產能問題在方法上同構：這裡驗證的分析流程可以遷移到封裝瓶頸情境，這是方法的可轉移性，不是已完成的建模宣稱。</p>
+      <h2>一個agent，回答四類 fab 營運問題</h2>
+      <p>一個agent內包含：該如何加機台、維修時機判斷、派工規則、產出與良率取捨，四個營運問題的分析流程模組。每次分析都用相同格式留下 scenario、seed、假設與 KPI 結果，讓數字可以追溯。這代表未來若要讓 AI agent 產出決策備忘錄，它呼叫的是同一套 what-if engine，且結果有跡可循，而不是自由生成答案。</p>
     </div>
+
+    <div class="engine-grid">
+      <div class="engine-card">
+        <h3>Capacity investment</h3>
+        <span class="prompt en">Which station should receive the next tool?</span>
+        <span class="prompt zh">先加哪一站的 tool？</span>
+        <div class="engine-bars">
+          <div class="engine-bar">
+            <span>LITHO +1</span>
+            <div class="track"><div class="fill blue" style="width:100%"></div></div>
+            <span class="value">2.46 h</span>
+          </div>
+          <div class="engine-bar">
+            <span>FURNACE +1</span>
+            <div class="track"><div class="fill" style="width:28%"></div></div>
+            <span class="value">0.70 h</span>
+          </div>
+        </div>
+        <p class="caption en">Takeaway: capacity is ranked by whole-line cycle-time impact, not local batch intuition.</p>
+        <p class="caption zh">Takeaway：capacity decision 看 whole-line cycle-time impact，不只看局部 batch 直覺。</p>
+      </div>
+
+      <div class="engine-card">
+        <h3>Maintenance timing</h3>
+        <span class="prompt en">Maintain now or wait?</span>
+        <span class="prompt zh">現在 PM 還是延後？</span>
+        <div class="engine-bars">
+          <div class="engine-bar">
+            <span>Immediate PM</span>
+            <div class="track"><div class="fill green" style="width:38%"></div></div>
+            <span class="value">$1.75M</span>
+          </div>
+          <div class="engine-bar">
+            <span>Mid PM</span>
+            <div class="track"><div class="fill" style="width:53%"></div></div>
+            <span class="value">$2.45M</span>
+          </div>
+          <div class="engine-bar">
+            <span>Late PM</span>
+            <div class="track"><div class="fill red" style="width:100%"></div></div>
+            <span class="value">$4.59M</span>
+          </div>
+        </div>
+        <p class="caption en">Takeaway: monitoring becomes a PM-timing trade-off once cost is attached to delay.</p>
+        <p class="caption zh">Takeaway：當 delay 有成本，monitoring 就會變成 PM-timing trade-off。</p>
+      </div>
+
+      <div class="engine-card">
+        <h3>Dispatching policy</h3>
+        <span class="prompt en">Which queue rule fits the objective?</span>
+        <span class="prompt zh">哪個 queue rule 符合目標？</span>
+        <div class="engine-winners">
+          <div class="engine-winner"><span>Cycle time</span><strong>EDD</strong></div>
+          <div class="engine-winner"><span>On-time</span><strong>EDD</strong></div>
+          <div class="engine-winner"><span>Yield risk</span><strong>Release control</strong></div>
+          <div class="engine-winner"><span>Total cost</span><strong>Release control</strong></div>
+        </div>
+        <p class="caption en">Takeaway: the best dispatch policy changes when the operating objective changes.</p>
+        <p class="caption zh">Takeaway：operating objective 改變時，最佳 dispatch policy 也會改變。</p>
+      </div>
+
+      <div class="engine-card">
+        <h3>Yield trade-offs</h3>
+        <span class="prompt en">Does faster flow increase quality risk?</span>
+        <span class="prompt zh">加速 flow 是否增加 quality risk？</span>
+        <div class="engine-pair">
+          <div>
+            <strong>-2.87 h</strong>
+            <span>cycle-time change from LITHO +1</span>
+          </div>
+          <div>
+            <strong>+0.038</strong>
+            <span>post-litho violation-rate change</span>
+          </div>
+        </div>
+        <p class="caption en">Takeaway: speed and yield risk must be visible in the same decision view.</p>
+        <p class="caption zh">Takeaway：speed 和 yield risk 必須放在同一個 decision view 裡看。</p>
+      </div>
+    </div>
+
   </div>
 
   <p class="section-label"><span class="en">Methodology and validation</span><span class="zh">方法與驗證</span></p>
@@ -573,7 +622,7 @@
     <div class="zh">
       <p><strong>已知真值設計：</strong>合成產線的瓶頸與異常皆為刻意注入，方法的偵測與診斷品質有標準答案可對照量測；合成資料全程明示為合成。</p>
       <p><strong>一致性檢查：</strong>模擬核心以 Little's Law 做內部一致性檢查，長期運行的 WIP 誤差 0.2%；依模擬驗證方法學，此為模型內部正確性檢查，不是對任何真實工廠的有效性宣稱。</p>
-      <p><strong>適用邊界：</strong>成本模型只做給定假設下的相對排序與敏感度分析；真實生產紀錄僅用於可辯護的流程還原與診斷；與實體工廠的即時資料連線（數位孿生的定義性特徵）明確劃在邊界之外。</p>
+      <p><strong>適用邊界：</strong>成本模型只做給定假設下的相對排序與敏感度分析；真實生產紀錄僅用於可辯護的流程診斷；與實體工廠的即時資料連線（數位孿生的定義性特徵）明確劃在邊界之外。</p>
       <p><strong>參考文獻：</strong>
       <a href="https://pubsonline.informs.org/doi/10.1287/opre.9.3.383">Little (1961, Operations Research)</a>、
       <a href="https://www.tandfonline.com/doi/abs/10.1057/jos.2012.20">Sargent (2013, Journal of Simulation)</a>、
@@ -595,8 +644,8 @@
   </div>
 
   <div class="links">
-    <a class="btn primary" href="dashboard.html">
-      <span class="en">▶ Explore the interactive data</span><span class="zh">▶ 看互動式詳細數據</span></a>
+    <a class="btn primary" href="scenario-runner.html">
+      <span class="en">&#9654; Try the scenario runner demo</span><span class="zh">&#9654; 操作情境模擬 demo</span></a>
     <a class="btn ghost" href="https://github.com/leonlaiyc/manufacturing-ops-analytics">
       <span class="en">View the full analysis on GitHub</span><span class="zh">在 GitHub 看完整分析</span></a>
   </div>

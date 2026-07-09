@@ -85,12 +85,313 @@ git if ever needed.)
   M7 labels; drift monitoring; conformal prediction intervals for M7/M8
   models; a short model card each (assumptions, limits, failure modes).
 
+### HANDOVER: dashboard narrative refresh (superseded 2026-07-08)
+
+This handover was completed by retiring the standalone dashboard page instead
+of rewriting it. The owner decided the dashboard duplicated `docs/index.html`.
+The evidence visuals were folded into the index page, and
+`docs/dashboard.html` was removed in commit `7e06914`.
+
+Current rule:
+1. `docs/dashboard.html` is retired. Do not recreate it unless the owner
+   explicitly asks.
+2. `src/kpi/export_html_dashboard.py` now exports the baseline page only and
+   removes the retired dashboard if present.
+3. `docs/index.html` is now the primary public narrative page. Treat it as the
+   owner-reviewed copy surface.
+
+### HANDOVER: index page continuation for Claude Code (2026-07-08)
+
+Goal: continue owner-directed refinement of `docs/index.html` on branch `v2`.
+The owner is reviewing the public page section by section and wants concise,
+reader-clear wording that avoids overclaiming.
+
+Latest relevant commits on `v2`:
+1. `7e06914` folded dashboard evidence into `docs/index.html`, retired
+   `docs/dashboard.html`, added `src/kpi/export_index_assets.py`, and exported
+   `docs/assets/finding03_output_cycle_time.png`.
+2. `6048b8b` simplified the index narrative, removed long explanatory blocks,
+   and replaced the three intro cards with Diagnose, Model, Decide.
+3. `faf80a2` refined decision copy, removed the cost-method explanation from
+   Finding 01, removed the Finding 02 consequence column, and simplified the
+   agent section.
+4. `50dac34` clarified that the real log is a public 4TU.ResearchData
+   job-shop manufacturing production log, not private fab data.
+
+Current index positioning:
+1. The first intro card says the project diagnoses a public 4TU job-shop
+   manufacturing production log.
+2. The second intro card says the project builds a fixed-seed synthetic fab
+   with batch FURNACE and re-entrant LITHO, then checks methods against known
+   bottlenecks and injected anomalies.
+3. The third intro card says the project turns capacity, maintenance,
+   dispatching, and yield trade-off questions into CRN-paired what-if analysis
+   flows. The owner is sensitive to wording that sounds like a full
+   user-facing product. Use "prototype", "bounded options", or "analysis flow"
+   if this topic returns.
+4. Finding 01 title in Chinese is now "全方位分析，避免直覺誤判".
+5. Finding 02 uses the original dashboard Finding 03 chart inside
+   `docs/index.html`; its visual label uses "圖表觀察：" rather than a raw
+   arrow.
+6. Finding 03 title in Chinese is now "一個agent，回答四類 fab 營運問題".
+
+Important owner preferences learned today:
+1. Dashboard was removed because it repeated the index. Do not add a second
+   roadmap-style page.
+2. Concrete visuals must support the three core index highlights.
+3. Every chart or visual block needs an immediate takeaway or observation.
+4. Avoid phrases that make the project sound like private real-fab data,
+   production optimizer, completed digital twin, or completed packaging model.
+5. Public data source must be explicit when mentioning the real production log.
+6. Costs are illustrative assumptions for ranking, never real-fab price or
+   savings forecasts.
+7. The owner may next ask for a lightweight scenario runner UI. If so, frame it
+   as a bounded scenario runner demo, not a production decision platform.
+
+Validation already performed during this Codex pass:
+1. `py src/kpi/export_index_assets.py` regenerated the Finding 02 chart asset.
+2. `py src/kpi/export_html_dashboard.py` removed the retired dashboard and
+   regenerated the baseline page.
+3. The fourteen validation scripts in `AGENTS.md` passed after installing the
+   owner-approved M8 dependencies `scikit-learn` and `shap` into the Python 3.10
+   environment used by `py`.
+4. Later copy-only edits checked `docs/index.html` with `rg`, `git diff --check`,
+   and the local preview URL.
+
+Local preview:
+`http://127.0.0.1:8787/` is the current local server for `docs/` if the process
+is still running. GitHub Pages publishes from `main:/docs`, so the public URL
+does not show `v2` changes until the owner merges.
+
+Suggested Claude Code prompt:
+Read `CLAUDE.md` in full, then read `V2-PLAN.md` section "HANDOVER: index page
+continuation for Claude Code". Continue only with the newest owner request.
+Before editing, explain the exact small changes you will make. Keep edits to
+`docs/index.html` unless the owner explicitly asks for code or generated asset
+changes.
+
+### HANDOVER: scenario runner demo for Codex (2026-07-08)
+
+Goal: continue owner-directed work on the public pages on branch `v2`. Claude
+Code built the scenario runner demo the previous handover anticipated. This
+section is the current state; the index-page handover above is still valid for
+`docs/index.html` copy work.
+
+What shipped (two commits on `v2`):
+1. `663c0ff` added `docs/scenario-runner.html`, a bounded interactive demo over
+   the precomputed what-if library, plus a primary entry button in the
+   `docs/index.html` `.links` block (where the retired dashboard link used to
+   be). Button copy: "Try the scenario runner demo" / "操作情境模擬 demo".
+2. `c005ece` applied the owner's first review round (see locked rules below).
+
+What the page is (locked framing, do not loosen without owner instruction):
+1. It is a "Scenario Runner Demo" / "情境模擬 demo". NEVER call it a simulator,
+   decision platform, or optimization tool. It runs nothing live: every number
+   is read from a precomputed, fixed-seed, CRN-paired run and matches the
+   index page exactly. No new Python code, no free-form parameter input.
+2. Five tabs. The first four (capacity, maintenance, dispatch, yield) map to
+   the agent's four what-if decision modules in `src/agent/tools.py`. The fifth
+   (monitoring) is the detection layer that feeds those decisions, NOT a fifth
+   agent tool. The hero states this 4+1 relationship in both languages.
+3. Per-tab pattern: pick a scenario, see the KPI visual, then a decision-memo
+   preview, then a structured analysis record. There are no separate takeaway
+   lines (owner cut them as duplicating the memo). Memo sits ABOVE the record.
+4. The decision memo is a fixed template written index-style: it compares the
+   options and ends with objective-conditional guidance ("if the priority is
+   X ... if the priority is Y ..."). It is explicitly labeled "no live LLM, no
+   numbers outside the record". A real LLM memo wrapper stays in the local M10
+   agent flow, never on GitHub Pages.
+5. The analysis record is code-style structured fields: scenario id, engine
+   (module path), run (n_reps, CRN), seeds, assumptions, KPI result. Seed
+   ranges are real: capacity 1000-1029, maintenance 6000-6014, dispatch
+   8000-8029, yield 5000-5029 (shared QualityConfig seed), monitoring config
+   seed 42 with labeled onset day 30.
+6. Maintenance and yield tabs are LITHO-only by design: only LITHO runs are
+   published, and LITHO is the engineered bottleneck where each trade-off is
+   sharpest. Each tab carries a scope note saying the engine accepts a station
+   parameter but only the LITHO numbers are published. Do NOT fabricate other
+   stations to fill a selector.
+7. Bottom notes are titled "Scope" / "聲明" (owner changed "Honest scope" /
+   "誠實聲明" to a plain statement).
+
+Open owner question (do not act without instruction):
+- Whether `docs/index.html` Finding 03 should gain a half-sentence tying the
+  four agent decision modules to the Finding 02 monitoring detection layer
+  (the 4+1 framing). Claude Code did not touch the index narrative for this;
+  index copy is the owner's hand-tuned surface, surgical bilingual edits only.
+
+Validation performed:
+- Local preview at `http://127.0.0.1:8123/scenario-runner.html`
+  (`.claude/launch.json` config `docs-static`, `py -m http.server 8123`).
+- Programmatic checks across all five tabs: tab switching, single-select
+  highlight, memo/record swap per selection, structured record fields, cost
+  column always visible, memo-before-record order, scope notes present, chart
+  asset loads, EN/ZH toggle. No console errors.
+- No em dash in the file; `git diff --check` clean. No `src/` change, so the
+  fourteen validation scripts were not required.
+
+Suggested Codex prompt:
+Read `CLAUDE.md` in full, then read `V2-PLAN.md` sections "HANDOVER: scenario
+runner demo for Codex" and "HANDOVER: index page continuation". Continue only
+with the newest owner request. Keep edits to `docs/` unless the owner asks for
+code or generated-asset changes. Match the index visual system and the locked
+demo framing; make surgical, bilingual (.en/.zh paired) edits.
+
+### HANDOVER: SA/SD documentation validation for Claude Code (2026-07-09)
+
+Goal: review the new reviewer-facing system analysis and system design docs.
+The owner asked for SA/SD-style documentation similar to what a Java system
+handoff would include, adapted to an analytics and decision-support project.
+
+Files added or linked:
+1. `docs/SA.md`: system analysis. It covers problem framing, stakeholders,
+   scope, data boundary, use cases, functional and nonfunctional requirements,
+   acceptance map, open boundaries, and AI assistance note.
+2. `docs/SD.md`: system design. It covers architecture overview, module map,
+   data products, event-log schema, generator design, KPI and bottleneck
+   design, monitoring design, decision and agent design, validation design,
+   public artifacts, failure handling, extension points, and traceability.
+3. `README.md`: added a short "Design documentation" entry that links to the
+   two docs.
+
+Validation requested from Claude Code:
+1. Read `AGENTS.md`, `CLAUDE.md`, `docs/SA.md`, `docs/SD.md`, and the README
+   "Design documentation" section.
+2. Check that both docs are English, reader-facing, and contain no em dash
+   character.
+3. Check that no sentence overclaims the project as a production digital twin,
+   production optimizer, real fab predictive model, or private semiconductor
+   dataset.
+4. Check that the docs match the locked line design:
+   `CLEAN -> FURNACE -> DEPO -> LITHO -> ETCH -> LITHO -> IMPLANT -> METRO`,
+   batch FURNACE, re-entrant LITHO, slot utilization, fixed seeds, CRN
+   validation, and LITHO bottleneck.
+5. Run:
+   `rg -n "\x{2014}|python src/| ," README.md docs/SA.md docs/SD.md docs/glossary.md`
+6. Run:
+   `py scripts/validate_all.py`
+7. Run:
+   `git diff --check`
+
+Expected outcome:
+- No code behavior should change from the SA/SD docs.
+- `py scripts/validate_all.py` should report `Summary: 18 passed, 0 failed`.
+- Only documentation files should be involved unless the owner asks for further
+  scope.
+
+Suggested Claude Code prompt:
+Read `CLAUDE.md` in full, then read `V2-PLAN.md` section "HANDOVER: SA/SD
+documentation validation for Claude Code". Validate only the SA/SD handoff
+unless the owner gives a newer request. Report findings first, with file and
+line references, then list any recommended documentation edits.
+
+### HANDOVER: two commissioned tasks for Codex (2026-07-08, owner-approved)
+
+The owner commissioned both tasks below on 2026-07-08. Do Task A first: it
+closes the last README claim without evidence. Task B is an invisible
+refactor; the rendered page must not change. Read `CLAUDE.md` in full first
+and obey its hard rules (no em dash, English only, fixed seeds, `py` not
+`python` on this machine).
+
+#### Task A: record the live agent session (M10 evidence)
+
+GOAL: produce and commit the first VERIFIED live agent transcript under
+`reports/agent_sessions/`, so the M10 claim ("a live-session runner records
+transcripts as public evidence") is backed by an actual artifact. Everything
+else about M10 is already shipped and gated offline with MockLLM.
+
+SPEC:
+- Precondition: the owner sets `OPENAI_API_KEY` in the environment for the
+  session. Never echo, log, or commit the key; abort if it is absent (the
+  runner exits 1 with a clear message). The runner defaults to OpenAI and
+  supports `OPENAI_MODEL` if a different model is needed. It also has a local
+  `LIVE_AGENT_MAX_USD` budget guard, default `$5.00`, with actual token usage
+  recorded in the transcript.
+- Run exactly: `py scripts/run_live_agent_session.py` (default provider,
+  default question, one session per invocation). Cost is a single short
+  session.
+- Exit 0 (VERIFIED): commit the produced
+  `reports/agent_sessions/session_<UTC stamp>/` (transcript.json + memo.md).
+  First confirm `.gitignore` does not swallow the path (only `data/**` and
+  generated synthetic artifacts are ignored; `reports/figures` is tracked).
+- Exit 2 (ran but FAILED verification): keep the artifacts locally, do NOT
+  commit them as evidence, and report the `verification` block to the owner.
+  One retry is allowed only for a clearly transient API failure. Never touch
+  the verification logic in `src/agent/` to make a session pass.
+- After a successful commit, update `README.md`: the Roadmap bullet about the
+  recorded live agent session becomes a link to the committed transcript
+  directory. Do not change the M10 table row (it becomes plainly true).
+- Do NOT touch: `src/agent/**` (verification logic), locked design decisions,
+  notebook 10.
+
+ACCEPTANCE (all must hold):
+- `transcript.json` has `"status": "VERIFIED"`, `verification.all_found`
+  true, and an empty `uncited_numbers` list.
+- `py src/agent/agent_check.py` and `py src/agent/loop_check.py` still exit 0.
+- No credential material anywhere in the committed diff (search the staged
+  diff for raw provider-token prefixes before committing; environment
+  variable names are allowed).
+- Committed as `feat: record first verified live agent session (M10)` and
+  pushed to `v2`; V2-PLAN.md Log gains one entry marking open item (1)
+  resolved.
+
+REPORT: session status line, citation counts from the runner output, the
+committed path, and one line "verified:" / one line "assumed:".
+
+#### Task B: scenario runner data extraction (single source of truth)
+
+GOAL: move the numbers hardcoded in `docs/scenario-runner.html` into a
+generated `docs/assets/scenario_runner_data.json`, produced by a new exporter
+`src/kpi/export_scenario_runner_data.py`, so page numbers can never silently
+drift from engine outputs. This is a BEHAVIOR-PRESERVING change: the rendered
+page must show byte-identical numbers and text before vs after.
+
+SPEC:
+- Exporter: derive every numeric field from the same module entry points the
+  published numbers came from, with the published seeds: capacity
+  `src/decision/whatif.py` (n_reps=30, seed0=1000; stress costs via
+  `cost_model.py`, reuse `data/synthetic/findings_cache.json` /
+  `src/kpi/precompute_findings.py` where the value is already cached),
+  maintenance `src/equipment/maintenance_whatif.py` demo (n_reps=15,
+  seed0=6000), dispatch `src/decision/dispatch_whatif.py` run_all (n_reps=30,
+  seed0=8000), yield `src/decision/yield_whatif.py` demo_extra_litho_tool
+  (n_reps=30, seed0=5000), monitoring from the findings cache (seed 42,
+  onset day 30, alert day 84).
+- Hard gate inside the exporter: assert each derived value matches the
+  published value (2.46 / 0.70 / 0.26 / 0.05 h; +8.0k / -1.7k / +1.7k /
+  +1.4k; 1.75M / 2.45M / 4.59M; EDD and release_control winners; -2.87 h /
+  +0.038; day 84 of 160). If any value cannot be reproduced exactly at the
+  published rounding, STOP and report; do not widen tolerances and do not
+  ship the JSON.
+- Page: load the JSON (same-origin fetch works on GitHub Pages and the local
+  `docs-static` server; note in a code comment that file:// will not work)
+  and fill the numeric/data fields from it. The bilingual memo and note prose
+  STAYS in the HTML: it is the owner-reviewed copy surface. Structured record
+  fields (engine, run, seeds, assumptions, KPI strings) may move to the JSON.
+- Do NOT change any visible wording, layout, CSS, or the locked demo framing
+  (see the scenario runner handover above). No new JS libraries.
+
+ACCEPTANCE (all must hold):
+- `py src/kpi/export_scenario_runner_data.py` exits 0 and regenerating twice
+  produces an identical file (fixed seeds).
+- With the local `docs-static` server, every number and label shown on all
+  five tabs is identical to the pre-change page (record the pre-change values
+  first, then compare).
+- `git diff --check` clean; no em dash; no change outside
+  `src/kpi/export_scenario_runner_data.py`, `docs/scenario-runner.html`,
+  `docs/assets/scenario_runner_data.json`.
+- Committed as `refactor: generate scenario runner data from engines (V2)`.
+
+REPORT: before/after value comparison table, exporter runtime, file:line map
+of the page changes, anything that smelled wrong but was left alone.
+
 ### Deferred (owner decision required)
 - Stylized advanced-packaging (HBM-class) back-end line scenario: reuses the
   DES engine but changes the locked single-product line design. Do not start
   without explicit owner unlock.
-- Dashboard narrative refresh to match V2 positioning (index.html hero done;
-  dashboard framing pending owner review of V2 copy).
+- Scenario runner UI: SHIPPED 2026-07-08 as `docs/scenario-runner.html` (see
+  the handover above). The JSON extraction follow-up is now commissioned as
+  Task B in "two commissioned tasks for Codex".
 
 ## Numbering note
 
@@ -153,7 +454,7 @@ Use `py`, not `python`, on this machine:
   Checks now number twelve. Live session runner
   (scripts/run_live_agent_session.py) is key-gated; recorded transcript will
   be committed under reports/agent_sessions/ when the owner provides
-  ANTHROPIC_API_KEY. Next: M11 data quality and model reliability.
+  OPENAI_API_KEY. Next: M11 data quality and model reliability.
 - 2026-07-08: M11 shipped; THE ROADMAP MODULE SERIES (M7 to M11) IS COMPLETE.
   Stage A schema contract (C1-C6 clauses, seven corruption injectors mapped
   exactly to clauses, leakage-safe as-of join with audit). Stage B drift
@@ -162,5 +463,52 @@ Use `py`, not `python`, on this machine:
   at nominal 0.90; noise doubling doubles interval width), model cards with
   trust boundaries. Stage C notebook 11 + three m11 figures. Checks now number
   fourteen. Open items requiring owner decisions: (1) live agent transcript
-  (needs ANTHROPIC_API_KEY), (2) dashboard narrative refresh (owner copy
+  (needs OPENAI_API_KEY), (2) dashboard narrative refresh (owner copy
   review), (3) advanced-packaging back-end scenario (locked-design unlock).
+- 2026-07-08: scenario runner demo shipped (`docs/scenario-runner.html`,
+  commits 663c0ff and c005ece on `v2`). Bounded interactive view over the
+  precomputed what-if library: five tabs (capacity, maintenance, dispatch,
+  yield decision modules + monitoring detection layer), numbers matching the
+  index page, per-tab decision-memo preview (fixed template, no live LLM) above
+  a structured analysis record with real seed ranges, plus a primary entry
+  button in the index links block. Owner review round one applied: cost column
+  always shown, takeaway lines removed, memo above record, comparative
+  index-style memos, LITHO-only scope notes on maintenance/yield, notes retitled
+  to plain "Scope"/"聲明". No `src/` change. Open owner question: whether index
+  Finding 03 should gain a half-sentence on the 4+1 (four decision modules plus
+  monitoring detection layer) framing; index narrative left untouched pending
+  owner instruction. Full handover in the "scenario runner demo for Codex"
+  section above.
+- 2026-07-08: pre-interview readiness pass. All fourteen validation scripts
+  re-run and pass. README repository-structure section updated to the real
+  tree (nine src modules, notebooks 01-11, scripts/, docs pages, agent-session
+  landing path) and the stale dashboard export comment fixed. Owner
+  commissioned two Codex tasks, spec'd in "two commissioned tasks for Codex":
+  (A) record and commit the first verified live agent session (needs
+  OPENAI_API_KEY from the owner), (B) extract scenario runner page data
+  into a generated JSON with an exact-match gate against published values.
+  Remaining owner decision for publishing: merge `v2` into `main` (47 commits
+  ahead; GitHub Pages serves main, which still shows the V1 state).
+- 2026-07-09: Task A resolved. Live OpenAI agent session recorded at
+  `reports/agent_sessions/session_20260708T161010Z/`: status VERIFIED, seven
+  citations, all_found true, uncited_numbers empty, estimated API cost
+  $0.001150 under the local $1.00 guard. README roadmap now links to the
+  committed transcript directory. `py src/agent/agent_check.py` and
+  `py src/agent/loop_check.py` re-run and pass. Earlier FAILED verification
+  attempts remain local only and are not evidence.
+- 2026-07-09: SA/SD handoff accepted by Claude Code. All seven validation
+  steps pass: style checks clean, no overclaim found, locked line design
+  matches, `py scripts/validate_all.py` reports 18 passed 0 failed. One gap
+  found and fixed during acceptance: `src/generator/validate_m2.py` printed
+  PASS/CHECK but always exited 0; it now exits nonzero when the Little's Law
+  gap exceeds 5% or the empirical bottleneck is not LITHO, matching the
+  SD.md failure-handling claim. AGENTS.md stale handover pointer fixed and
+  the operating-standards routing block committed. Owner instruction: freeze
+  and merge `v2` into `main` for publication.
+- 2026-07-09: Task B resolved. Scenario runner data now exports from engine
+  entry points via `src/kpi/export_scenario_runner_data.py`, with exact-match
+  gates against the published values and deterministic JSON output at
+  `docs/assets/scenario_runner_data.json`. `docs/scenario-runner.html` fetches
+  the JSON for numeric/data fields while keeping owner-reviewed bilingual memo
+  prose in HTML. Claude progress report written at
+  `reports/claude_handoffs/2026-07-09_codex_task_a_b_report.md`.

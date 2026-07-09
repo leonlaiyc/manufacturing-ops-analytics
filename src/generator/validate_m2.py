@@ -15,6 +15,7 @@ Also writes the synthetic event log and metadata to data/synthetic/.
 """
 
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -88,17 +89,19 @@ def main():
     print("--- Little's Law (WIP = throughput x cycle time) ---")
     print(f"WIP predicted (TH x CT)  : {wip_ll:.2f}")
     print(f"WIP measured (time-avg)  : {wip_meas:.2f}")
+    ll_ok = ll_gap < 0.05
     print(f"Relative gap             : {ll_gap*100:.2f}%  "
-          f"({'PASS' if ll_gap < 0.05 else 'CHECK'})")
+          f"({'PASS' if ll_ok else 'FAIL'})")
     print()
     print("--- Utilization per station (theoretical vs empirical) ---")
     print(f"{'station':<8}{'planned':>10}{'observed':>10}")
     for s in cfg.stations:
         print(f"{s:<8}{theo[s]:>10.3f}{emp[s]:>10.3f}")
     print()
+    bn_ok = emp_bottleneck == meta["ground_truth_bottleneck"]
     print(f"Designed bottleneck   : {meta['ground_truth_bottleneck']}")
     print(f"Empirical bottleneck  : {emp_bottleneck}  "
-          f"({'PASS' if emp_bottleneck == meta['ground_truth_bottleneck'] else 'CHECK'})")
+          f"({'PASS' if bn_ok else 'FAIL'})")
 
     # Persist outputs.
     log.to_csv(OUT / "event_log.csv", index=False)
@@ -120,6 +123,11 @@ def main():
     print(f"Saved: {OUT/'lot_lifecycle.csv'}  ({len(lifecycle)} lots)")
     print(f"Saved: {OUT/'metadata.json'}")
 
+    ok = ll_ok and bn_ok
+    print()
+    print(f"OVERALL: {'ALL GATES PASS' if ok else 'FAILURE'}")
+    return 0 if ok else 1
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
