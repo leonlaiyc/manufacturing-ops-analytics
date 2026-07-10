@@ -11,26 +11,45 @@ validation script or generated artifact.
 
 ## Architecture Overview
 
-```text
-real production log
-        |
-        v
-notebook 01 process mining
+```mermaid
+flowchart TB
+    real["Public production log<br/>diagnosis only"] --> pm["Process mining diagnosis<br/>case path, DFG, waiting, rework"]
+    synth["Synthetic fab simulator<br/>fixed seeds, validated DES, known ground truth"] --> base["KPI baseline and known-ground-truth experiments"]
 
-synthetic fab generator
-        |
-        +--> event_log.csv / lot_lifecycle.csv / metadata.json
-        |
-        +--> KPI baseline and public figures
-        |
-        +--> bottleneck, monitoring, quality, equipment, dispatching,
-             decision support, agent tools, and data-quality checks
+    base --> bottleneck["Bottleneck proof<br/>M4"]
+    base --> monitoring["Slow-drift monitoring<br/>M5"]
+    base --> capacity["Capacity investment<br/>M6"]
+    base --> yieldtrade["Yield trade-offs<br/>M7"]
+    base --> maintenance["Maintenance timing<br/>M8"]
+    base --> dispatch["Dispatching policy<br/>M9"]
+
+    bottleneck --> record["Traceable analysis record<br/>scenario, seed, assumptions, KPI"]
+    monitoring --> record
+    capacity --> record
+    yieldtrade --> record
+    maintenance --> record
+    dispatch --> record
+
+    agent["LLM agent layer<br/>bounded tool use, no free-form code"] --> tools["Logged simulation tools<br/>validated inputs, run IDs"]
+    tools --> record
+    record --> memo["Verified decision memo<br/>numbers checked against the run log"]
+
+    pm --> docs["Public evidence and documentation"]
+    memo --> docs
+
+    dq["Data quality and reliability checks<br/>M11"] -.-> pm
+    dq -.-> base
+    dq -.-> record
+    dq -.-> memo
 ```
 
 The project has two analysis tracks:
 
 1. Real-log diagnosis, limited to what the public log can support.
 2. Synthetic fab decision support, where known ground truth enables validation.
+
+The LLM layer is tool use, not RAG: it calls bounded, logged simulation tools and
+produces memos whose numbers are checked against the run log.
 
 ## Module Map
 
