@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "fab-whatif": {
+      "command": "py",
+      "args": ["src/agent/mcp_server.py"]
+    }
+  }
+}
