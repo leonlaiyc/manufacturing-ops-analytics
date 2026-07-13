@@ -1,5 +1,7 @@
 # Manufacturing Operations Analytics & Decision Support
 
+[![checks](https://github.com/leonlaiyc/manufacturing-ops-analytics/actions/workflows/checks.yml/badge.svg)](https://github.com/leonlaiyc/manufacturing-ops-analytics/actions/workflows/checks.yml)
+
 **Quality-aware fab operations analytics with simulation-in-the-loop
 decision support.**
 
