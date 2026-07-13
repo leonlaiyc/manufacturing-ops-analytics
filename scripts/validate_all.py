@@ -21,6 +21,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+# The interpreter that launched this script; portable across Windows (py
+# launcher) and CI runners where no `py` shim exists.
+PY = sys.executable
+
 
 @dataclass(frozen=True)
 class Check:
@@ -29,25 +33,25 @@ class Check:
 
 
 CORE_CHECKS: tuple[Check, ...] = (
-    Check("compileall", ("py", "-m", "compileall", "-q", "src")),
-    Check("M2 generator validation", ("py", "src/generator/validate_m2.py")),
-    Check("CRN determinism", ("py", "src/generator/crn_check.py")),
-    Check("M5 monitoring", ("py", "src/monitoring/monitoring_check.py")),
-    Check("M7 quality", ("py", "src/quality/quality_check.py")),
-    Check("M7 virtual metrology", ("py", "src/quality/vm_check.py")),
-    Check("M8 equipment E10", ("py", "src/equipment/equipment_check.py")),
-    Check("M8 maintenance what-if", ("py", "src/equipment/maintenance_check.py")),
-    Check("M8 PdM", ("py", "src/equipment/pdm_check.py")),
-    Check("M9 dispatch generator", ("py", "src/generator/dispatch_check.py")),
-    Check("M9 dispatch what-if", ("py", "src/decision/dispatch_whatif_check.py")),
-    Check("M10 agent tools", ("py", "src/agent/agent_check.py")),
-    Check("M10 agent loop", ("py", "src/agent/loop_check.py")),
-    Check("M10 MCP wrapper", ("py", "src/agent/mcp_check.py")),
-    Check("M11 data quality", ("py", "src/dataquality/dq_check.py")),
-    Check("M11 reliability", ("py", "src/dataquality/reliability_check.py")),
-    Check("scenario runner data", ("py", "src/kpi/export_scenario_runner_data.py")),
-    Check("index static assets", ("py", "src/kpi/export_index_assets.py")),
-    Check("baseline HTML dashboard", ("py", "src/kpi/export_html_dashboard.py")),
+    Check("compileall", (PY,"-m", "compileall", "-q", "src")),
+    Check("M2 generator validation", (PY,"src/generator/validate_m2.py")),
+    Check("CRN determinism", (PY,"src/generator/crn_check.py")),
+    Check("M5 monitoring", (PY,"src/monitoring/monitoring_check.py")),
+    Check("M7 quality", (PY,"src/quality/quality_check.py")),
+    Check("M7 virtual metrology", (PY,"src/quality/vm_check.py")),
+    Check("M8 equipment E10", (PY,"src/equipment/equipment_check.py")),
+    Check("M8 maintenance what-if", (PY,"src/equipment/maintenance_check.py")),
+    Check("M8 PdM", (PY,"src/equipment/pdm_check.py")),
+    Check("M9 dispatch generator", (PY,"src/generator/dispatch_check.py")),
+    Check("M9 dispatch what-if", (PY,"src/decision/dispatch_whatif_check.py")),
+    Check("M10 agent tools", (PY,"src/agent/agent_check.py")),
+    Check("M10 agent loop", (PY,"src/agent/loop_check.py")),
+    Check("M10 MCP wrapper", (PY,"src/agent/mcp_check.py")),
+    Check("M11 data quality", (PY,"src/dataquality/dq_check.py")),
+    Check("M11 reliability", (PY,"src/dataquality/reliability_check.py")),
+    Check("scenario runner data", (PY,"src/kpi/export_scenario_runner_data.py")),
+    Check("index static assets", (PY,"src/kpi/export_index_assets.py")),
+    Check("baseline HTML dashboard", (PY,"src/kpi/export_html_dashboard.py")),
 )
 
 NOTEBOOKS: tuple[str, ...] = (
@@ -70,7 +74,7 @@ def notebook_checks(output_dir: Path) -> tuple[Check, ...]:
         Check(
             f"notebook {Path(path).name}",
             (
-                "py",
+                PY,
                 "-m",
                 "jupyter",
                 "nbconvert",
