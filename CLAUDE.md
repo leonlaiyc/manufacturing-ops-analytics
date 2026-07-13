@@ -80,7 +80,8 @@ on this machine): `py src/generator/validate_m2.py` ·
 `py src/equipment/equipment_check.py` · `py src/equipment/maintenance_check.py` ·
 `py src/equipment/pdm_check.py` · `py src/generator/dispatch_check.py` ·
 `py src/decision/dispatch_whatif_check.py` · `py src/agent/agent_check.py` ·
-`py src/agent/loop_check.py` · `py src/dataquality/dq_check.py` ·
+`py src/agent/loop_check.py` · `py src/agent/mcp_check.py` ·
+`py src/dataquality/dq_check.py` ·
 `py src/dataquality/reliability_check.py`
 
 M8 stack exception (owner-approved 2026-07-04): scikit-learn (gradient

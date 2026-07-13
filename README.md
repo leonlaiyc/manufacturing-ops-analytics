@@ -113,6 +113,21 @@ on the same day.
 | M10 Agentic decision support | The what-if engines exposed as bounded, logged tools an LLM can call; decision memos where every cited number carries a run tag verified against the log; fabrication-catch and credential-guard gates run fully offline; a live-session runner records transcripts as public evidence | [notebook 10](notebooks/10_agentic_decision_support.ipynb), `src/agent` |
 | M11 Data quality & model reliability | Event-log schema contract with corruption-tested validators, leakage-safe as-of joins, drift monitoring with measured detection delay and zero clean-run false alarms, split conformal intervals for the metrology model (measured coverage), and model cards with explicit trust boundaries | [notebook 11](notebooks/11_data_quality_model_reliability.ipynb), `src/dataquality`, [model cards](docs/model_cards) |
 
+## Call the what-if engine from an MCP client
+
+The five bounded M10 tools are also exposed as an MCP stdio server
+([`src/agent/mcp_server.py`](src/agent/mcp_server.py)), so an MCP client such
+as Claude Code or Claude Desktop can call the simulation engine directly.
+`.mcp.json` in the repo root registers the server for Claude Code
+automatically; for Claude Desktop, point `claude_desktop_config.json` at the
+same command (`py src/agent/mcp_server.py`, working directory = repo root).
+The wrapper adds no behavior: the same input bounds apply, every call is
+appended to `reports/mcp_sessions/mcp_run_log.jsonl`, and every result carries
+a `run_id` traceable to that log (`py src/agent/mcp_check.py` proves schema
+parity, traceability, and determinism offline). The tools run the fixed-seed
+synthetic line; results are method demonstrations, not predictions about any
+real factory.
+
 ## Design documentation
 
 For reviewer-style SA and SD documentation:
@@ -219,6 +234,7 @@ py src/generator/dispatch_check.py   # dispatch policies + FIFO byte-identity ga
 py src/decision/dispatch_whatif_check.py # policy-comparison pairing gates
 py src/agent/agent_check.py          # tool-layer traceability + tamper gates
 py src/agent/loop_check.py           # agent-loop fabrication-catch gates (offline)
+py src/agent/mcp_check.py            # MCP wrapper parity + traceability gates (offline)
 py src/dataquality/dq_check.py       # schema-contract + corruption + join gates
 py src/dataquality/reliability_check.py # drift, conformal coverage, model-card gates
 py src/kpi/export_html_dashboard.py  # rebuild the interactive baseline page

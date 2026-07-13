@@ -42,6 +42,7 @@ CORE_CHECKS: tuple[Check, ...] = (
     Check("M9 dispatch what-if", ("py", "src/decision/dispatch_whatif_check.py")),
     Check("M10 agent tools", ("py", "src/agent/agent_check.py")),
     Check("M10 agent loop", ("py", "src/agent/loop_check.py")),
+    Check("M10 MCP wrapper", ("py", "src/agent/mcp_check.py")),
     Check("M11 data quality", ("py", "src/dataquality/dq_check.py")),
     Check("M11 reliability", ("py", "src/dataquality/reliability_check.py")),
     Check("scenario runner data", ("py", "src/kpi/export_scenario_runner_data.py")),
