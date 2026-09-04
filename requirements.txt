@@ -7,6 +7,6 @@ plotly>=5.9
 networkx>=2.8
 scikit-learn>=1.3
 shap>=0.44
-mcp>=1.20            # MCP stdio server wrapper for the agent tool layer (src/agent/mcp_server.py)
+mcp>=1.20,<2.0       # MCP stdio server wrapper for the agent tool layer (src/agent/mcp_server.py)
 anyio>=4             # explicit: mcp_server.py/mcp_check.py runtime (also a transitive mcp dep)
 jsonschema>=4        # agent_check.py GATE 4 strict schema validation (falls back if absent)
