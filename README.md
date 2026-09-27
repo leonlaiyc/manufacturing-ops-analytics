@@ -221,7 +221,10 @@ manufacturing-ops-analytics/
 
 ## Reproducibility
 
-All synthetic data is generated from fixed seeds. Regenerate and re-validate:
+All synthetic data is generated from fixed seeds. Regenerate and re-validate.
+
+For a quick smoke check, start with the DES validation and anomaly-monitoring
+checks; the full command list below covers all shipped analytics modules:
 
 ```bash
 py src/generator/validate_m2.py      # Little's Law + bottleneck recovery
