@@ -142,7 +142,7 @@ For reviewer-style SA and SD documentation:
 ## Roadmap
 
 All roadmap modules (M7 through M11) are shipped; the table above is the
-record. Two extensions stay deliberately out of scope until decided:
+record. Two follow-up directions are noted here:
 
 - A stylized advanced-packaging (HBM-class) back-end line scenario: it reuses
   the same DES engine but changes the locked line design, so it is an explicit
